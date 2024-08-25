@@ -1,0 +1,174 @@
+.app-container {
+  font-family: 'Arial, sans-serif';
+  color: #fff;
+  background-color: #0077C8;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+}
+
+.navbar .logo {
+  width: 50px;
+  height: auto;
+}
+
+.navbar ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.navbar ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.create-account {
+  background-color: transparent;
+  border: 2px solid #fff;
+  padding: 10px 20px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 100px;
+}
+
+.text-section {
+  max-width: 600px;
+}
+
+.company-name {
+  font-size: 48px;
+  font-weight: bold;
+}
+
+.tagline {
+  font-size: 24px;
+  color: #FFD700;
+  margin-bottom: 20px;
+}
+
+.description {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.sign-up {
+  background-color: #38C9FF;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.image-section .main-image {
+  max-width: 400px;
+  border-radius: 10px;
+}
+
+/* Selection Modal */
+.modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 80%;
+  position: relative; /* Required for positioning close button */
+}
+
+/* Close Button */
+.close-button {
+  position: absolute; /* Position it absolutely within the modal-content */
+  top: 10px;
+  right: 10px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #333; /* Ensure it's visible against the modal background */
+  z-index: 1100; /* Ensure it's above other content */
+}
+
+/* Form Styling */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+button[type="submit"] {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background-color: #0056b3;
+}
+
+/* Account Type Selection */
+.account-type-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.account-type-button {
+  background-color: #0077C8;
+  border: 2px solid #fff;
+  padding: 10px 20px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  margin: 10px 0;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.account-type-button:hover {
+  background-color: #0056b3;
+}
