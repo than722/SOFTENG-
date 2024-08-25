@@ -1,11 +1,51 @@
 import React, { useState } from 'react';
 import './App.css';  // Assuming you have a separate CSS file
 import logo from './assets/images/logo4.png';
+import axios from 'axios';
 
 const App = () => {
+  const [values, setValues] = useState({
+    lastName: '',
+    firstName: '',
+    middleName: '',
+    province: '',
+    municipality: '',
+    barangay: '',
+    zipCode: '',
+    mobileNumber: '',
+    companyName: ''
+  });
+
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [accountType, setAccountType] = useState(''); // State for account type
+
+  const handleChange = (event) => {
+    setValues({
+      ...values,
+      [event.target.name]: event.target.value
+    });
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const payload = {
+      accountType: accountType,
+      lastName: values.lastName,
+      firstName: values.firstName,
+      middleName: values.middleName,
+      province: values.province,
+      municipality: values.municipality,
+      barangay: values.barangay,
+      zipCode: values.zipCode,
+      mobileNumber: values.mobileNumber,
+      companyName: values.companyName // Optional field for employer
+    };
+
+    axios.post('http://localhost:8081/signup', payload)
+      .then(res => console.log("Registered Successfully!"))
+      .catch(err => console.log(err));
+  };
 
   const openSelectionModal = () => {
     setIsSelectionModalOpen(true);
@@ -50,7 +90,7 @@ const App = () => {
             having recognition from the POEA, OWWA, and DOLE. The corporation expertises in marketing and HR training with a goal of 
             employer and client satisfaction, aiming for improved local employment rate and awards for exceptional services.
           </p>
-          <button className="sign-up">SIGN UP</button>
+          <button className="sign-up" onClick={openSelectionModal}>SIGN UP</button>
         </div>
 
         <div className="image-section">
@@ -76,34 +116,34 @@ const App = () => {
           <div className="modal-content">
             <span className="close-button" onClick={closeFormModal}>&times;</span>
             <h2>{accountType === 'employee' ? 'Employee Form' : 'Employer Form'}</h2>
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Last Name:</label>
-                <input type="text" name="lastName" placeholder="Last Name" required />
+                <input type="text" name="lastName" placeholder="Last Name" required onChange={handleChange}/>
               </div>
               <div className="form-group">
                 <label>First Name:</label>
-                <input type="text" name="firstName" placeholder="First Name" required />
+                <input type="text" name="firstName" placeholder="First Name" required onChange={handleChange}/>
               </div>
               <div className="form-group">
                 <label>Middle Name:</label>
-                <input type="text" name="middleName" placeholder="Middle Name" />
+                <input type="text" name="middleName" placeholder="Middle Name" onChange={handleChange}/>
               </div>
               <div className="form-group">
                 <label>Address:</label>
-                <input type="text" name="province" placeholder="Province" required />
-                <input type="text" name="municipality" placeholder="Municipality" required />
-                <input type="text" name="barangay" placeholder="Barangay" required />
-                <input type="text" name="zipcode" placeholder="Zip Code" required />
+                <input type="text" name="province" placeholder="Province" required onChange={handleChange} />
+                <input type="text" name="municipality" placeholder="Municipality" required onChange={handleChange}/>
+                <input type="text" name="barangay" placeholder="Barangay" required onChange={handleChange}/>
+                <input type="text" name="zipCode" placeholder="Zip Code" required onChange={handleChange}/>
               </div>
               <div className="form-group">
                 <label>Mobile Number:</label>
-                <input type="text" name="mobileNumber" placeholder="Mobile Number" required />
+                <input type="text" name="mobileNumber" placeholder="Mobile Number" required onChange={handleChange}/>
               </div>
               {accountType === 'employer' && (
                 <div className="form-group">
                   <label>Company Name (optional):</label>
-                  <input type="text" name="companyName" placeholder="Company Name" />
+                  <input type="text" name="companyName" placeholder="Company Name" onChange={handleChange}/>
                 </div>
               )}
               <button type="submit">Submit</button>
@@ -113,6 +153,6 @@ const App = () => {
       )}
     </div>
   );
-}
+};
 
 export default App;
