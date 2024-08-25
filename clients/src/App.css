@@ -127,6 +127,7 @@
 .form-group label {
   display: block;
   margin-bottom: 5px;
+  color: #333; /* Ensures the label is visible */
 }
 
 .form-group input {
