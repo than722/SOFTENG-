@@ -110,31 +110,31 @@ const App = () => {
                     <form onSubmit={handleSubmit}>
                       <div className="form-group">
                         <label>Last Name:</label>
-                        <input type="text" name="lastName" placeholder="Last Name" required onChange={handleChange}/>
+                        <input type="text" name="lastName" placeholder="Last Name" required onChange={handleChange} />
                       </div>
                       <div className="form-group">
                         <label>First Name:</label>
-                        <input type="text" name="firstName" placeholder="First Name" required onChange={handleChange}/>
+                        <input type="text" name="firstName" placeholder="First Name" required onChange={handleChange} />
                       </div>
                       <div className="form-group">
                         <label>Middle Name:</label>
-                        <input type="text" name="middleName" placeholder="Middle Name" onChange={handleChange}/>
+                        <input type="text" name="middleName" placeholder="Middle Name" onChange={handleChange} />
                       </div>
                       <div className="form-group">
                         <label>Address:</label>
                         <input type="text" name="province" placeholder="Province" required onChange={handleChange} />
-                        <input type="text" name="municipality" placeholder="Municipality" required onChange={handleChange}/>
-                        <input type="text" name="barangay" placeholder="Barangay" required onChange={handleChange}/>
-                        <input type="text" name="zipCode" placeholder="Zip Code" required onChange={handleChange}/>
+                        <input type="text" name="municipality" placeholder="Municipality" required onChange={handleChange} />
+                        <input type="text" name="barangay" placeholder="Barangay" required onChange={handleChange} />
+                        <input type="text" name="zipCode" placeholder="Zip Code" required onChange={handleChange} />
                       </div>
                       <div className="form-group">
                         <label>Mobile Number:</label>
-                        <input type="text" name="mobileNumber" placeholder="Mobile Number" required onChange={handleChange}/>
+                        <input type="text" name="mobileNumber" placeholder="Mobile Number" required onChange={handleChange} />
                       </div>
                       {accountType === 'employer' && (
                         <div className="form-group">
                           <label>Company Name (optional):</label>
-                          <input type="text" name="companyName" placeholder="Company Name" onChange={handleChange}/>
+                          <input type="text" name="companyName" placeholder="Company Name" onChange={handleChange} />
                         </div>
                       )}
                       {accountType === 'employee' && (
