@@ -38,3 +38,69 @@ h1 {
 .user-table tr:hover {
     background-color: #ddd;
 }
+
+/* Button Styling */
+button {
+    padding: 8px 16px;
+    margin: 10px 0;
+    background-color: #0077C8;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #005f99;
+}
+
+/* Modal Styling */
+.modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    position: relative;
+    width: 400px;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.profile-picture {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 10px 0;
+}
+
+.download-resume {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #0077C8;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.download-resume:hover {
+    background-color: #005f99;
+}
