@@ -173,3 +173,9 @@ button[type="submit"]:hover {
 .account-type-button:hover {
   background-color: #0056b3;
 }
+
+.file-name {
+  color: black; /* Set text color to black */
+  font-size: 14px; /* Adjust font size as needed */
+  margin-top: 5px; /* Space between the input field and file name */
+}

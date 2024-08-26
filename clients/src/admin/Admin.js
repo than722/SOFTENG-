@@ -4,62 +4,77 @@ import './Admin.css';
 const Admin = () => {
   const [employees, setEmployees] = useState([]);
   const [employers, setEmployers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null); // State for selected user
-  const [showModal, setShowModal] = useState(false); // State to toggle modal
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState(null); // New state for error handling
 
   useEffect(() => {
-    // Fetch data from the backend
-    fetch('/api/users')
-      .then(response => response.json())
+    fetch('http://localhost:8081/api/users')
+      .then(response => {
+        if (response.ok) {
+          // Check if response is JSON
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            return response.json();
+          } else {
+            throw new Error('Expected JSON response but received: ' + contentType);
+          }
+        } else {
+          throw new Error('Network response was not ok.');
+        }
+      })
       .then(data => {
         const employeesData = data.filter(user => user.type === 'Employee');
         const employersData = data.filter(user => user.type === 'Employer');
         setEmployees(employeesData);
         setEmployers(employersData);
       })
-      .catch(error => console.error('Error fetching data:', error));
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        setError(error.message); // Set the error state
+      });
   }, []);
 
-  const handleStatusChange = (id, newStatus, userType) => {
+  const handleStatusChange = (id, newStatusId, userType) => {
     fetch(`/api/users/${id}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ status: newStatus }),
+      body: JSON.stringify({ statusId: newStatusId }),
     })
       .then(response => {
         if (response.ok) {
           if (userType === 'Employee') {
             setEmployees(prevState =>
               prevState.map(emp =>
-                emp.id === id ? { ...emp, status: newStatus } : emp
+                emp.id === id ? { ...emp, statusId: newStatusId } : emp
               )
             );
           } else {
             setEmployers(prevState =>
               prevState.map(emp =>
-                emp.id === id ? { ...emp, status: newStatus } : emp
+                emp.id === id ? { ...emp, statusId: newStatusId } : emp
               )
             );
           }
         } else {
-          console.error('Failed to update status');
+          throw new Error('Failed to update status: ' + response.statusText);
         }
       })
       .catch(error => console.error('Error updating status:', error));
   };
 
   const deleteRejected = () => {
-    setEmployees(prevState => prevState.filter(emp => emp.status !== 'Rejected'));
-    setEmployers(prevState => prevState.filter(emp => emp.status !== 'Rejected'));
-
     fetch('/api/users/rejected', {
       method: 'DELETE',
     })
       .then(response => {
-        if (!response.ok) {
-          console.error('Failed to delete rejected applicants');
+        if (response.ok) {
+          setEmployees(prevState => prevState.filter(emp => emp.statusId !== 2));
+          setEmployers(prevState => prevState.filter(emp => emp.statusId !== 2));
+        } else {
+          throw new Error('Failed to delete rejected applicants: ' + response.statusText);
         }
       })
       .catch(error => console.error('Error deleting rejected applicants:', error));
@@ -83,6 +98,8 @@ const Admin = () => {
 
       <button onClick={deleteRejected}>Delete All Rejected Applicants</button>
 
+      {error && <p>Error: {error}</p>} {/* Display error message */}
+
       {/* Employees Table */}
       <h2>Employees</h2>
       <table className="user-table">
@@ -90,7 +107,6 @@ const Admin = () => {
           <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Type</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -99,16 +115,14 @@ const Admin = () => {
           {employees.map(employee => (
             <tr key={employee.id}>
               <td>{employee.id}</td>
-              <td>{employee.name}</td>
-              <td>{employee.type}</td>
+              <td>{employee.firstName} {employee.middleName ? employee.middleName + ' ' : ''}{employee.lastName}</td>
               <td>
                 <select
-                  value={employee.status}
-                  onChange={(e) => handleStatusChange(employee.id, e.target.value, 'Employee')}
+                  value={employee.statusId || ''}
+                  onChange={(e) => handleStatusChange(employee.id, parseInt(e.target.value), 'Employee')}
                 >
-                  <option value="Accepted">Accepted</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Rejected">Rejected</option>
+                  <option value={1}>Active</option>
+                  <option value={2}>Inactive</option>
                 </select>
               </td>
               <td>
@@ -126,7 +140,6 @@ const Admin = () => {
           <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Type</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -135,16 +148,14 @@ const Admin = () => {
           {employers.map(employer => (
             <tr key={employer.id}>
               <td>{employer.id}</td>
-              <td>{employer.name}</td>
-              <td>{employer.type}</td>
+              <td>{employer.firstName} {employer.middleName ? employer.middleName + ' ' : ''}{employer.lastName}</td>
               <td>
                 <select
-                  value={employer.status}
-                  onChange={(e) => handleStatusChange(employer.id, e.target.value, 'Employer')}
+                  value={employer.statusId || ''}
+                  onChange={(e) => handleStatusChange(employer.id, parseInt(e.target.value), 'Employer')}
                 >
-                  <option value="Accepted">Accepted</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Rejected">Rejected</option>
+                  <option value={1}>Active</option>
+                  <option value={2}>Inactive</option>
                 </select>
               </td>
               <td>
@@ -155,24 +166,19 @@ const Admin = () => {
         </tbody>
       </table>
 
-      {/* Modal for Viewing Profile */}
+      {/* Modal for displaying user profile */}
       {showModal && selectedUser && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close" onClick={closeModal}>&times;</span>
-            <h2>{selectedUser.name}'s Profile</h2>
-            <img src={selectedUser.pictureUrl} alt={`${selectedUser.name}'s profile`} className="profile-picture" />
-            <p><strong>ID:</strong> {selectedUser.id}</p>
-            <p><strong>Type:</strong> {selectedUser.type}</p>
-            <p><strong>Status:</strong> {selectedUser.status}</p>
-            <a href={selectedUser.resumeUrl} download={`${selectedUser.name}-resume.pdf`} className="download-resume">
-              Download Resume
-            </a>
+            <h2>{selectedUser.firstName} {selectedUser.middleName ? selectedUser.middleName + ' ' : ''}{selectedUser.lastName}</h2>
+            {selectedUser.pictureUrl && <img src={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`} alt="Profile" />}
+            {selectedUser.resumeUrl && <a href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`} download>Download Resume</a>}
+            <button onClick={closeModal}>Close</button>
           </div>
         </div>
       )}
     </div>
   );
-}
+};
 
 export default Admin;

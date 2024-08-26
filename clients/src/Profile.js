@@ -6,17 +6,29 @@ import axios from 'axios';
 const Profile = () => {
   const { id } = useParams(); // Get the employee ID from the URL
   const [profileData, setProfileData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!id) {
+      setError('No ID provided');
+      return;
+    }
+
     // Fetch the employee profile data from the backend
     axios.get(`http://localhost:8081/api/employees/${id}`)
       .then(response => {
         setProfileData(response.data);
+        setError(null);
       })
       .catch(error => {
         console.error('Error fetching profile data:', error);
+        setError('Error fetching profile data');
       });
   }, [id]);
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   if (!profileData) {
     return <div>Loading...</div>;

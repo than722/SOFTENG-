@@ -16,7 +16,9 @@ const App = () => {
     barangay: '',
     zipCode: '',
     mobileNumber: '',
-    companyName: ''
+    companyName: '',
+    picture: '',
+    resume: ''
   });
   const [picture, setPicture] = useState(null);
   const [resume, setResume] = useState(null);
@@ -50,7 +52,6 @@ const App = () => {
       formData.append(key, values[key]);
     });
 
-    // Append the picture and resume files if they exist
     if (picture) {
       formData.append('picture', picture);
     }
@@ -61,15 +62,20 @@ const App = () => {
 
     axios.post('http://localhost:8081/signup', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data' // Ensure the request is sent as multipart/form-data
+        'Content-Type': 'multipart/form-data'
       }
     })
-      .then(res => {
-        console.log("Registered Successfully!");
-        // Redirect to the profile page with employee ID
+    .then(res => {
+      console.log("Full Response Data:", res.data); // Log the complete response
+      if (res.data.id) {
         window.location.href = `/profile/${res.data.id}`;
-      })
-      .catch(err => console.log(err));
+      } else {
+        console.error('No ID returned from the backend.');
+      }
+    })
+    .catch(err => {
+      console.error('Error during submission:', err);
+    });
   };
 
   const openSelectionModal = () => setIsSelectionModalOpen(true);
@@ -172,10 +178,12 @@ const App = () => {
                           <div className="form-group">
                             <label>Upload Picture:</label>
                             <input type="file" name="picture" accept="image/*" onChange={handleFileChange} />
+                            {picture && <p className="file-name">Selected Picture: {picture.name}</p>}
                           </div>
                           <div className="form-group">
                             <label>Upload Resume:</label>
                             <input type="file" name="resume" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
+                            {resume && <p className="file-name">Selected Resume: {resume.name}</p>}
                           </div>
                         </>
                       )}
