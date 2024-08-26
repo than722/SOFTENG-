@@ -50,12 +50,12 @@ const Profile = () => {
       </div>
       {profileData.picture && (
         <div className="profile-picture">
-          <img src={`http://localhost:8081/${profileData.picture}`} alt="Profile" />
+          <img src={profileData.picture} alt="Profile" />
         </div>
       )}
       {profileData.resume && (
         <div className="profile-resume">
-          <a href={`http://localhost:8081/${profileData.resume}`} download>Download Resume</a>
+          <a href={profileData.resume} download>Download Resume</a>
         </div>
       )}
     </div>

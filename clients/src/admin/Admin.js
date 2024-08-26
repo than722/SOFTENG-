@@ -6,13 +6,13 @@ const Admin = () => {
   const [employers, setEmployers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [error, setError] = useState(null); // New state for error handling
+  const [error, setError] = useState(null); 
+  const [activeTab, setActiveTab] = useState('employees'); 
 
   useEffect(() => {
     fetch('http://localhost:8081/api/users')
       .then(response => {
         if (response.ok) {
-          // Check if response is JSON
           const contentType = response.headers.get('content-type');
           if (contentType && contentType.includes('application/json')) {
             return response.json();
@@ -31,7 +31,7 @@ const Admin = () => {
       })
       .catch(error => {
         console.error('Error fetching data:', error);
-        setError(error.message); // Set the error state
+        setError(error.message); 
       });
   }, []);
 
@@ -98,82 +98,106 @@ const Admin = () => {
 
       <button onClick={deleteRejected}>Delete All Rejected Applicants</button>
 
-      {error && <p>Error: {error}</p>} {/* Display error message */}
+      {error && <p>Error: {error}</p>} 
+
+      {/* Tab navigation */}
+      <div className="tabs">
+        <button 
+          className={activeTab === 'employees' ? 'active' : ''} 
+          onClick={() => setActiveTab('employees')}
+        >
+          Employees
+        </button>
+        <button 
+          className={activeTab === 'employers' ? 'active' : ''} 
+          onClick={() => setActiveTab('employers')}
+        >
+          Employers
+        </button>
+      </div>
 
       {/* Employees Table */}
-      <h2>Employees</h2>
-      <table className="user-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees.map(employee => (
-            <tr key={employee.id}>
-              <td>{employee.id}</td>
-              <td>{employee.firstName} {employee.middleName ? employee.middleName + ' ' : ''}{employee.lastName}</td>
-              <td>
-                <select
-                  value={employee.statusId || ''}
-                  onChange={(e) => handleStatusChange(employee.id, parseInt(e.target.value), 'Employee')}
-                >
-                  <option value={1}>Active</option>
-                  <option value={2}>Inactive</option>
-                </select>
-              </td>
-              <td>
-                <button onClick={() => viewProfile(employee)}>View Profile</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {activeTab === 'employees' && (
+        <div>
+          <h2>Employees</h2>
+          <table className="user-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {employees.map(employee => (
+                <tr key={employee.id}>
+                  <td>{employee.id}</td>
+                  <td>{employee.name}</td> 
+                  <td>
+                    <select
+                      value={employee.statusId || ''}
+                      onChange={(e) => handleStatusChange(employee.id, parseInt(e.target.value), 'Employee')}
+                    >
+                      <option value={1}>Active</option>
+                      <option value={2}>Inactive</option>
+                    </select>
+                  </td>
+                  <td>
+                    <button onClick={() => viewProfile(employee)}>View Profile</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Employers Table */}
-      <h2>Employers</h2>
-      <table className="user-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employers.map(employer => (
-            <tr key={employer.id}>
-              <td>{employer.id}</td>
-              <td>{employer.firstName} {employer.middleName ? employer.middleName + ' ' : ''}{employer.lastName}</td>
-              <td>
-                <select
-                  value={employer.statusId || ''}
-                  onChange={(e) => handleStatusChange(employer.id, parseInt(e.target.value), 'Employer')}
-                >
-                  <option value={1}>Active</option>
-                  <option value={2}>Inactive</option>
-                </select>
-              </td>
-              <td>
-                <button onClick={() => viewProfile(employer)}>View Profile</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {activeTab === 'employers' && (
+        <div>
+          <h2>Employers</h2>
+          <table className="user-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {employers.map(employer => (
+                <tr key={employer.id}>
+                  <td>{employer.id}</td>
+                  <td>{employer.name}</td> 
+                  <td>
+                    <select
+                      value={employer.statusId || ''}
+                      onChange={(e) => handleStatusChange(employer.id, parseInt(e.target.value), 'Employer')}
+                    >
+                      <option value={1}>Active</option>
+                      <option value={2}>Inactive</option>
+                    </select>
+                  </td>
+                  <td>
+                    <button onClick={() => viewProfile(employer)}>View Profile</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Modal for displaying user profile */}
       {showModal && selectedUser && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>{selectedUser.firstName} {selectedUser.middleName ? selectedUser.middleName + ' ' : ''}{selectedUser.lastName}</h2>
+        <div className="modal-admin">
+          <div className="modal-content-admin">
+            <h2>{selectedUser.name}</h2> 
             {selectedUser.pictureUrl && <img src={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`} alt="Profile" />}
             {selectedUser.resumeUrl && <a href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`} download>Download Resume</a>}
-            <button onClick={closeModal}>Close</button>
+            <button className="close-admin" onClick={closeModal}>&times;</button> {/* Close button as an "X" */}
           </div>
         </div>
       )}

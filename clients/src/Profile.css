@@ -1,29 +1,83 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: 'Arial, sans-serif';
+  background-color: #0077C8; /* Match the blue background */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+}
+
 .profile-container {
-    padding: 20px;
-    font-family: 'Arial, sans-serif';
-  }
-  
-  .profile-info p {
-    margin: 10px 0;
-  }
-  
-  .profile-picture img {
-    max-width: 150px;
-    border-radius: 50%;
-    margin-top: 20px;
-  }
-  
-  .profile-resume a {
-    display: inline-block;
-    margin-top: 20px;
-    background-color: #0077C8;
-    color: white;
-    padding: 10px 15px;
-    text-decoration: none;
-    border-radius: 5px;
-  }
-  
-  .profile-resume a:hover {
-    background-color: #005a90;
-  }
-  
+  background-color: #ffffff; /* White background */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  max-width: 800px; /* Limit max width */
+  width: 100%; /* Occupy 100% of the parent width */
+  height: 100%;
+  box-sizing: border-box; /* Include padding in the element's width */
+  padding: 20px;
+  margin-bottom: 5%;
+  position: relative; /* Make it a positioned element */
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.profile-picture {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.profile-picture img {
+  width: 100px; /* Fixed width for the image */
+  height: 100px; /* Fixed height for the image */
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #E0E0E0; /* Placeholder background color if no image */
+}
+
+.profile-info {
+  padding-right: 140px; /* Add some padding to avoid overlap with the image */
+}
+
+.profile-info h3 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  color: #333; /* Dark gray color */
+  font-weight: bold;
+  width: 100%;
+}
+
+.profile-info p {
+  margin: 5px 0;
+  background-color: #E0E0E0; /* Light gray background */
+  padding: 10px;
+  border-radius: 5px;
+  color: #666; /* Medium gray text */
+  flex: 1 1 45%; /* Adjust flex basis for responsiveness */
+}
+
+.profile-resume {
+  text-align: center;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.profile-resume a {
+  display: inline-block;
+  background-color: #0077C8;
+  color: white;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.profile-resume a:hover {
+  background-color: #005a90;
+}

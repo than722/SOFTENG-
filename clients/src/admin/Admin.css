@@ -1,12 +1,22 @@
+/* Ensure the entire page has the correct background color */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #0077C8; /* Set the same blue background color for the entire page */
+}
+
 .admin-container {
     padding: 20px;
     font-family: 'Arial, sans-serif';
+    min-height: 100%; /* Ensure the container extends to at least the full height of the page */
 }
 
 /* Header Styling */
 .admin-header {
     text-align: center;
     margin-bottom: 20px;
+    color: white; /* Make sure header text is visible against the blue background */
 }
 
 h1 {
@@ -24,37 +34,43 @@ h1 {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
+    color: white; /* Ensure text color is white to contrast with the blue background */
 }
 
 .user-table th {
-    background-color: #0077C8;
+    background-color: #005f99; /* Darker blue for headers */
     color: white;
 }
 
+.user-table tr {
+    background-color: #0077C8; /* Base blue color for rows */
+}
+
 .user-table tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: #006bb3; /* Slightly darker blue for even rows */
 }
 
 .user-table tr:hover {
-    background-color: #ddd;
+    background-color: #005f99; /* Hover color, should contrast with the base color */
+    color: white; /* Ensure text color remains white on hover */
 }
 
 /* Button Styling */
 button {
     padding: 8px 16px;
     margin: 10px 0;
-    background-color: #0077C8;
+    background-color: #005f99; /* Button color matching the header */
     color: white;
     border: none;
     cursor: pointer;
 }
 
 button:hover {
-    background-color: #005f99;
+    background-color: #004d80; /* Darker shade for hover */
 }
 
 /* Modal Styling */
-.modal {
+.modal-admin {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -66,29 +82,66 @@ button:hover {
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    text-align: center;
+.modal-content-admin {
+    background-color: #005f99;
+    padding: 30px;
+    border-radius: 15px;
+    border-color: #ddd;
+    text-align: left; /* Left-align text for better readability */
     position: relative;
-    width: 400px;
+    width: 600px; /* Increase the width to accommodate more content */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
-.close {
+.modal-content-admin .profile-section {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align items to the start for better layout */
+    margin-bottom: 20px;
+}
+
+.profile-picture {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #4e4e4e; /* Placeholder background color if no image is available */
+}
+
+.profile-info {
+    flex-grow: 1;
+    text-align: left;
+    margin-left: 20px;
+}
+
+.profile-info h2 {
+    color: black; /* Change the name color to black */
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.profile-info p {
+    color: #666;
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+/* Modal Close Button Styling */
+.close-admin {
     position: absolute;
     top: 10px;
     right: 10px;
     font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    border: none;
+    background: none;
     cursor: pointer;
+    transition: color 0.3s ease;
 }
 
-.profile-picture {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin: 10px 0;
+.close-admin:hover {
+    color: #ff0000; /* Change color to red when hovering */
 }
 
 .download-resume {
@@ -103,4 +156,27 @@ button:hover {
 
 .download-resume:hover {
     background-color: #005f99;
+}
+
+.tabs {
+    margin: 20px 0;
+}
+
+.tabs button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    border: none;
+    background-color: #005f99;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+}
+
+.tabs button.active {
+    background-color: #004d80; /* Darker shade to indicate active tab */
+}
+
+.tabs button:hover {
+    background-color: #0077C8;
 }
