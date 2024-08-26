@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Admin.css';
 
 const Admin = () => {
-  // Sample data - replace with actual data
-  const employees = [
-    { id: 1, name: 'John Doe', type: 'Employee', status: 'Active' },
-    { id: 2, name: 'Jane Smith', type: 'Employer', status: 'Inactive' },
-    // Add more employee data as needed
-  ];
+  const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    // Fetch data from the backend
+    fetch('/api/users')
+      .then(response => response.json())
+      .then(data => setEmployees(data))
+      .catch(error => console.error('Error fetching data:', error));
+  }, []); // Empty dependency array ensures this runs once after the component mounts
 
   return (
     <div className="admin-container">
