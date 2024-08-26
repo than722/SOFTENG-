@@ -4,6 +4,7 @@ import './App.css';
 import logo from './assets/images/logo4.png';
 import axios from 'axios';
 import Admin from './admin/Admin';
+import Profile from './Profile';  // Corrected import path for Profile
 
 const App = () => {
   const [values, setValues] = useState({
@@ -37,7 +38,11 @@ const App = () => {
     };
 
     axios.post('http://localhost:8081/signup', payload)
-      .then(res => console.log("Registered Successfully!"))
+      .then(res => {
+        console.log("Registered Successfully!");
+        // Redirect to the profile page with employee ID
+        window.location.href = `/profile/${res.data.id}`;
+      })
       .catch(err => console.log(err));
   };
 
@@ -71,6 +76,7 @@ const App = () => {
 
         <Routes>
           <Route path="/admin" element={<Admin />} />
+          <Route path="/profile/:id" element={<Profile />} />  {/* Add Profile route */}
           <Route path="/" element={
             <main className="content">
               <div className="text-section">

@@ -1,0 +1,29 @@
+.profile-container {
+    padding: 20px;
+    font-family: 'Arial, sans-serif';
+  }
+  
+  .profile-info p {
+    margin: 10px 0;
+  }
+  
+  .profile-picture img {
+    max-width: 150px;
+    border-radius: 50%;
+    margin-top: 20px;
+  }
+  
+  .profile-resume a {
+    display: inline-block;
+    margin-top: 20px;
+    background-color: #0077C8;
+    color: white;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+  }
+  
+  .profile-resume a:hover {
+    background-color: #005a90;
+  }
+  
