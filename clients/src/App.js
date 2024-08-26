@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import './App.css';
 import logo from './assets/images/logo4.png';
 import axios from 'axios';
-import Admin from './admin/Admin';
-import Profile from './Profile';  // Corrected import path for Profile
+import Admin from './admin/Admin'; // Ensure this path is correct
+import Profile from './Profile';   // Ensure this path is correct
 
 const App = () => {
   const [values, setValues] = useState({
@@ -18,6 +18,8 @@ const App = () => {
     mobileNumber: '',
     companyName: ''
   });
+  const [picture, setPicture] = useState(null);
+  const [resume, setResume] = useState(null);
 
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -30,14 +32,38 @@ const App = () => {
     });
   };
 
+  const handleFileChange = (event) => {
+    const { name, files } = event.target;
+    if (name === 'picture') {
+      setPicture(files[0]);
+    } else if (name === 'resume') {
+      setResume(files[0]);
+    }
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    const payload = {
-      accountType: accountType,
-      ...values
-    };
 
-    axios.post('http://localhost:8081/signup', payload)
+    const formData = new FormData();
+    formData.append('accountType', accountType);
+    Object.keys(values).forEach((key) => {
+      formData.append(key, values[key]);
+    });
+
+    // Append the picture and resume files if they exist
+    if (picture) {
+      formData.append('picture', picture);
+    }
+
+    if (resume) {
+      formData.append('resume', resume);
+    }
+
+    axios.post('http://localhost:8081/signup', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data' // Ensure the request is sent as multipart/form-data
+      }
+    })
       .then(res => {
         console.log("Registered Successfully!");
         // Redirect to the profile page with employee ID
@@ -75,8 +101,6 @@ const App = () => {
         </header>
 
         <Routes>
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/profile/:id" element={<Profile />} />  {/* Add Profile route */}
           <Route path="/" element={
             <main className="content">
               <div className="text-section">
@@ -147,11 +171,11 @@ const App = () => {
                         <>
                           <div className="form-group">
                             <label>Upload Picture:</label>
-                            <input type="file" name="picture" accept="image/*" />
+                            <input type="file" name="picture" accept="image/*" onChange={handleFileChange} />
                           </div>
                           <div className="form-group">
                             <label>Upload Resume:</label>
-                            <input type="file" name="resume" accept=".pdf,.doc,.docx" />
+                            <input type="file" name="resume" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
                           </div>
                         </>
                       )}
@@ -162,6 +186,8 @@ const App = () => {
               )}
             </main>
           } />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/profile/:id" element={<Profile />} />
         </Routes>
       </div>
     </Router>
