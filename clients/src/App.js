@@ -4,7 +4,8 @@ import './App.css';
 import logo from './assets/images/logo4.png';
 import axios from 'axios';
 import Admin from './admin/Admin'; 
-import Profile from './Profile';   
+import Profile from './Profile';
+import ProfileTable from './Profile-table';
 
 const App = () => {
   const [values, setValues] = useState({
@@ -101,6 +102,7 @@ const App = () => {
               <li><a href="#vision">VISION</a></li>
               <li><a href="#mission">MISSION</a></li>
               <li><Link to="/admin">Admin</Link></li>
+              <li><Link to="/profile-table">Profile</Link></li> {/* Add Profile button */}
             </ul>
           </nav>
           <button className="create-account-App" onClick={openSelectionModal}>CREATE ACCOUNT</button>
@@ -196,6 +198,7 @@ const App = () => {
           } />
           <Route path="/admin" element={<Admin />} />
           <Route path="/profile/:id" element={<Profile />} />
+          <Route path="/profile-table" element={<ProfileTable />} /> {/* Route for ProfileTable */}
         </Routes>
       </div>
     </Router>
