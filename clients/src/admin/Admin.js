@@ -81,7 +81,9 @@ const Admin = () => {
   };
 
   const viewProfile = (user) => {
-    fetch(`http://localhost:8081/api/users/${user.id}`)
+    const endpoint = user.type === 'Employee' ? 'employees' : 'employers';
+
+    fetch(`http://localhost:8081/api/${endpoint}/${user.id}`)
       .then(response => {
         if (response.ok) {
           return response.json();
@@ -221,7 +223,11 @@ const Admin = () => {
               <p><strong>ID:</strong> {selectedUser.id}</p>
               <p><strong>First Name:</strong> {selectedUser.firstName}</p>
               <p><strong>Last Name:</strong> {selectedUser.lastName}</p>
-              <p><strong>Address:</strong> {selectedUser.address}</p>
+              <p><strong>Province:</strong> {selectedUser.province}</p>
+              <p><strong>Municipality:</strong> {selectedUser.municipality}</p>
+              <p><strong>Barangay:</strong> {selectedUser.barangay}</p>
+              <p><strong>Zip Code:</strong> {selectedUser.zipCode}</p>
+              <p><strong>Mobile Number:</strong> {selectedUser.mobileNumber}</p>
               <p><strong>Status:</strong> {selectedUser.statusId === 1 ? 'Active' : 'Inactive'}</p>
               {/* Add other profile fields as needed */}
             </div>
