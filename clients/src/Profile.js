@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './Profile.css';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
 import axios from 'axios';
 
 const Profile = () => {
   const { id } = useParams(); // Get the employee ID from the URL
+  const navigate = useNavigate(); // Initialize useNavigate for redirection
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
@@ -84,6 +85,20 @@ const Profile = () => {
         console.error('Error updating profile data:', error);
         setError('Error updating profile data');
       });
+  };
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
+      axios.delete(`http://localhost:8081/api/employees/${id}`)
+        .then(() => {
+          alert('Profile deleted successfully');
+          navigate('/'); // Redirect to the home page after deletion
+        })
+        .catch(error => {
+          console.error('Error deleting profile:', error);
+          setError('Error deleting profile');
+        });
+    }
   };
 
   if (error) {
@@ -228,7 +243,10 @@ const Profile = () => {
                 <a href={profileData.resume} download>Download Resume</a>
               </div>
             )}
-            <button onClick={handleEditToggle}>Edit</button>
+            <div className="button-group">
+              <button onClick={handleEditToggle}>Edit</button>
+              <button onClick={handleDelete} className="delete-button">Delete Profile</button>
+            </div>
           </>
         )}
       </div>
