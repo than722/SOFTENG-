@@ -80,50 +80,71 @@ button:hover {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000; /* Ensure the modal is above other content */
 }
 
 .modal-content-admin {
-    background-color: #005f99;
-    padding: 30px;
-    border-radius: 15px;
-    border-color: #ddd;
-    text-align: left; /* Left-align text for better readability */
+    background-color: #ffffff; /* White background */
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    max-width: 800px; /* Limit max width */
+    width: 100%; /* Occupy 100% of the parent width */
+    padding: 20px;
+    box-sizing: border-box; /* Include padding in the element's width */
     position: relative;
-    width: 600px; /* Increase the width to accommodate more content */
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
 }
 
-.modal-content-admin .profile-section {
+.profile-header {
     display: flex;
-    align-items: center;
-    justify-content: flex-start; /* Align items to the start for better layout */
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 20px;
 }
 
 .profile-picture {
-    width: 100px;
-    height: 100px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.profile-picture img {
+    width: 100px; /* Fixed width for the image */
+    height: 100px; /* Fixed height for the image */
     border-radius: 50%;
     object-fit: cover;
-    background-color: #4e4e4e; /* Placeholder background color if no image is available */
+    background-color: #E0E0E0; /* Placeholder background color if no image */
 }
 
 .profile-info {
-    flex-grow: 1;
-    text-align: left;
-    margin-left: 20px;
-}
-
-.profile-info h2 {
-    color: black; /* Change the name color to black */
-    font-size: 24px;
-    margin-bottom: 10px;
+    padding-right: 140px; /* Add some padding to avoid overlap with the image */
 }
 
 .profile-info p {
-    color: #666;
-    font-size: 16px;
     margin: 5px 0;
+    background-color: #E0E0E0; /* Light gray background */
+    padding: 10px;
+    border-radius: 5px;
+    color: #666; /* Medium gray text */
+}
+
+.profile-resume {
+    text-align: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.profile-resume a {
+    display: inline-block;
+    background-color: #0077C8;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.profile-resume a:hover {
+    background-color: #005f99;
 }
 
 /* Modal Close Button Styling */
@@ -144,20 +165,7 @@ button:hover {
     color: #ff0000; /* Change color to red when hovering */
 }
 
-.download-resume {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 10px 20px;
-    background-color: #0077C8;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-}
-
-.download-resume:hover {
-    background-color: #005f99;
-}
-
+/* Tabs Styling */
 .tabs {
     margin: 20px 0;
 }

@@ -81,8 +81,23 @@ const Admin = () => {
   };
 
   const viewProfile = (user) => {
-    setSelectedUser(user);
-    setShowModal(true);
+    fetch(`http://localhost:8081/api/users/${user.id}`)
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Failed to fetch user details');
+        }
+      })
+      .then(data => {
+        // Merge the fetched data with the user data you already have
+        setSelectedUser({ ...user, ...data });
+        setShowModal(true);
+      })
+      .catch(error => {
+        console.error('Error fetching user details:', error);
+        setError('Failed to fetch user details');
+      });
   };
 
   const closeModal = () => {
@@ -194,10 +209,28 @@ const Admin = () => {
       {showModal && selectedUser && (
         <div className="modal-admin">
           <div className="modal-content-admin">
-            <h2>{selectedUser.name}</h2> 
-            {selectedUser.pictureUrl && <img src={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`} alt="Profile" />}
-            {selectedUser.resumeUrl && <a href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`} download>Download Resume</a>}
-            <button className="close-admin" onClick={closeModal}>&times;</button> {/* Close button as an "X" */}
+            <div className="profile-header">
+              <h2>{selectedUser.firstName} {selectedUser.lastName}'s Profile</h2>
+              {selectedUser.pictureUrl && (
+                <div className="profile-picture">
+                  <img src={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`} alt="Profile" />
+                </div>
+              )}
+            </div>
+            <div className="profile-info">
+              <p><strong>ID:</strong> {selectedUser.id}</p>
+              <p><strong>First Name:</strong> {selectedUser.firstName}</p>
+              <p><strong>Last Name:</strong> {selectedUser.lastName}</p>
+              <p><strong>Address:</strong> {selectedUser.address}</p>
+              <p><strong>Status:</strong> {selectedUser.statusId === 1 ? 'Active' : 'Inactive'}</p>
+              {/* Add other profile fields as needed */}
+            </div>
+            {selectedUser.resumeUrl && (
+              <div className="profile-resume">
+                <a href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`} download>Download Resume</a>
+              </div>
+            )}
+            <button className="close-admin" onClick={closeModal}>&times;</button>
           </div>
         </div>
       )}
