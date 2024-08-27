@@ -13,7 +13,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -170,6 +170,74 @@ app.get('/api/employees/:id', (req, res) => {
     } else {
       res.status(404).json({ error: 'Employee not found' });
     }
+  });
+});
+
+// Route to update employee profile
+app.put('/api/employees/:id', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
+  const { id } = req.params;
+  const { firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber } = req.body;
+  const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
+  const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
+
+  const sql = `
+    UPDATE employee 
+    SET firstName = ?, lastName = ?, middleName = ?, province = ?, municipality = ?, barangay = ?, zipCode = ?, mobileNumber = ?, picture = ?, resume = ? 
+    WHERE id = ?
+  `;
+  const values = [firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, id];
+
+  db.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error executing update query:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    res.json({ message: 'Profile updated successfully' });
+  });
+});
+// Route to delete an employee profile by ID
+app.delete('/api/employees/:id', (req, res) => {
+  const { id } = req.params;
+
+  // First, retrieve the profile to get the filenames
+  const getProfileSql = 'SELECT picture, resume FROM employee WHERE id = ?';
+  db.query(getProfileSql, [id], (err, results) => {
+    if (err) {
+      console.error('Error fetching profile data:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    const profile = results[0];
+    const pictureFilePath = path.join(uploadsDir, profile.picture);
+    const resumeFilePath = path.join(uploadsDir, profile.resume);
+
+    // Delete files from server
+    if (profile.picture && fs.existsSync(pictureFilePath)) {
+      fs.unlinkSync(pictureFilePath);
+    }
+    if (profile.resume && fs.existsSync(resumeFilePath)) {
+      fs.unlinkSync(resumeFilePath);
+    }
+
+    // Delete the profile from the database
+    const deleteProfileSql = 'DELETE FROM employee WHERE id = ?';
+    db.query(deleteProfileSql, [id], (err) => {
+      if (err) {
+        console.error('Error executing delete query:', err);
+        return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+
+      res.json({ message: 'Profile deleted successfully' });
+    });
   });
 });
 

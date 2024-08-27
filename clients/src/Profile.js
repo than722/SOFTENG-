@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Profile.css';
-import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Profile = () => {
-  const { id } = useParams(); // Get the employee ID from the URL
-  const navigate = useNavigate(); // Initialize useNavigate for redirection
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false); // State to toggle edit mode
+  const [isEditing, setIsEditing] = useState(false);
   const [updatedData, setUpdatedData] = useState({
     firstName: '',
     lastName: '',
@@ -22,13 +22,7 @@ const Profile = () => {
     resume: null,
   });
 
-  useEffect(() => {
-    if (!id) {
-      setError('No ID provided');
-      return;
-    }
-
-    // Fetch the employee profile data from the backend
+  const fetchProfile = useCallback(() => {
     axios.get(`http://localhost:8081/api/employees/${id}`)
       .then(response => {
         setProfileData(response.data);
@@ -41,6 +35,8 @@ const Profile = () => {
           barangay: response.data.barangay,
           zipCode: response.data.zipCode,
           mobileNumber: response.data.mobileNumber,
+          picture: null,
+          resume: null,
         });
         setError(null);
       })
@@ -49,6 +45,15 @@ const Profile = () => {
         setError('Error fetching profile data');
       });
   }, [id]);
+
+  useEffect(() => {
+    if (!id) {
+      setError('No ID provided');
+      return;
+    }
+
+    fetchProfile();
+  }, [id, fetchProfile]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -77,8 +82,8 @@ const Profile = () => {
     });
 
     axios.put(`http://localhost:8081/api/employees/${id}`, formData)
-      .then(response => {
-        setProfileData(response.data);
+      .then(() => {
+        fetchProfile(); // Fetch updated profile data
         setIsEditing(false);
       })
       .catch(error => {
@@ -92,7 +97,7 @@ const Profile = () => {
       axios.delete(`http://localhost:8081/api/employees/${id}`)
         .then(() => {
           alert('Profile deleted successfully');
-          navigate('/'); // Redirect to the home page after deletion
+          navigate('/'); 
         })
         .catch(error => {
           console.error('Error deleting profile:', error);
@@ -232,7 +237,6 @@ const Profile = () => {
             <p><strong>Barangay:</strong> {profileData.barangay}</p>
             <p><strong>Zip Code:</strong> {profileData.zipCode}</p>
             <p><strong>Mobile Number:</strong> {profileData.mobileNumber}</p>
-            <p><strong>Status:</strong> {profileData.status}</p>
             {profileData.picture && (
               <div className="profile-picture">
                 <img src={profileData.picture} alt="Profile" />

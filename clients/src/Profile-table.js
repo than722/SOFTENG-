@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import './Profile-table.css';
 
 const ProfileTable = () => {
   const [employees, setEmployees] = useState([]);
   const [employers, setEmployers] = useState([]);
   const [activeTab, setActiveTab] = useState('employees');
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('http://localhost:8081/api/users')
@@ -21,7 +21,7 @@ const ProfileTable = () => {
   }, []);
 
   const viewProfile = (id) => {
-    navigate(`/profile/${id}`); // Redirect to the Profile.js component with the user's ID
+    navigate(`/profile/${id}`);
   };
 
   return (
@@ -50,7 +50,7 @@ const ProfileTable = () => {
                 <th>ID</th>
                 <th>Name</th>
                 <th>Status</th>
-                <th>Actions</th> {/* Add a new column for actions */}
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -60,7 +60,7 @@ const ProfileTable = () => {
                   <td>{employee.name}</td>
                   <td>{employee.statusId === 1 ? 'Active' : 'Inactive'}</td>
                   <td>
-                    <button onClick={() => viewProfile(employee.id)}>View Profile</button> {/* View Profile button */}
+                    <button onClick={() => viewProfile(employee.id)}>View Profile</button>
                   </td>
                 </tr>
               ))}
@@ -78,7 +78,7 @@ const ProfileTable = () => {
                 <th>ID</th>
                 <th>Name</th>
                 <th>Status</th>
-                <th>Actions</th> {/* Add a new column for actions */}
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -88,7 +88,7 @@ const ProfileTable = () => {
                   <td>{employer.name}</td>
                   <td>{employer.statusId === 1 ? 'Active' : 'Inactive'}</td>
                   <td>
-                    <button onClick={() => viewProfile(employer.id)}>View Profile</button> {/* View Profile button */}
+                    <button onClick={() => viewProfile(employer.id)}>View Profile</button>
                   </td>
                 </tr>
               ))}
