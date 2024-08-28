@@ -47,6 +47,35 @@ db.connect((err) => {
   console.log('Connected to database.');
 });
 
+// Route to handle signup for employees and employers
+app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
+  const { accountType, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName } = req.body;
+  let sql, values;
+
+  if (accountType === 'employee') {
+    const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
+    const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
+
+    sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 2]; // status_id default to 1 (active)
+  } else if (accountType === 'employer') {
+    sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 2]; // status_id default to 1 (active)
+  } else {
+    return res.status(400).json({ error: 'Invalid account type' });
+  }
+
+  db.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error executing signup query:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+
+    res.json({ id: results.insertId });
+  });
+});
+
+
 // Route to fetch all users
 app.get('/api/users', (req, res) => {
   const sql = `
@@ -211,8 +240,8 @@ app.delete('/api/users/:id', (req, res) => {
   const { id } = req.params;
 
   const deleteFiles = (profile) => {
-    const pictureFilePath = profile.picture ? path.join(uploadsDir, profile.picture) : null;
-    const resumeFilePath = profile.resume ? path.join(uploadsDir, profile.resume) : null;
+    const pictureFilePath = profile.picture ? path.join(uploadsDir, profile.picture.toString()) : null;
+    const resumeFilePath = profile.resume ? path.join(uploadsDir, profile.resume.toString()) : null;
 
     // Delete files from server if they exist
     if (pictureFilePath && fs.existsSync(pictureFilePath)) {
@@ -266,6 +295,7 @@ app.delete('/api/users/:id', (req, res) => {
     }
   });
 });
+
 
 // Serve uploaded files
 app.use('/uploads', express.static(uploadsDir));
