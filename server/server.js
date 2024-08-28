@@ -70,18 +70,18 @@ app.get('/api/users', (req, res) => {
 // Route to update status
 app.put('/api/users/:id/status', (req, res) => {
   const { id } = req.params;
-  const { statusId } = req.body;
+  const { progressId } = req.body;
 
-  const updateEmployeeSql = 'UPDATE employee SET status_id = ? WHERE id = ?';
-  db.query(updateEmployeeSql, [statusId, id], (err, results) => {
+  const updateEmployeeSql = 'UPDATE employee SET progress_id = ? WHERE id = ?';
+  db.query(updateEmployeeSql, [progressId, id], (err, results) => {
     if (err) {
       console.error('Error executing employee update query:', err);
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
     if (results.affectedRows === 0) {
-      const updateEmployerSql = 'UPDATE employer SET status_id = ? WHERE id = ?';
-      db.query(updateEmployerSql, [statusId, id], (err, results) => {
+      const updateEmployerSql = 'UPDATE employer SET progress_id = ? WHERE id = ?';
+      db.query(updateEmployerSql, [progressId, id], (err, results) => {
         if (err) {
           console.error('Error executing employer update query:', err);
           return res.status(500).json({ error: 'Database error', details: err.message });
@@ -94,23 +94,54 @@ app.put('/api/users/:id/status', (req, res) => {
   });
 });
 
-// Route to delete rejected users
-app.delete('/api/users/rejected', (req, res) => {
-  const deleteEmployeeSql = 'DELETE FROM employee WHERE status_id = 2';
-  const deleteEmployerSql = 'DELETE FROM employer WHERE status_id = 2';
 
-  db.query(deleteEmployeeSql, (err) => {
+// Route to delete an employee profile by ID
+app.delete('/api/employees/:id', (req, res) => {
+  const { id } = req.params;
+
+  // First, retrieve the profile to get the filenames
+  const getProfileSql = 'SELECT picture, resume FROM employee WHERE id = ?';
+  db.query(getProfileSql, [id], (err, results) => {
     if (err) {
-      console.error('Error executing employee delete query:', err);
+      console.error('Error fetching profile data:', err);
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
-    db.query(deleteEmployerSql, (err) => {
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    const profile = results[0];
+    // Ensure filenames are strings before creating file paths
+    const pictureFilePath = profile.picture ? path.join(uploadsDir, String(profile.picture)) : null;
+    const resumeFilePath = profile.resume ? path.join(uploadsDir, String(profile.resume)) : null;
+
+    // Delete files from server if they exist and are strings
+    if (pictureFilePath && fs.existsSync(pictureFilePath) && typeof pictureFilePath === 'string') {
+      try {
+        fs.unlinkSync(pictureFilePath);
+      } catch (error) {
+        console.error('Error deleting picture file:', error.message);
+      }
+    }
+
+    if (resumeFilePath && fs.existsSync(resumeFilePath) && typeof resumeFilePath === 'string') {
+      try {
+        fs.unlinkSync(resumeFilePath);
+      } catch (error) {
+        console.error('Error deleting resume file:', error.message);
+      }
+    }
+
+    // Delete the profile from the database
+    const deleteProfileSql = 'DELETE FROM employee WHERE id = ?';
+    db.query(deleteProfileSql, [id], (err) => {
       if (err) {
-        console.error('Error executing employer delete query:', err);
+        console.error('Error executing delete query:', err);
         return res.status(500).json({ error: 'Database error', details: err.message });
       }
-      res.json({ message: 'Rejected users deleted successfully' });
+
+      res.json({ message: 'Profile deleted successfully' });
     });
   });
 });
@@ -127,11 +158,11 @@ app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (r
     const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
     const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
 
-    sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl];
+    sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, progress_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 3]; 
   } else if (accountType === 'employer') {
-    sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName];
+    sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, progress_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 3];
   } else {
     return res.status(400).json({ error: 'Invalid account type' });
   }
@@ -200,6 +231,7 @@ app.put('/api/employees/:id', upload.fields([{ name: 'picture' }, { name: 'resum
     res.json({ message: 'Profile updated successfully' });
   });
 });
+
 // Route to delete an employee profile by ID
 app.delete('/api/employees/:id', (req, res) => {
   const { id } = req.params;

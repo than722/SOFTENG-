@@ -107,6 +107,20 @@ const Admin = () => {
     setSelectedUser(null);
   };
 
+  const acceptUser = () => {
+    if (selectedUser) {
+      handleStatusChange(selectedUser.id, 1, selectedUser.type);
+      closeModal();
+    }
+  };
+
+  const rejectUser = () => {
+    if (selectedUser) {
+      handleStatusChange(selectedUser.id, 2, selectedUser.type);
+      closeModal();
+    }
+  };
+
   return (
     <div className="admin-container">
       <div className="admin-header">
@@ -236,7 +250,11 @@ const Admin = () => {
                 <a href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`} download>Download Resume</a>
               </div>
             )}
-            <button className="close-admin" onClick={closeModal}>&times;</button>
+            <div className="profile-actions">
+              <button onClick={acceptUser}>Accept</button>
+              <button onClick={rejectUser}>Reject</button>
+              <button className="close-admin" onClick={closeModal}>&times;</button>
+            </div>
           </div>
         </div>
       )}
