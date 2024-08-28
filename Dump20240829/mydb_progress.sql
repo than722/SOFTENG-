@@ -16,38 +16,27 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `employer`
+-- Table structure for table `progress`
 --
 
-DROP TABLE IF EXISTS `employer`;
+DROP TABLE IF EXISTS `progress`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `employer` (
+CREATE TABLE `progress` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `lastName` varchar(50) NOT NULL,
-  `firstName` varchar(50) NOT NULL,
-  `middleName` varchar(50) DEFAULT NULL,
-  `province` varchar(50) NOT NULL,
-  `municipality` varchar(50) NOT NULL,
-  `barangay` varchar(50) NOT NULL,
-  `zipCode` char(6) NOT NULL,
-  `mobileNumber` char(11) NOT NULL,
-  `companyName` varchar(100) DEFAULT NULL,
-  `status_id` int DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_status_employer` (`status_id`),
-  CONSTRAINT `fk_status_employer` FOREIGN KEY (`status_id`) REFERENCES `status_lookup` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `status` enum('accepted','rejected','pending') NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `employer`
+-- Dumping data for table `progress`
 --
 
-LOCK TABLES `employer` WRITE;
-/*!40000 ALTER TABLE `employer` DISABLE KEYS */;
-INSERT INTO `employer` VALUES (1,'Gil','Ethan','Arcena','Davao Del Sur','Davao','Talomo','8000','09123312323',NULL,NULL),(2,'','','','Davao del Sur','Davao City','Talomo','','','',NULL),(3,'Gil','Ethan','Arcena','Davao Del Sur','Davao','Talomo','8000','09123312323',NULL,NULL),(4,'Gil','Ethan','Arcena','Davao Del Sur','Davao','Talomo','8000','09123312323',NULL,NULL),(5,'Gil','Christian','Msdsd','Davao Del','Davao','Talomo','8000','09321354123','Jak',NULL);
-/*!40000 ALTER TABLE `employer` ENABLE KEYS */;
+LOCK TABLES `progress` WRITE;
+/*!40000 ALTER TABLE `progress` DISABLE KEYS */;
+INSERT INTO `progress` VALUES (1,'accepted'),(2,'rejected'),(3,'pending');
+/*!40000 ALTER TABLE `progress` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -59,4 +48,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-08-27  0:25:49
+-- Dump completed on 2024-08-29  0:06:15
