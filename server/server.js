@@ -13,7 +13,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: 'root',
+  password: '1234',
   database: 'mydb'
 });
 
@@ -67,12 +67,54 @@ app.get('/api/users', (req, res) => {
   });
 });
 
-// Route to update status
+// Route to fetch a user by ID (either Employee or Employer)
+app.get('/api/users/:id', (req, res) => {
+  const { id } = req.params;
+
+  const employeeSql = `
+    SELECT id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, 'Employee' AS userType
+    FROM employee WHERE id = ?
+  `;
+
+  const employerSql = `
+    SELECT id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName AS companyName, NULL AS picture, NULL AS resume, 'Employer' AS userType
+    FROM employer WHERE id = ?
+  `;
+
+  db.query(employeeSql, [id], (err, results) => {
+    if (err) {
+      console.error('Error fetching employee data:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+
+    if (results.length > 0) {
+      res.json(results[0]);
+    } else {
+      db.query(employerSql, [id], (err, results) => {
+        if (err) {
+          console.error('Error fetching employer data:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+        }
+
+        if (results.length > 0) {
+          res.json(results[0]);
+        } else {
+          res.status(404).json({ error: 'User not found' });
+        }
+      });
+    }
+  });
+});
+
+// Route to update a user's status (progress)
 app.put('/api/users/:id/status', (req, res) => {
   const { id } = req.params;
   const { progressId } = req.body;
 
-  const updateEmployeeSql = 'UPDATE employee SET progress_id = ? WHERE id = ?';
+  const updateEmployeeSql = 'UPDATE employee SET status_id = ? WHERE id = ?';
+  const updateEmployerSql = 'UPDATE employer SET status_id = ? WHERE id = ?';
+
+  // First, try to update the employee's status
   db.query(updateEmployeeSql, [progressId, id], (err, results) => {
     if (err) {
       console.error('Error executing employee update query:', err);
@@ -80,198 +122,153 @@ app.put('/api/users/:id/status', (req, res) => {
     }
 
     if (results.affectedRows === 0) {
-      const updateEmployerSql = 'UPDATE employer SET progress_id = ? WHERE id = ?';
+      // If no employee was updated, try updating the employer's status
       db.query(updateEmployerSql, [progressId, id], (err, results) => {
         if (err) {
           console.error('Error executing employer update query:', err);
           return res.status(500).json({ error: 'Database error', details: err.message });
         }
-        res.json({ message: 'Status updated successfully' });
+
+        if (results.affectedRows === 0) {
+          // If no rows were affected in either table, the user was not found
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({ message: 'Progress updated successfully' });
       });
     } else {
-      res.json({ message: 'Status updated successfully' });
+      res.json({ message: 'Progress updated successfully' });
     }
   });
 });
 
 
-// Route to delete an employee profile by ID
-app.delete('/api/employees/:id', (req, res) => {
+// Route to update a user's profile (Employee or Employer)
+app.put('/api/users/:id', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
   const { id } = req.params;
+  const { firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName } = req.body;
+  const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
+  const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
 
-  // First, retrieve the profile to get the filenames
-  const getProfileSql = 'SELECT picture, resume FROM employee WHERE id = ?';
-  db.query(getProfileSql, [id], (err, results) => {
+  // First, try to update the employee
+  let sql = `
+    UPDATE employee 
+    SET firstName = ?, lastName = ?, middleName = ?, province = ?, municipality = ?, barangay = ?, zipCode = ?, mobileNumber = ?
+  `;
+  let values = [firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber];
+
+  // Conditionally add picture and resume fields if they are provided
+  if (pictureUrl) {
+    sql += `, picture = ?`;
+    values.push(pictureUrl);
+  }
+
+  if (resumeUrl) {
+    sql += `, resume = ?`;
+    values.push(resumeUrl);
+  }
+
+  sql += ` WHERE id = ?`;
+  values.push(id);
+
+  db.query(sql, values, (err, results) => {
     if (err) {
-      console.error('Error fetching profile data:', err);
+      console.error('Error executing employee update query:', err);
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Profile not found' });
+    if (results.affectedRows === 0) {
+      // If no employee was updated, try updating the employer
+      let employerSql = `
+        UPDATE employer 
+        SET firstName = ?, lastName = ?, middleName = ?, province = ?, municipality = ?, barangay = ?, zipCode = ?, mobileNumber = ?, companyName = ?
+      `;
+      let employerValues = [firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName];
+
+      employerSql += ` WHERE id = ?`;
+      employerValues.push(id);
+
+      db.query(employerSql, employerValues, (err, results) => {
+        if (err) {
+          console.error('Error executing employer update query:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+        }
+
+        if (results.affectedRows === 0) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json({ message: 'Profile updated successfully' });
+      });
+    } else {
+      res.json({ message: 'Profile updated successfully' });
+    }
+  });
+});
+
+// Route to delete a user profile by ID
+app.delete('/api/users/:id', (req, res) => {
+  const { id } = req.params;
+
+  const deleteFiles = (profile) => {
+    const pictureFilePath = profile.picture ? path.join(uploadsDir, profile.picture) : null;
+    const resumeFilePath = profile.resume ? path.join(uploadsDir, profile.resume) : null;
+
+    // Delete files from server if they exist
+    if (pictureFilePath && fs.existsSync(pictureFilePath)) {
+      fs.unlinkSync(pictureFilePath);
+    }
+    if (resumeFilePath && fs.existsSync(resumeFilePath)) {
+      fs.unlinkSync(resumeFilePath);
+    }
+  };
+
+  const deleteUserSql = (table) => `DELETE FROM ${table} WHERE id = ?`;
+
+  // Try to delete from employee table first
+  const getEmployeeSql = 'SELECT picture, resume FROM employee WHERE id = ?';
+  db.query(getEmployeeSql, [id], (err, results) => {
+    if (err) {
+      console.error('Error fetching employee data:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
-    const profile = results[0];
-    // Ensure filenames are strings before creating file paths
-    const pictureFilePath = profile.picture ? path.join(uploadsDir, String(profile.picture)) : null;
-    const resumeFilePath = profile.resume ? path.join(uploadsDir, String(profile.resume)) : null;
+    if (results.length > 0) {
+      deleteFiles(results[0]);
+      db.query(deleteUserSql('employee'), [id], (err) => {
+        if (err) {
+          console.error('Error executing employee delete query:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+        }
+        return res.json({ message: 'Profile deleted successfully' });
+      });
+    } else {
+      // If no employee was found, try the employer table
+      const getEmployerSql = 'SELECT NULL AS picture, NULL AS resume FROM employer WHERE id = ?';
+      db.query(getEmployerSql, [id], (err, results) => {
+        if (err) {
+          console.error('Error fetching employer data:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+        }
 
-    // Delete files from server if they exist and are strings
-    if (pictureFilePath && fs.existsSync(pictureFilePath) && typeof pictureFilePath === 'string') {
-      try {
-        fs.unlinkSync(pictureFilePath);
-      } catch (error) {
-        console.error('Error deleting picture file:', error.message);
-      }
+        if (results.length === 0) {
+          return res.status(404).json({ error: 'Profile not found' });
+        }
+
+        db.query(deleteUserSql('employer'), [id], (err) => {
+          if (err) {
+            console.error('Error executing employer delete query:', err);
+            return res.status(500).json({ error: 'Database error', details: err.message });
+          }
+          return res.json({ message: 'Profile deleted successfully' });
+        });
+      });
     }
-
-    if (resumeFilePath && fs.existsSync(resumeFilePath) && typeof resumeFilePath === 'string') {
-      try {
-        fs.unlinkSync(resumeFilePath);
-      } catch (error) {
-        console.error('Error deleting resume file:', error.message);
-      }
-    }
-
-    // Delete the profile from the database
-    const deleteProfileSql = 'DELETE FROM employee WHERE id = ?';
-    db.query(deleteProfileSql, [id], (err) => {
-      if (err) {
-        console.error('Error executing delete query:', err);
-        return res.status(500).json({ error: 'Database error', details: err.message });
-      }
-
-      res.json({ message: 'Profile deleted successfully' });
-    });
   });
 });
 
 // Serve uploaded files
 app.use('/uploads', express.static(uploadsDir));
-
-// Route to handle signup for employees and employers
-app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
-  const { accountType, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName } = req.body;
-  let sql, values;
-
-  if (accountType === 'employee') {
-    const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
-    const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
-
-    sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, progress_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 3]; 
-  } else if (accountType === 'employer') {
-    sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, progress_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 3];
-  } else {
-    return res.status(400).json({ error: 'Invalid account type' });
-  }
-
-  db.query(sql, values, (err, results) => {
-    if (err) {
-      console.error('Error executing signup query:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
-
-    res.json({ id: results.insertId });
-  });
-});
-
-// Route to fetch an employee's profile by ID with picture and resume as base64
-app.get('/api/employees/:id', (req, res) => {
-  const { id } = req.params;
-  const sql = `
-    SELECT id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume 
-    FROM employee WHERE id = ?
-  `;
-  db.query(sql, [id], (err, results) => {
-    if (err) {
-      console.error('Error executing query:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
-    if (results.length > 0) {
-      const employee = results[0];
-
-      // Ensure the image is correctly served as a URL
-      if (employee.picture) {
-        employee.picture = `http://localhost:8081/uploads/${employee.picture}`;
-      }
-
-      res.json(employee);
-    } else {
-      res.status(404).json({ error: 'Employee not found' });
-    }
-  });
-});
-
-// Route to update employee profile
-app.put('/api/employees/:id', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
-  const { id } = req.params;
-  const { firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber } = req.body;
-  const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
-  const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
-
-  const sql = `
-    UPDATE employee 
-    SET firstName = ?, lastName = ?, middleName = ?, province = ?, municipality = ?, barangay = ?, zipCode = ?, mobileNumber = ?, picture = ?, resume = ? 
-    WHERE id = ?
-  `;
-  const values = [firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, id];
-
-  db.query(sql, values, (err, results) => {
-    if (err) {
-      console.error('Error executing update query:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
-
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: 'Employee not found' });
-    }
-
-    res.json({ message: 'Profile updated successfully' });
-  });
-});
-
-// Route to delete an employee profile by ID
-app.delete('/api/employees/:id', (req, res) => {
-  const { id } = req.params;
-
-  // First, retrieve the profile to get the filenames
-  const getProfileSql = 'SELECT picture, resume FROM employee WHERE id = ?';
-  db.query(getProfileSql, [id], (err, results) => {
-    if (err) {
-      console.error('Error fetching profile data:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
-
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Profile not found' });
-    }
-
-    const profile = results[0];
-    const pictureFilePath = path.join(uploadsDir, profile.picture);
-    const resumeFilePath = path.join(uploadsDir, profile.resume);
-
-    // Delete files from server
-    if (profile.picture && fs.existsSync(pictureFilePath)) {
-      fs.unlinkSync(pictureFilePath);
-    }
-    if (profile.resume && fs.existsSync(resumeFilePath)) {
-      fs.unlinkSync(resumeFilePath);
-    }
-
-    // Delete the profile from the database
-    const deleteProfileSql = 'DELETE FROM employee WHERE id = ?';
-    db.query(deleteProfileSql, [id], (err) => {
-      if (err) {
-        console.error('Error executing delete query:', err);
-        return res.status(500).json({ error: 'Database error', details: err.message });
-      }
-
-      res.json({ message: 'Profile deleted successfully' });
-    });
-  });
-});
 
 app.listen(8081, () => {
   console.log("Listening on port 8081");

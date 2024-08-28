@@ -13,12 +13,7 @@ const Admin = () => {
     fetch('http://localhost:8081/api/users')
       .then(response => {
         if (response.ok) {
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            return response.json();
-          } else {
-            throw new Error('Expected JSON response but received: ' + contentType);
-          }
+          return response.json();
         } else {
           throw new Error('Network response was not ok.');
         }
@@ -35,44 +30,44 @@ const Admin = () => {
       });
   }, []);
 
-  const handleStatusChange = (id, newStatusId, userType) => {
-    fetch(`/api/users/${id}/status`, {
+  const handleProgressChange = (id, newProgressId, userType) => {
+    fetch(`http://localhost:8081/api/users/${id}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ statusId: newStatusId }),
+      body: JSON.stringify({ progressId: newProgressId }),
     })
       .then(response => {
         if (response.ok) {
           if (userType === 'Employee') {
             setEmployees(prevState =>
               prevState.map(emp =>
-                emp.id === id ? { ...emp, statusId: newStatusId } : emp
+                emp.id === id ? { ...emp, progressId: newProgressId } : emp
               )
             );
           } else {
             setEmployers(prevState =>
               prevState.map(emp =>
-                emp.id === id ? { ...emp, statusId: newStatusId } : emp
+                emp.id === id ? { ...emp, progressId: newProgressId } : emp
               )
             );
           }
         } else {
-          throw new Error('Failed to update status: ' + response.statusText);
+          throw new Error('Failed to update progress: ' + response.statusText);
         }
       })
-      .catch(error => console.error('Error updating status:', error));
+      .catch(error => console.error('Error updating progress:', error));
   };
 
   const deleteRejected = () => {
-    fetch('/api/users/rejected', {
+    fetch('http://localhost:8081/api/users/rejected', {
       method: 'DELETE',
     })
       .then(response => {
         if (response.ok) {
-          setEmployees(prevState => prevState.filter(emp => emp.statusId !== 2));
-          setEmployers(prevState => prevState.filter(emp => emp.statusId !== 2));
+          setEmployees(prevState => prevState.filter(emp => emp.progressId !== 2));
+          setEmployers(prevState => prevState.filter(emp => emp.progressId !== 2));
         } else {
           throw new Error('Failed to delete rejected applicants: ' + response.statusText);
         }
@@ -81,9 +76,7 @@ const Admin = () => {
   };
 
   const viewProfile = (user) => {
-    const endpoint = user.type === 'Employee' ? 'employees' : 'employers';
-
-    fetch(`http://localhost:8081/api/${endpoint}/${user.id}`)
+    fetch(`http://localhost:8081/api/users/${user.id}`)
       .then(response => {
         if (response.ok) {
           return response.json();
@@ -92,7 +85,6 @@ const Admin = () => {
         }
       })
       .then(data => {
-        // Merge the fetched data with the user data you already have
         setSelectedUser({ ...user, ...data });
         setShowModal(true);
       })
@@ -109,14 +101,14 @@ const Admin = () => {
 
   const acceptUser = () => {
     if (selectedUser) {
-      handleStatusChange(selectedUser.id, 1, selectedUser.type);
+      handleProgressChange(selectedUser.id, 1, selectedUser.type);
       closeModal();
     }
   };
 
   const rejectUser = () => {
     if (selectedUser) {
-      handleStatusChange(selectedUser.id, 2, selectedUser.type);
+      handleProgressChange(selectedUser.id, 2, selectedUser.type);
       closeModal();
     }
   };
@@ -131,7 +123,6 @@ const Admin = () => {
 
       {error && <p>Error: {error}</p>} 
 
-      {/* Tab navigation */}
       <div className="tabs">
         <button 
           className={activeTab === 'employees' ? 'active' : ''} 
@@ -147,7 +138,6 @@ const Admin = () => {
         </button>
       </div>
 
-      {/* Employees Table */}
       {activeTab === 'employees' && (
         <div>
           <h2>Employees</h2>
@@ -168,7 +158,7 @@ const Admin = () => {
                   <td>
                     <select
                       value={employee.statusId || ''}
-                      onChange={(e) => handleStatusChange(employee.id, parseInt(e.target.value), 'Employee')}
+                      onChange={(e) => handleProgressChange(employee.id, parseInt(e.target.value), 'Employee')}
                     >
                       <option value={1}>Active</option>
                       <option value={2}>Inactive</option>
@@ -184,7 +174,6 @@ const Admin = () => {
         </div>
       )}
 
-      {/* Employers Table */}
       {activeTab === 'employers' && (
         <div>
           <h2>Employers</h2>
@@ -205,7 +194,7 @@ const Admin = () => {
                   <td>
                     <select
                       value={employer.statusId || ''}
-                      onChange={(e) => handleStatusChange(employer.id, parseInt(e.target.value), 'Employer')}
+                      onChange={(e) => handleProgressChange(employer.id, parseInt(e.target.value), 'Employer')}
                     >
                       <option value={1}>Active</option>
                       <option value={2}>Inactive</option>
@@ -221,7 +210,6 @@ const Admin = () => {
         </div>
       )}
 
-      {/* Modal for displaying user profile */}
       {showModal && selectedUser && (
         <div className="modal-admin">
           <div className="modal-content-admin">
@@ -243,7 +231,6 @@ const Admin = () => {
               <p><strong>Zip Code:</strong> {selectedUser.zipCode}</p>
               <p><strong>Mobile Number:</strong> {selectedUser.mobileNumber}</p>
               <p><strong>Status:</strong> {selectedUser.statusId === 1 ? 'Active' : 'Inactive'}</p>
-              {/* Add other profile fields as needed */}
             </div>
             {selectedUser.resumeUrl && (
               <div className="profile-resume">

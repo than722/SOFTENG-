@@ -20,10 +20,11 @@ const Profile = () => {
     mobileNumber: '',
     picture: null,
     resume: null,
+    companyName: '', // Add this field to handle company name for employers
   });
 
   const fetchProfile = useCallback(() => {
-    axios.get(`http://localhost:8081/api/employees/${id}`)
+    axios.get(`http://localhost:8081/api/users/${id}`)
       .then(response => {
         setProfileData(response.data);
         setUpdatedData({
@@ -37,6 +38,7 @@ const Profile = () => {
           mobileNumber: response.data.mobileNumber,
           picture: null,
           resume: null,
+          companyName: response.data.companyName || '', // Handle company name
         });
         setError(null);
       })
@@ -81,7 +83,7 @@ const Profile = () => {
       formData.append(key, updatedData[key]);
     });
 
-    axios.put(`http://localhost:8081/api/employees/${id}`, formData)
+    axios.put(`http://localhost:8081/api/users/${id}`, formData)
       .then(() => {
         fetchProfile(); // Fetch updated profile data
         setIsEditing(false);
@@ -94,7 +96,7 @@ const Profile = () => {
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
-      axios.delete(`http://localhost:8081/api/employees/${id}`)
+      axios.delete(`http://localhost:8081/api/users/${id}`)
         .then(() => {
           alert('Profile deleted successfully');
           navigate('/'); 
@@ -200,6 +202,18 @@ const Profile = () => {
                 onChange={handleChange} 
               />
             </div>
+            {profileData.userType === 'Employer' && (
+              <div className="form-group">
+                <label htmlFor="companyName">Company Name:</label>
+                <input 
+                  id="companyName"
+                  type="text" 
+                  name="companyName" 
+                  value={updatedData.companyName} 
+                  onChange={handleChange} 
+                />
+              </div>
+            )}
             <div className="form-group">
               <label htmlFor="picture">Upload Picture:</label>
               <input 
@@ -237,6 +251,9 @@ const Profile = () => {
             <p><strong>Barangay:</strong> {profileData.barangay}</p>
             <p><strong>Zip Code:</strong> {profileData.zipCode}</p>
             <p><strong>Mobile Number:</strong> {profileData.mobileNumber}</p>
+            {profileData.userType === 'Employer' && (
+              <p><strong>Company Name:</strong> {profileData.companyName}</p>
+            )}
             {profileData.picture && (
               <div className="profile-picture">
                 <img src={profileData.picture} alt="Profile" />
