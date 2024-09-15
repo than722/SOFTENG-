@@ -201,7 +201,9 @@ const App = () => {
           <Route path="/profile-table" element={<ProfileTable />} /> {/* Route for ProfileTable */}
         </Routes>
       </div>
+
     </Router>
+
   );
 };
 
