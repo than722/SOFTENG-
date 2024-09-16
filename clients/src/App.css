@@ -1,3 +1,4 @@
+/* Overall App Container */
 .app-container-App {
   font-family: 'Arial, sans-serif';
   color: #fff;
@@ -6,8 +7,15 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow: hidden; /* Prevent overflow from breaking the layout */
 }
 
+.button2 {
+  display: flex;
+  gap: 14px;
+}
+
+/* Navbar */
 .navbar-App {
   display: flex;
   justify-content: space-between;
@@ -41,11 +49,14 @@
   font-weight: bold;
 }
 
+/* Main Content Area */
 .content-App {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 100px;
+  overflow-y: auto; /* Enable vertical scrolling if content exceeds height */
+  flex-grow: 1; /* Ensure the content section grows */
 }
 
 .text-section-App {
@@ -84,7 +95,7 @@
   border-radius: 10px;
 }
 
-/* Selection Modal */
+/* Modal Styling */
 .modal-App {
   display: flex;
   justify-content: center;
@@ -96,6 +107,7 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
+  overflow-y: auto; /* Enable scrolling if content exceeds screen height */
 }
 
 .modal-content-App {
@@ -104,6 +116,8 @@
   border-radius: 8px;
   width: 400px;
   max-width: 80%;
+  max-height: 90vh; /* Ensure the modal doesn't exceed the viewport height */
+  overflow-y: auto; /* Add vertical scroll if the content is too tall */
   position: relative; /* Required for positioning close button */
 }
 

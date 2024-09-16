@@ -6,9 +6,13 @@ import axios from 'axios';
 import Admin from './admin/Admin'; 
 import Profile from './Profile';
 import ProfileTable from './Profile-table';
+import SignIn from './SignIn';
 
 const App = () => {
   const [values, setValues] = useState({
+    email: '',
+    password: '',
+    reEnterPassword: '',
     lastName: '',
     firstName: '',
     middleName: '',
@@ -21,17 +25,35 @@ const App = () => {
     picture: '',
     resume: ''
   });
+
   const [picture, setPicture] = useState(null);
   const [resume, setResume] = useState(null);
-
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [accountType, setAccountType] = useState('');
+  const [error, setError] = useState('');
+  const [passwordMatch, setPasswordMatch] = useState(true); // New state for password match
+  const [validFields, setValidFields] = useState({}); // Track valid fields
 
+  // Handle input change
   const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    // If user is typing in the re-enter password field, check if it matches
+    if (name === 'reEnterPassword') {
+      setPasswordMatch(value === values.password); // Set passwordMatch state based on comparison
+    }
+
     setValues({
       ...values,
-      [event.target.name]: event.target.value
+      [name]: value
+    });
+
+    // Mark the field as valid if input is provided
+    setValidFields({
+      ...validFields,
+      [name]: value.trim() !== '' // Check if the field is non-empty
     });
   };
 
@@ -47,10 +69,18 @@ const App = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
 
+    // Check if passwords match
+    if (!passwordMatch) {
+      setError('Passwords do not match');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('accountType', accountType);
     Object.keys(values).forEach((key) => {
-      formData.append(key, values[key]);
+      if (key !== 'reEnterPassword') { // Skip reEnterPassword from being submitted
+        formData.append(key, values[key]);
+      }
     });
 
     if (picture) {
@@ -89,7 +119,15 @@ const App = () => {
   const closeFormModal = () => {
     setIsFormModalOpen(false);
     setAccountType('');
+    setError(''); // Clear error message on modal close
   };
+
+  const openSignInModal = () => setIsSignInModalOpen(true); // Open SignIn modal
+  const closeSignInModal = () => setIsSignInModalOpen(false);
+
+  const inputStyle = (fieldName) => ({
+    borderColor: validFields[fieldName] ? 'green' : 'initial' // Turn green if valid
+  });
 
   return (
     <Router>
@@ -101,11 +139,13 @@ const App = () => {
               <li><a href="#about">ABOUT US</a></li>
               <li><a href="#vision">VISION</a></li>
               <li><a href="#mission">MISSION</a></li>
-              <li><Link to="/admin">Admin</Link></li>
               <li><Link to="/profile-table">Profile</Link></li> {/* Add Profile button */}
             </ul>
           </nav>
-          <button className="create-account-App" onClick={openSelectionModal}>CREATE ACCOUNT</button>
+          <div className='button2'>
+            <button className="create-account-App" onClick={openSelectionModal}>CREATE ACCOUNT</button>
+            <button className="sign-in-App" onClick={openSignInModal}>SIGN IN</button> {/* Add Sign In button */}
+          </div>
         </header>
 
         <Routes>
@@ -139,40 +179,143 @@ const App = () => {
                 </div>
               )}
 
+              {/* Sign In Modal */}
+              <SignIn isOpen={isSignInModalOpen} onClose={closeSignInModal} /> {/* Use SignIn component */}
+
               {/* Form Modal */}
               {isFormModalOpen && (
                 <div className="modal-App">
                   <div className="modal-content-App">
                     <span className="close-button-App" onClick={closeFormModal}>&times;</span>
                     <h2>{accountType === 'employee' ? 'Employee Form' : 'Employer Form'}</h2>
+                    {error && <p style={{ color: 'red' }}>{error}</p>} {/* Error message */}
                     <form onSubmit={handleSubmit}>
                       <div className="form-group-App">
+                        <label>Email:</label>
+                        <input 
+                          type="email" 
+                          name="email" 
+                          placeholder="Email" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('email')} // Apply conditional style
+                        />
+                      </div>
+                      <div className="form-group-App">
+                        <label>Password:</label>
+                        <input 
+                          type="password" 
+                          name="password" 
+                          placeholder="Password" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('password')} // Apply conditional style
+                        />
+                      </div>
+                      <div className="form-group-App">
+                        <label>Re-enter Password:</label>
+                        <input 
+                          type="password" 
+                          name="reEnterPassword" 
+                          placeholder="Re-enter Password" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('reEnterPassword')} // Apply conditional style
+                        />
+                        {values.reEnterPassword && (
+                          <p style={{ color: passwordMatch ? 'green' : 'red' }}>
+                            {passwordMatch ? 'Passwords match!' : 'Passwords do not match'}
+                          </p>
+                        )}
+                      </div>
+                      <div className="form-group-App">
                         <label>Last Name:</label>
-                        <input type="text" name="lastName" placeholder="Last Name" required onChange={handleChange} />
+                        <input 
+                          type="text" 
+                          name="lastName" 
+                          placeholder="Last Name" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('lastName')} // Apply conditional style
+                        />
                       </div>
                       <div className="form-group-App">
                         <label>First Name:</label>
-                        <input type="text" name="firstName" placeholder="First Name" required onChange={handleChange} />
+                        <input 
+                          type="text" 
+                          name="firstName" 
+                          placeholder="First Name" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('firstName')} // Apply conditional style
+                        />
                       </div>
                       <div className="form-group-App">
                         <label>Middle Name:</label>
-                        <input type="text" name="middleName" placeholder="Middle Name" onChange={handleChange} />
+                        <input 
+                          type="text" 
+                          name="middleName" 
+                          placeholder="Middle Name" 
+                          onChange={handleChange} 
+                          style={inputStyle('middleName')} // Apply conditional style
+                        />
                       </div>
                       <div className="form-group-App">
                         <label>Address:</label>
-                        <input type="text" name="province" placeholder="Province" required onChange={handleChange} />
-                        <input type="text" name="municipality" placeholder="Municipality" required onChange={handleChange} />
-                        <input type="text" name="barangay" placeholder="Barangay" required onChange={handleChange} />
-                        <input type="text" name="zipCode" placeholder="Zip Code" required onChange={handleChange} />
+                        <input 
+                          type="text" 
+                          name="province" 
+                          placeholder="Province" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('province')} // Apply conditional style
+                        />
+                        <input 
+                          type="text" 
+                          name="municipality" 
+                          placeholder="Municipality" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('municipality')} // Apply conditional style
+                        />
+                        <input 
+                          type="text" 
+                          name="barangay" 
+                          placeholder="Barangay" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('barangay')} // Apply conditional style
+                        />
+                        <input 
+                          type="text" 
+                          name="zipCode" 
+                          placeholder="Zip Code" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('zipCode')} // Apply conditional style
+                        />
                       </div>
                       <div className="form-group-App">
                         <label>Mobile Number:</label>
-                        <input type="text" name="mobileNumber" placeholder="Mobile Number" required onChange={handleChange} />
+                        <input 
+                          type="text" 
+                          name="mobileNumber" 
+                          placeholder="Mobile Number" 
+                          required 
+                          onChange={handleChange} 
+                          style={inputStyle('mobileNumber')} // Apply conditional style
+                        />
                       </div>
                       {accountType === 'employer' && (
                         <div className="form-group-App">
                           <label>Company Name (optional):</label>
-                          <input type="text" name="companyName" placeholder="Company Name" onChange={handleChange} />
+                          <input 
+                            type="text" 
+                            name="companyName" 
+                            placeholder="Company Name" 
+                            onChange={handleChange} 
+                            style={inputStyle('companyName')} // Apply conditional style
+                          />
                         </div>
                       )}
                       {accountType === 'employee' && (
@@ -201,9 +344,7 @@ const App = () => {
           <Route path="/profile-table" element={<ProfileTable />} /> {/* Route for ProfileTable */}
         </Routes>
       </div>
-
     </Router>
-
   );
 };
 
