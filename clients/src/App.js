@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import './App.css';
 import logo from './assets/images/logo4.png';
 import axios from 'axios';
@@ -99,7 +99,8 @@ const App = () => {
     .then(res => {
       console.log("Full Response Data:", res.data); // Log the complete response
       if (res.data.id) {
-        window.location.href = `/profile/${res.data.id}`;
+        // Navigate to the profile page using the accountType and ID
+        window.location.href = `/profile/${accountType}/${res.data.id}`;
       } else {
         console.error('No ID returned from the backend.');
       }
@@ -340,7 +341,7 @@ const App = () => {
             </main>
           } />
           <Route path="/admin" element={<Admin />} />
-          <Route path="/profile/:id" element={<Profile />} />
+          <Route path="/profile/:accountType/:id" element={<Profile />} /> {/* Updated Route */}
           <Route path="/profile-table" element={<ProfileTable />} /> {/* Route for ProfileTable */}
         </Routes>
       </div>

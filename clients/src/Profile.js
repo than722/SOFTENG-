@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Profile = () => {
-  const { id } = useParams();
+  const { id, accountType } = useParams(); // Extract both id and accountType
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
@@ -20,11 +20,13 @@ const Profile = () => {
     mobileNumber: '',
     picture: null,
     resume: null,
-    companyName: '', // Add this field to handle company name for employers
+    companyName: '', // Field for company name if profile is an employer
   });
 
   const fetchProfile = useCallback(() => {
-    axios.get(`http://localhost:8081/api/users/${id}`)
+    const url = `http://localhost:8081/api/users/${id}`;
+    
+    axios.get(url)
       .then(response => {
         setProfileData(response.data);
         setUpdatedData({
@@ -38,7 +40,7 @@ const Profile = () => {
           mobileNumber: response.data.mobileNumber,
           picture: null,
           resume: null,
-          companyName: response.data.companyName || '', // Handle company name
+          companyName: response.data.companyName || '',
         });
         setError(null);
       })
@@ -49,13 +51,13 @@ const Profile = () => {
   }, [id]);
 
   useEffect(() => {
-    if (!id) {
-      setError('No ID provided');
+    if (!id || !accountType) {
+      setError('ID or account type is missing');
       return;
     }
 
     fetchProfile();
-  }, [id, fetchProfile]);
+  }, [id, accountType, fetchProfile]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -83,7 +85,8 @@ const Profile = () => {
       formData.append(key, updatedData[key]);
     });
 
-    axios.put(`http://localhost:8081/api/users/${id}`, formData)
+    const url = `http://localhost:8081/api/${accountType.toLowerCase()}s/${id}`; // Adjust API endpoint based on accountType
+    axios.put(url, formData)
       .then(() => {
         fetchProfile(); // Fetch updated profile data
         setIsEditing(false);
@@ -96,7 +99,8 @@ const Profile = () => {
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
-      axios.delete(`http://localhost:8081/api/users/${id}`)
+      const url = `http://localhost:8081/api/${accountType.toLowerCase()}s/${id}`; // Adjust API endpoint based on accountType
+      axios.delete(url)
         .then(() => {
           alert('Profile deleted successfully');
           navigate('/'); 
@@ -122,6 +126,7 @@ const Profile = () => {
       <div className="profile-info">
         {isEditing ? (
           <>
+            {/* Editable fields for both employee and employer */}
             <div className="form-group">
               <label htmlFor="firstName">First Name:</label>
               <input 
@@ -202,7 +207,7 @@ const Profile = () => {
                 onChange={handleChange} 
               />
             </div>
-            {profileData.userType === 'Employer' && (
+            {accountType === 'Employer' && (
               <div className="form-group">
                 <label htmlFor="companyName">Company Name:</label>
                 <input 
@@ -243,6 +248,7 @@ const Profile = () => {
           </>
         ) : (
           <>
+            {/* Display fields for both employee and employer */}
             <p><strong>First Name:</strong> {profileData.firstName}</p>
             <p><strong>Last Name:</strong> {profileData.lastName}</p>
             <p><strong>Middle Name:</strong> {profileData.middleName}</p>
@@ -251,17 +257,17 @@ const Profile = () => {
             <p><strong>Barangay:</strong> {profileData.barangay}</p>
             <p><strong>Zip Code:</strong> {profileData.zipCode}</p>
             <p><strong>Mobile Number:</strong> {profileData.mobileNumber}</p>
-            {profileData.userType === 'Employer' && (
+            {accountType === 'Employer' && (
               <p><strong>Company Name:</strong> {profileData.companyName}</p>
             )}
             {profileData.picture && (
               <div className="profile-picture">
                 <img src={`http://localhost:8081/uploads/${profileData.picture}`} alt="Profile" />
-                </div>
+              </div>
             )}
             {profileData.resume && (
               <div className="profile-resume">
-                <a href={profileData.resume} download>Download Resume</a>
+                <a href={`http://localhost:8081/uploads/${profileData.resume}`} download>Download Resume</a>
               </div>
             )}
             <div className="button-group">
