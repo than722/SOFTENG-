@@ -256,8 +256,8 @@ const Profile = () => {
             )}
             {profileData.picture && (
               <div className="profile-picture">
-                <img src={profileData.picture} alt="Profile" />
-              </div>
+                <img src={`http://localhost:8081/uploads/${profileData.picture}`} alt="Profile" />
+                </div>
             )}
             {profileData.resume && (
               <div className="profile-resume">
