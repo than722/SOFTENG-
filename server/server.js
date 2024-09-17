@@ -49,18 +49,18 @@ db.connect((err) => {
 
 // Route to handle signup for employees and employers
 app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
-  const { accountType, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName } = req.body;
+  const { accountType, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, email, password } = req.body;
   let sql, values;
 
   if (accountType === 'employee') {
     const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
     const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
 
-    sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 2]; // status_id default to 1 (active)
+    sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)';
+    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 2, email, password];
   } else if (accountType === 'employer') {
-    sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 2]; // status_id default to 1 (active)
+    sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)';
+    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 2, email, password];
   } else {
     return res.status(400).json({ error: 'Invalid account type' });
   }
@@ -70,29 +70,48 @@ app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (r
       console.error('Error executing signup query:', err);
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
-
     res.json({ id: results.insertId });
   });
 });
 
-
-// Route to fetch all users
-app.get('/api/users', (req, res) => {
-  const sql = `
-    SELECT id, CONCAT_WS(' ', lastName, firstName, middleName) AS name, 
-           'Employee' AS type, status_id AS statusId, picture AS pictureUrl, resume AS resumeUrl 
-    FROM employee
-    UNION ALL
-    SELECT id, CONCAT_WS(' ', lastName, firstName, middleName) AS name, 
-           'Employer' AS type, status_id AS statusId, NULL AS pictureUrl, NULL AS resumeUrl 
-    FROM employer
-  `;
-  db.query(sql, (err, results) => {
+// Route to login (handle both employees and employers)
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  const employeeSql = 'SELECT id, email, password, "employee" AS accountType FROM employee WHERE email = ?';
+  
+  db.query(employeeSql, [email], (err, employeeResults) => {
     if (err) {
-      console.error('Error executing query:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
+      console.error('Error querying employee table:', err);
+      return res.status(500).json({ error: 'Database error' });
     }
-    res.json(results);
+
+    if (employeeResults.length > 0) {
+      const employee = employeeResults[0];
+      if (password === employee.password) {
+        return res.json({ message: 'Login successful', accountType: employee.accountType, id: employee.id });
+      } else {
+        return res.status(401).json({ error: 'Invalid password' });
+      }
+    }
+
+    const employerSql = 'SELECT id, email, password, "employer" AS accountType FROM employer WHERE email = ?';
+    db.query(employerSql, [email], (err, employerResults) => {
+      if (err) {
+        console.error('Error querying employer table:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (employerResults.length > 0) {
+        const employer = employerResults[0];
+        if (password === employer.password) {
+          return res.json({ message: 'Login successful', accountType: employer.accountType, id: employer.id });
+        } else {
+          return res.status(401).json({ error: 'Invalid password' });
+        }
+      }
+
+      return res.status(404).json({ error: 'User not found' });
+    });
   });
 });
 
@@ -100,15 +119,8 @@ app.get('/api/users', (req, res) => {
 app.get('/api/users/:id', (req, res) => {
   const { id } = req.params;
 
-  const employeeSql = `
-    SELECT id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, 'Employee' AS userType
-    FROM employee WHERE id = ?
-  `;
-
-  const employerSql = `
-    SELECT id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName AS companyName, NULL AS picture, NULL AS resume, 'Employer' AS userType
-    FROM employer WHERE id = ?
-  `;
+  const employeeSql = `SELECT id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, 'Employee' AS userType FROM employee WHERE id = ?`;
+  const employerSql = `SELECT id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName AS companyName, NULL AS picture, NULL AS resume, 'Employer' AS userType FROM employer WHERE id = ?`;
 
   db.query(employeeSql, [id], (err, results) => {
     if (err) {
@@ -134,168 +146,6 @@ app.get('/api/users/:id', (req, res) => {
     }
   });
 });
-
-// Route to update a user's status (progress)
-app.put('/api/users/:id/status', (req, res) => {
-  const { id } = req.params;
-  const { progressId } = req.body;
-
-  const updateEmployeeSql = 'UPDATE employee SET status_id = ? WHERE id = ?';
-  const updateEmployerSql = 'UPDATE employer SET status_id = ? WHERE id = ?';
-
-  // First, try to update the employee's status
-  db.query(updateEmployeeSql, [progressId, id], (err, results) => {
-    if (err) {
-      console.error('Error executing employee update query:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
-
-    if (results.affectedRows === 0) {
-      // If no employee was updated, try updating the employer's status
-      db.query(updateEmployerSql, [progressId, id], (err, results) => {
-        if (err) {
-          console.error('Error executing employer update query:', err);
-          return res.status(500).json({ error: 'Database error', details: err.message });
-        }
-
-        if (results.affectedRows === 0) {
-          // If no rows were affected in either table, the user was not found
-          return res.status(404).json({ error: 'User not found' });
-        }
-
-        res.json({ message: 'Progress updated successfully' });
-      });
-    } else {
-      res.json({ message: 'Progress updated successfully' });
-    }
-  });
-});
-
-
-// Route to update a user's profile (Employee or Employer)
-app.put('/api/users/:id', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
-  const { id } = req.params;
-  const { firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName } = req.body;
-  const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
-  const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
-
-  // First, try to update the employee
-  let sql = `
-    UPDATE employee 
-    SET firstName = ?, lastName = ?, middleName = ?, province = ?, municipality = ?, barangay = ?, zipCode = ?, mobileNumber = ?
-  `;
-  let values = [firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber];
-
-  // Conditionally add picture and resume fields if they are provided
-  if (pictureUrl) {
-    sql += `, picture = ?`;
-    values.push(pictureUrl);
-  }
-
-  if (resumeUrl) {
-    sql += `, resume = ?`;
-    values.push(resumeUrl);
-  }
-
-  sql += ` WHERE id = ?`;
-  values.push(id);
-
-  db.query(sql, values, (err, results) => {
-    if (err) {
-      console.error('Error executing employee update query:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
-
-    if (results.affectedRows === 0) {
-      // If no employee was updated, try updating the employer
-      let employerSql = `
-        UPDATE employer 
-        SET firstName = ?, lastName = ?, middleName = ?, province = ?, municipality = ?, barangay = ?, zipCode = ?, mobileNumber = ?, companyName = ?
-      `;
-      let employerValues = [firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName];
-
-      employerSql += ` WHERE id = ?`;
-      employerValues.push(id);
-
-      db.query(employerSql, employerValues, (err, results) => {
-        if (err) {
-          console.error('Error executing employer update query:', err);
-          return res.status(500).json({ error: 'Database error', details: err.message });
-        }
-
-        if (results.affectedRows === 0) {
-          return res.status(404).json({ error: 'User not found' });
-        }
-
-        res.json({ message: 'Profile updated successfully' });
-      });
-    } else {
-      res.json({ message: 'Profile updated successfully' });
-    }
-  });
-});
-
-// Route to delete a user profile by ID
-app.delete('/api/users/:id', (req, res) => {
-  const { id } = req.params;
-
-  const deleteFiles = (profile) => {
-    const pictureFilePath = profile.picture ? path.join(uploadsDir, profile.picture.toString()) : null;
-    const resumeFilePath = profile.resume ? path.join(uploadsDir, profile.resume.toString()) : null;
-
-    // Delete files from server if they exist
-    if (pictureFilePath && fs.existsSync(pictureFilePath)) {
-      fs.unlinkSync(pictureFilePath);
-    }
-    if (resumeFilePath && fs.existsSync(resumeFilePath)) {
-      fs.unlinkSync(resumeFilePath);
-    }
-  };
-
-  const deleteUserSql = (table) => `DELETE FROM ${table} WHERE id = ?`;
-
-  // Try to delete from employee table first
-  const getEmployeeSql = 'SELECT picture, resume FROM employee WHERE id = ?';
-  db.query(getEmployeeSql, [id], (err, results) => {
-    if (err) {
-      console.error('Error fetching employee data:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
-
-    if (results.length > 0) {
-      deleteFiles(results[0]);
-      db.query(deleteUserSql('employee'), [id], (err) => {
-        if (err) {
-          console.error('Error executing employee delete query:', err);
-          return res.status(500).json({ error: 'Database error', details: err.message });
-        }
-        return res.json({ message: 'Profile deleted successfully' });
-      });
-    } else {
-      // If no employee was found, try the employer table
-      const getEmployerSql = 'SELECT NULL AS picture, NULL AS resume FROM employer WHERE id = ?';
-      db.query(getEmployerSql, [id], (err, results) => {
-        if (err) {
-          console.error('Error fetching employer data:', err);
-          return res.status(500).json({ error: 'Database error', details: err.message });
-        }
-
-        if (results.length === 0) {
-          return res.status(404).json({ error: 'Profile not found' });
-        }
-
-        db.query(deleteUserSql('employer'), [id], (err) => {
-          if (err) {
-            console.error('Error executing employer delete query:', err);
-            return res.status(500).json({ error: 'Database error', details: err.message });
-          }
-          return res.json({ message: 'Profile deleted successfully' });
-        });
-      });
-    }
-  });
-});
-
 
 // Serve uploaded files
 app.use('/uploads', express.static(uploadsDir));
