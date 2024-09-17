@@ -46,6 +46,7 @@
     border: 2px solid #fff;
     border-radius: 4px;
     cursor: pointer;
+    font-weight: bold;
   }
   
   button.sign-in-App:hover {
