@@ -7,6 +7,8 @@ import Admin from './admin/Admin';
 import Profile from './Profile';
 import ProfileTable from './Profile-table';
 import SignIn from './SignIn';
+import AddJobPosting from './AddJobPosting';
+import ViewJobPosting from './ViewJobPosting';
 
 const App = () => {
   const [values, setValues] = useState({
@@ -141,6 +143,8 @@ const App = () => {
               <li><a href="#vision">VISION</a></li>
               <li><a href="#mission">MISSION</a></li>
               <li><Link to="/profile-table">Profile</Link></li> {/* Add Profile button */}
+              <li><Link to="/add-job">Add Job Posting</Link></li> {/* Add Job Posting button */}
+              <li><Link to="/view-job">View Job Posting</Link></li> {/* View Job Posting button */}
             </ul>
           </nav>
           <div className='button2'>
@@ -343,6 +347,8 @@ const App = () => {
           <Route path="/admin" element={<Admin />} />
           <Route path="/profile/:accountType/:id" element={<Profile />} /> {/* Updated Route */}
           <Route path="/profile-table" element={<ProfileTable />} /> {/* Route for ProfileTable */}
+          <Route path="/add-job" element={<AddJobPosting />} /> {/* Route for AddJobPosting */}
+          <Route path="/view-job" element={<ViewJobPosting />} /> {/* ViewJobPosting route */}
         </Routes>
       </div>
     </Router>

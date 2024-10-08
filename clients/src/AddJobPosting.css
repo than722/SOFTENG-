@@ -1,0 +1,60 @@
+.add-job-posting {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 500px;
+    margin: 40px auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add-job-posting h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+.add-job-posting form {
+    display: flex;
+    flex-direction: column;
+}
+
+.add-job-posting form div {
+    margin-bottom: 15px;
+}
+
+.add-job-posting label {
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.add-job-posting input,
+.add-job-posting textarea {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.add-job-posting textarea {
+    resize: vertical;
+    height: 100px;
+}
+
+.add-job-posting button {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    align-self: center;
+}
+
+.add-job-posting button:hover {
+    background-color: #0056b3;
+}
