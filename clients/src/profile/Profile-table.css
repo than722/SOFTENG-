@@ -1,0 +1,57 @@
+.profile-table-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .profile-table-tabs {
+    display: flex;
+    margin-bottom: 20px;
+  }
+  
+  .profile-table-tabs button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    border: none;
+    background-color: #005f99;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+  }
+  
+  .profile-table-tabs button.active {
+    background-color: #004d80; /* Darker shade to indicate active tab */
+  }
+  
+  .profile-table-tabs button:hover {
+    background-color: #0077C8;
+  }
+  
+  .profile-table-user-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .profile-table-user-table th, .profile-table-user-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .profile-table-user-table th {
+    background-color: #005f99; /* Darker blue for headers */
+    color: white;
+  }
+  
+  .profile-table-user-table tr {
+    background-color: #0077C8;
+  }
+  
+  .profile-table-user-table tr:nth-child(even) {
+    background-color: #004d80;
+  }
+  
+  .profile-table-user-table tr:hover {
+    background-color: #696666;
+  }
+  

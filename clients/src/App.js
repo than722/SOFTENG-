@@ -4,11 +4,11 @@ import './App.css';
 import logo from './assets/images/logo4.png';
 import axios from 'axios';
 import Admin from './admin/Admin'; 
-import Profile from './Profile';
-import ProfileTable from './Profile-table';
-import SignIn from './SignIn';
-import AddJobPosting from './AddJobPosting';
-import ViewJobPosting from './ViewJobPosting';
+import Profile from './profile/Profile';
+import ProfileTable from './profile/Profile-table';
+import SignIn from './Sign in/SignIn';
+import AddJobPosting from './job posting/AddJobPosting';
+import ViewJobPosting from './job posting/ViewJobPosting';
 
 const App = () => {
   const [values, setValues] = useState({
