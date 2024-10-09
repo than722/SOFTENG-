@@ -1,34 +1,80 @@
 .view-job-posting {
-    background-color: #ffffff;
+    background-color: #f5f7fa; /* Light background for the entire section */
     border-radius: 8px;
     padding: 20px;
-    max-width: 800px;
+    width: 1400px; /* Wider to accommodate multiple cards */
     margin: 40px auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .view-job-posting h2 {
-    text-align: center;
+    text-align: left;
     color: #333;
     margin-bottom: 20px;
+    padding-left: 10px;
 }
 
 .view-job-posting ul {
     list-style: none;
     padding: 0;
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping of items */
+    gap: 20px; /* Space between each card */
+    justify-content: flex-start; /* Align cards to the left */
 }
 
 .view-job-posting li {
-    border-bottom: 1px solid #ddd;
-    padding: 15px 0;
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px; /* Adjusted for larger cards */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth hover effect */
+}
+
+.view-job-posting li:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .view-job-posting h3 {
     margin: 0;
     color: #007bff;
+    font-weight: bold;
+    font-size: 1.2em;
 }
 
 .view-job-posting p {
-    margin: 5px 0;
+    margin: 8px 0;
     color: #555;
+    line-height: 1.4;
+}
+
+.view-job-posting .job-metadata {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.view-job-posting .job-metadata span {
+    background-color: #e0f7fa;
+    color: #00796b;
+    border-radius: 12px;
+    padding: 5px 10px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.view-job-posting .job-description {
+    margin-top: 10px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.view-job-posting .job-salary,
+.view-job-posting .job-country {
+    font-size: 0.95em;
+    font-weight: bold;
+    color: #333;
 }

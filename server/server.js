@@ -13,7 +13,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: 'root',
+  password: '1234',
   database: 'mydb'
 });
 
@@ -115,6 +115,28 @@ app.post('/login', (req, res) => {
   });
 });
 
+app.post('/api/job_postings/AddJobPosting', (req, res) => {
+  const { jobName, jobOverview, jobDescription, salary, country } = req.body;
+
+  console.log('Received job posting data:', jobName, jobOverview, jobDescription, salary, country);
+
+  if (!jobName || !jobDescription || !salary || !country) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const sql = 'INSERT INTO job_postings (jobName, jobOverview, jobDescription, salary, country) VALUES (?, ?, ?, ?, ?)';
+  const values = [jobName, jobOverview || null, jobDescription, salary, country];
+
+  db.query(sql, values, (err, results) => {
+    if (err) {
+      console.error('Error inserting job posting:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+    res.status(201).json({ message: 'Job posting created successfully', id: results.insertId });
+  });
+});
+
+
 // Route to fetch a user by ID (either Employee or Employer)
 app.get('/api/users/:id', (req, res) => {
   const { id } = req.params;
@@ -143,6 +165,37 @@ app.get('/api/users/:id', (req, res) => {
           res.status(404).json({ error: 'User not found' });
         }
       });
+    }
+  });
+});
+
+
+// Route to get all job postings
+app.get('/api/job-postings', (req, res) => {
+  const sql = 'SELECT id, jobName AS name, jobOverview AS overview, jobDescription AS description, salary, country FROM job_postings';
+
+  db.query(sql, (err, results) => {
+      if (err) {
+          console.error('Error fetching job postings:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+
+      res.json(results);
+  });
+});
+
+app.get('/api/job-postings/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'SELECT * FROM job_postings WHERE id = ?';
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      console.error('Error fetching job posting:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+    if (results.length > 0) {
+      res.json(results[0]);
+    } else {
+      res.status(404).json({ error: 'Job posting not found' });
     }
   });
 });

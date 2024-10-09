@@ -1,0 +1,93 @@
+/* src/JobDetailView.css */
+
+.job-detail-view {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+.job-detail-view .back-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    text-decoration: underline;
+}
+
+.job-detail-view h2 {
+    color: #003366;
+    font-size: 2em;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.job-detail-view .login-prompt {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.job-detail-view .login-prompt a {
+    color: #007bff;
+    text-decoration: underline;
+    margin: 0 5px;
+}
+
+.job-detail-view .job-metadata {
+    display: flex;
+    justify-content: space-between;
+    background-color: #f7f9fc;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.job-detail-view .job-metadata div {
+    text-align: center;
+    flex: 1;
+}
+
+.job-detail-view .job-metadata div:not(:last-child) {
+    border-right: 1px solid #e0e0e0;
+}
+
+.job-detail-view .job-metadata div h4 {
+    margin: 0;
+    font-size: 0.85em;
+    color: #333;
+    text-transform: uppercase;
+}
+
+.job-detail-view .job-metadata div p {
+    margin: 5px 0 0;
+    font-weight: bold;
+    color: #00796b;
+    font-size: 1.1em;
+}
+
+.job-overview {
+    background-color: #f7f9fc;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.job-overview h3 {
+    border-bottom: 2px solid #003366;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    color: #003366;
+    font-size: 1.25em;
+    display: flex;
+    align-items: center;
+}
+
+.job-overview p {
+    color: #555;
+    line-height: 1.6;
+    font-size: 0.95em;
+}
