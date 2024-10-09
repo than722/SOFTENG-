@@ -8,13 +8,12 @@ const Admin = () => {
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('employees');
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // State for login
-  const [username, setUsername] = useState(''); // State to store username
-  const [password, setPassword] = useState(''); // State to store password
-  const correctUsername = 'admin'; // Hardcoded username
-  const correctPassword = 'admin'; // Hardcoded password
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const correctUsername = 'admin';
+  const correctPassword = 'admin';
 
-  // Handle login
   const handleLogin = () => {
     if (username === correctUsername && password === correctPassword) {
       setIsLoggedIn(true);
@@ -34,8 +33,8 @@ const Admin = () => {
           }
         })
         .then(data => {
-          const employeesData = data.filter(user => user.type === 'Employee');
-          const employersData = data.filter(user => user.type === 'Employer');
+          const employeesData = data.filter(user => user.userType === 'Employee');
+          const employersData = data.filter(user => user.userType === 'Employer');
           setEmployees(employeesData);
           setEmployers(employersData);
         })
@@ -117,14 +116,14 @@ const Admin = () => {
 
   const acceptUser = () => {
     if (selectedUser) {
-      handleProgressChange(selectedUser.id, 1, selectedUser.type);
+      handleProgressChange(selectedUser.id, 1, selectedUser.userType);
       closeModal();
     }
   };
 
   const rejectUser = () => {
     if (selectedUser) {
-      handleProgressChange(selectedUser.id, 2, selectedUser.type);
+      handleProgressChange(selectedUser.id, 2, selectedUser.userType);
       closeModal();
     }
   };
@@ -132,7 +131,6 @@ const Admin = () => {
   return (
     <div className="admin-container">
       {!isLoggedIn ? (
-        // Render login form if not logged in
         <div className="login-form">
           <h2>Admin Login</h2>
           <input
@@ -190,10 +188,10 @@ const Admin = () => {
                   {employees.map(employee => (
                     <tr key={employee.id}>
                       <td>{employee.id}</td>
-                      <td>{employee.name}</td>
+                      <td>{employee.firstName} {employee.lastName}</td>
                       <td>
                         <select
-                          value={employee.statusId || ''}
+                          value={employee.progressId || ''}
                           onChange={(e) => handleProgressChange(employee.id, parseInt(e.target.value), 'Employee')}
                         >
                           <option value={1}>Active</option>
@@ -226,10 +224,10 @@ const Admin = () => {
                   {employers.map(employer => (
                     <tr key={employer.id}>
                       <td>{employer.id}</td>
-                      <td>{employer.name}</td>
+                      <td>{employer.firstName} {employer.lastName}</td>
                       <td>
                         <select
-                          value={employer.statusId || ''}
+                          value={employer.progressId || ''}
                           onChange={(e) => handleProgressChange(employer.id, parseInt(e.target.value), 'Employer')}
                         >
                           <option value={1}>Active</option>
@@ -266,17 +264,14 @@ const Admin = () => {
                   <p><strong>Barangay:</strong> {selectedUser.barangay}</p>
                   <p><strong>Zip Code:</strong> {selectedUser.zipCode}</p>
                   <p><strong>Mobile Number:</strong> {selectedUser.mobileNumber}</p>
-                  <p><strong>Status:</strong> {selectedUser.statusId === 1 ? 'Active' : 'Inactive'}</p>
+                  <p><strong>Email:</strong> {selectedUser.email}</p>
+                  <p><strong>Status:</strong> {selectedUser.progressId === 1 ? 'Active' : 'Inactive'}</p>
+                  <p><strong>Resume:</strong> <a href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`} target="_blank" rel="noopener noreferrer">View Resume</a></p>
                 </div>
-                {selectedUser.resumeUrl && (
-                  <div className="profile-resume">
-                    <a href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`} download>Download Resume</a>
-                  </div>
-                )}
-                <div className="profile-actions">
+                <div className="modal-buttons">
                   <button onClick={acceptUser}>Accept</button>
                   <button onClick={rejectUser}>Reject</button>
-                  <button className="close-admin" onClick={closeModal}>&times;</button>
+                  <button onClick={closeModal}>Close</button>
                 </div>
               </div>
             </div>

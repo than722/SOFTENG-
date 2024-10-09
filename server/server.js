@@ -13,7 +13,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -136,6 +136,74 @@ app.post('/api/job_postings/AddJobPosting', (req, res) => {
   });
 });
 
+// Route to delete an employee by ID
+app.delete('/api/employees/:id', (req, res) => {
+  const { id } = req.params;
+
+  const deleteEmployeeSql = 'DELETE FROM employee WHERE id = ?';
+  db.query(deleteEmployeeSql, [id], (err, result) => {
+    if (err) {
+      console.error('Error deleting employee:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+
+    if (result.affectedRows > 0) {
+      return res.json({ message: 'Employee deleted successfully' });
+    } else {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+  });
+});
+
+// Update user profile
+app.put('/api/employees/:id', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
+  const { id } = req.params;
+
+  const { firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber } = req.body;
+  
+  const picture = req.files['picture'] ? req.files['picture'][0].filename : null;
+  const resume = req.files['resume'] ? req.files['resume'][0].filename : null;
+
+  const sql = `UPDATE employee SET firstName = ?, lastName = ?, middleName = ?, province = ?, municipality = ?, barangay = ?, zipCode = ?, mobileNumber = ?, 
+      picture = COALESCE(?, picture), resume = COALESCE(?, resume) WHERE id = ?`;
+
+  db.query(sql, [firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, id], (err, result) => {
+    if (err) {
+      console.error('Error updating profile:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+
+    if (result.affectedRows > 0) {
+      res.json({ message: 'Profile updated successfully' });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  });
+});
+
+// Route to fetch all users (employees and employers)
+app.get('/api/users', (req, res) => {
+  const employeeSql = 'SELECT id, lastName, firstName, email, "Employee" AS userType FROM employee';
+  const employerSql = 'SELECT id, lastName, firstName, email, "Employer" AS userType FROM employer';
+
+  db.query(employeeSql, (err, employeeResults) => {
+    if (err) {
+      console.error('Error fetching employee data:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+
+    db.query(employerSql, (err, employerResults) => {
+      if (err) {
+        console.error('Error fetching employer data:', err);
+        return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+
+      // Combine both results into a single array
+      const allUsers = [...employeeResults, ...employerResults];
+      res.json(allUsers);
+    });
+  });
+});
 
 // Route to fetch a user by ID (either Employee or Employer)
 app.get('/api/users/:id', (req, res) => {

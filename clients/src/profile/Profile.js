@@ -82,10 +82,19 @@ const Profile = () => {
   const handleSave = () => {
     const formData = new FormData();
     Object.keys(updatedData).forEach(key => {
-      formData.append(key, updatedData[key]);
+      if (key === 'picture' || key === 'resume') {
+        if (updatedData[key]) {
+          formData.append(key, updatedData[key]);
+        } else {
+          // If no new file, append null to retain old file in the database
+          formData.append(key, null);
+        }
+      } else {
+        formData.append(key, updatedData[key]);
+      }
     });
-
-    const url = `http://localhost:8081/api/${accountType.toLowerCase()}s/${id}`; // Adjust API endpoint based on accountType
+  
+    const url = `http://localhost:8081/api/${accountType.toLowerCase()}s/${id}`;
     axios.put(url, formData)
       .then(() => {
         fetchProfile(); // Fetch updated profile data
@@ -96,6 +105,7 @@ const Profile = () => {
         setError('Error updating profile data');
       });
   };
+  
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
