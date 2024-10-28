@@ -9,6 +9,7 @@ const SignIn = ({ isOpen, onClose }) => {
     password: '',
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false); // Add loading state
   const navigate = useNavigate(); // Initialize navigate
 
   // Simple validation function
@@ -46,16 +47,25 @@ const SignIn = ({ isOpen, onClose }) => {
 
     // If there are no validation errors, submit the form
     if (Object.keys(validationErrors).length === 0) {
+      setLoading(true); // Set loading state to true when request starts
       axios
         .post('http://localhost:8081/login', values)
         .then((res) => {
-          // Assuming the server responds with user data including ID and accountType
+          setLoading(false); // Set loading state to false when request completes
           const { id, accountType } = res.data; // Extract id and accountType from response
+
+          // Store token if needed (e.g., res.data.token)
+          // localStorage.setItem('token', res.data.token);
 
           // Redirect to Profile page with user ID and account type
           navigate(`/profile/${accountType}/${id}`);
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          setLoading(false); // Set loading state to false on error
+          // Display error message from server response or fallback to a generic one
+          const errorMessage = err.response?.data?.error || 'Login failed. Please try again.';
+          setErrors({ general: errorMessage });
+        });
     }
   };
 
@@ -96,8 +106,8 @@ const SignIn = ({ isOpen, onClose }) => {
             />
             {errors.password && <p style={{ color: 'red' }}>{errors.password}</p>}
           </div>
-          <button type="submit" className="sign-in-App">
-            Sign In
+          <button type="submit" className="sign-in-App" disabled={loading}>
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
       </div>

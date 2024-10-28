@@ -4,6 +4,8 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const bcrypt = require('bcrypt');
+
 
 const app = express();
 app.use(cors());
@@ -13,7 +15,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: 'root',
+  password: '1234',
   database: 'mydb'
 });
 
@@ -47,53 +49,76 @@ db.connect((err) => {
   console.log('Connected to database.');
 });
 
-// Route to handle signup for employees and employers
+// Route to handle signup for employees and employers with password hashing
 app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
   const { accountType, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, email, password } = req.body;
-  let sql, values;
 
-  if (accountType === 'employee') {
-    const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
-    const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
-
-    sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)';
-    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 2, email, password];
-  } else if (accountType === 'employer') {
-    sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)';
-    values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 2, email, password];
-  } else {
-    return res.status(400).json({ error: 'Invalid account type' });
-  }
-
-  db.query(sql, values, (err, results) => {
+  // Hash the password before storing it
+  bcrypt.hash(password, 10, (err, hashedPassword) => {
     if (err) {
-      console.error('Error executing signup query:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
+      console.error('Error hashing password:', err);
+      return res.status(500).json({ error: 'Internal server error' });
     }
-    res.json({ id: results.insertId });
+
+    let sql, values;
+    if (accountType === 'employee') {
+      const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
+      const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
+
+      sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 2, email, hashedPassword];
+    } else if (accountType === 'employer') {
+      sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 2, email, hashedPassword];
+    } else {
+      return res.status(400).json({ error: 'Invalid account type' });
+    }
+
+    db.query(sql, values, (err, results) => {
+      if (err) {
+        console.error('Error executing signup query:', err);
+        return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+      res.json({ id: results.insertId });
+    });
   });
 });
 
-// Route to login (handle both employees and employers)
+// Login route with password comparison using bcrypt
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
+
   const employeeSql = 'SELECT id, email, password, "employee" AS accountType FROM employee WHERE email = ?';
-  
+
   db.query(employeeSql, [email], (err, employeeResults) => {
     if (err) {
       console.error('Error querying employee table:', err);
       return res.status(500).json({ error: 'Database error' });
     }
 
+    // If an employee is found, compare the password
     if (employeeResults.length > 0) {
       const employee = employeeResults[0];
-      if (password === employee.password) {
-        return res.json({ message: 'Login successful', accountType: employee.accountType, id: employee.id });
-      } else {
-        return res.status(401).json({ error: 'Invalid password' });
-      }
+      
+      bcrypt.compare(password, employee.password, (err, isMatch) => {
+        if (err) {
+          console.error('Error comparing passwords:', err);
+          return res.status(500).json({ error: 'Internal error' });
+        }
+        if (isMatch) {
+          return res.json({
+            message: 'Login successful',
+            accountType: employee.accountType,
+            id: employee.id,
+          });
+        } else {
+          return res.status(401).json({ error: 'Invalid password' });
+        }
+      });
+      return; // Exit early since we found the employee
     }
 
+    // If no employee was found, check the employer table
     const employerSql = 'SELECT id, email, password, "employer" AS accountType FROM employer WHERE email = ?';
     db.query(employerSql, [email], (err, employerResults) => {
       if (err) {
@@ -103,17 +128,30 @@ app.post('/login', (req, res) => {
 
       if (employerResults.length > 0) {
         const employer = employerResults[0];
-        if (password === employer.password) {
-          return res.json({ message: 'Login successful', accountType: employer.accountType, id: employer.id });
-        } else {
-          return res.status(401).json({ error: 'Invalid password' });
-        }
+        
+        bcrypt.compare(password, employer.password, (err, isMatch) => {
+          if (err) {
+            console.error('Error comparing passwords:', err);
+            return res.status(500).json({ error: 'Internal error' });
+          }
+          if (isMatch) {
+            return res.json({
+              message: 'Login successful',
+              accountType: employer.accountType,
+              id: employer.id,
+            });
+          } else {
+            return res.status(401).json({ error: 'Invalid password' });
+          }
+        });
+      } else {
+        // If no user is found in both tables
+        return res.status(404).json({ error: 'User not found' });
       }
-
-      return res.status(404).json({ error: 'User not found' });
     });
   });
 });
+
 
 app.post('/api/job_postings/AddJobPosting', (req, res) => {
   const { jobName, jobOverview, jobDescription, salary, country } = req.body;

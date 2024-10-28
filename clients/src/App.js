@@ -9,6 +9,7 @@ import ProfileTable from './profile/Profile-table';
 import SignIn from './Sign in/SignIn';
 import AddJobPosting from './job posting/AddJobPosting';
 import ViewJobPosting from './job posting/ViewJobPosting';
+import SignOut from './Sign in/SignOut';
 
 const App = () => {
   const [values, setValues] = useState({
@@ -32,6 +33,7 @@ const App = () => {
   const [resume, setResume] = useState(null);
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [accountType, setAccountType] = useState('');
   const [error, setError] = useState('');
@@ -98,39 +100,53 @@ const App = () => {
         'Content-Type': 'multipart/form-data'
       }
     })
-    .then(res => {
-      console.log("Full Response Data:", res.data); // Log the complete response
-      if (res.data.id) {
-        // Navigate to the profile page using the accountType and ID
-        window.location.href = `/profile/${accountType}/${res.data.id}`;
-      } else {
-        console.error('No ID returned from the backend.');
-      }
-    })
-    .catch(err => {
-      console.error('Error during submission:', err);
-    });
-  };
+    
+          .then(res => {
+            console.log("Full Response Data:", res.data); // Log the complete response
+            if (res.data.id) {
+              // Store token and navigate to the profile page
+              localStorage.setItem('authToken', res.data.token);
+              setIsAuthenticated(true);
+              window.location.href = `/profile/${accountType}/${res.data.id}`;
+            } else {
+              console.error('No ID returned from the backend.');
+            }
+          })
+          .catch(err => {
+            console.error('Error during submission:', err);
+          });
+        };
 
-  const openSelectionModal = () => setIsSelectionModalOpen(true);
-  const closeSelectionModal = () => setIsSelectionModalOpen(false);
-  const openFormModal = (type) => {
-    setAccountType(type);
-    setIsFormModalOpen(true);
-    closeSelectionModal();
-  };
-  const closeFormModal = () => {
-    setIsFormModalOpen(false);
-    setAccountType('');
-    setError(''); // Clear error message on modal close
-  };
+        const openSelectionModal = () => setIsSelectionModalOpen(true);
+        const closeSelectionModal = () => setIsSelectionModalOpen(false);
+        const openFormModal = (type) => {
+          setAccountType(type);
+          setIsFormModalOpen(true);
+          closeSelectionModal();
+        };
+        const closeFormModal = () => {
+          setIsFormModalOpen(false);
+          setAccountType('');
+          setError(''); // Clear error message on modal close
+        };
 
-  const openSignInModal = () => setIsSignInModalOpen(true); // Open SignIn modal
-  const closeSignInModal = () => setIsSignInModalOpen(false);
+        const openSignInModal = () => setIsSignInModalOpen(true); // Open SignIn modal
+        const closeSignInModal = () => setIsSignInModalOpen(false);
 
-  const inputStyle = (fieldName) => ({
-    borderColor: validFields[fieldName] ? 'green' : 'initial' // Turn green if valid
-  });
+
+        const handleSignInSuccess = (token) => {
+          setIsAuthenticated(true);
+          localStorage.setItem('authToken', token);
+          closeSignInModal();
+        };
+        
+        // Pass to SignIn component
+        <SignIn isOpen={isSignInModalOpen} onClose={closeSignInModal} onSignInSuccess={handleSignInSuccess} />
+        
+
+        const inputStyle = (fieldName) => ({
+          borderColor: validFields[fieldName] ? 'green' : 'initial' // Turn green if valid
+        });
 
   return (
     <Router>
@@ -148,9 +164,16 @@ const App = () => {
             </ul>
           </nav>
           <div className='button2'>
-            <button className="create-account-App" onClick={openSelectionModal}>CREATE ACCOUNT</button>
-            <button className="sign-in-App" onClick={openSignInModal}>SIGN IN</button> {/* Add Sign In button */}
+              {!isAuthenticated ? (
+              <>
+                <button className="create-account-App" onClick={openSelectionModal}>CREATE ACCOUNT</button>
+                <button className="sign-in-App" onClick={openSignInModal}>SIGN IN</button>
+              </>
+            ) : (
+              <SignOut onSignOut={() => setIsAuthenticated(false)} /> // Use the SignOut component directly
+            )}
           </div>
+
         </header>
 
         <Routes>
