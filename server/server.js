@@ -15,7 +15,7 @@ app.use(express.json());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -49,41 +49,72 @@ db.connect((err) => {
   console.log('Connected to database.');
 });
 
-// Route to handle signup for employees and employers with password hashing
+  // Route to handle signup for employees and employers with password hashing
 app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
-  const { accountType, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, email, password } = req.body;
+  const { 
+    accountType, 
+    lastName, 
+    firstName, 
+    middleName, 
+    province, 
+    municipality, 
+    barangay, 
+    zipCode, 
+    mobileNumber, 
+    companyName, 
+    email, 
+    password 
+  } = req.body;
 
-  // Hash the password before storing it
+  console.log('Request body:', req.body);
+  console.log('Uploaded files:', req.files);
+
+  // Check if all required fields are present
+  if (!email || !password || !accountType || !lastName || !firstName) {
+    return res.status(400).json({ error: 'Email, password, account type, last name, and first name are required' });
+  }
+
+  // Check if the password is a valid string
+  if (typeof password !== 'string' || password.trim() === '') {
+      return res.status(400).json({ error: 'Invalid password' });
+  }
+
+  // Hash the password
   bcrypt.hash(password, 10, (err, hashedPassword) => {
-    if (err) {
-      console.error('Error hashing password:', err);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
+      if (err) {
+          console.error('Error hashing password:', err);
+          return res.status(500).json({ error: 'Internal server error' });
+      }
 
-    let sql, values;
-    if (accountType === 'employee') {
+      let sql, values;
       const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
       const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
 
-      sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 2, email, hashedPassword];
-    } else if (accountType === 'employer') {
-      sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 2, email, hashedPassword];
-    } else {
-      return res.status(400).json({ error: 'Invalid account type' });
-    }
-
-    db.query(sql, values, (err, results) => {
-      if (err) {
-        console.error('Error executing signup query:', err);
-        return res.status(500).json({ error: 'Database error', details: err.message });
+      if (accountType === 'employee') {
+          sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+          values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 2, email, hashedPassword];
+      } else if (accountType === 'employer') {
+          sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+          values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 2, email, hashedPassword];
+      } else {
+          return res.status(400).json({ error: 'Invalid account type' });
       }
-      res.json({ id: results.insertId });
-    });
+
+      console.log('SQL Query:', sql);
+      console.log('Values:', values);
+
+      db.query(sql, values, (err, results) => {
+          if (err) {
+              console.error('Error executing signup query:', err.message);
+              return res.status(500).json({ error: 'Database error', details: err.message });
+          }
+          res.json({ id: results.insertId });
+      });
   });
 });
 
+
+  
 // Login route with password comparison using bcrypt
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
