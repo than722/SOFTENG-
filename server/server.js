@@ -6,7 +6,6 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 
-
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -38,7 +37,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ dest: 'uploads/' });
 
 // Connect to MySQL database
 db.connect((err) => {
@@ -49,10 +48,10 @@ db.connect((err) => {
   console.log('Connected to database.');
 });
 
-  // Route to handle signup for employees and employers with password hashing
-app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
+// Route to handle signup for employees and employers with password hashing
+app.post('/signup', upload.fields([{ name: 'picture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), (req, res) => {
   const { 
-    accountType, 
+    accountType,
     lastName, 
     firstName, 
     middleName, 
@@ -63,16 +62,8 @@ app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (r
     mobileNumber, 
     companyName, 
     email, 
-    password 
+    password,
   } = req.body;
-
-  console.log('Request body:', req.body);
-  console.log('Uploaded files:', req.files);
-
-  // Check if all required fields are present
-  if (!email || !password || !accountType || !lastName || !firstName) {
-    return res.status(400).json({ error: 'Email, password, account type, last name, and first name are required' });
-  }
 
   // Check if the password is a valid string
   if (typeof password !== 'string' || password.trim() === '') {
@@ -82,7 +73,6 @@ app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (r
   // Hash the password
   bcrypt.hash(password, 10, (err, hashedPassword) => {
       if (err) {
-          console.error('Error hashing password:', err);
           return res.status(500).json({ error: 'Internal server error' });
       }
 
@@ -91,35 +81,42 @@ app.post('/signup', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (r
       const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
 
       if (accountType === 'employee') {
-          sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+          sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'; 
           values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 2, email, hashedPassword];
       } else if (accountType === 'employer') {
-          sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+          sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'; 
           values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 2, email, hashedPassword];
       } else {
           return res.status(400).json({ error: 'Invalid account type' });
       }
 
-      console.log('SQL Query:', sql);
-      console.log('Values:', values);
-
+      // First, insert into employee or employer
       db.query(sql, values, (err, results) => {
           if (err) {
-              console.error('Error executing signup query:', err.message);
               return res.status(500).json({ error: 'Database error', details: err.message });
           }
-          res.json({ id: results.insertId });
+
+          // After inserting, also insert into user table
+          const employeeId = accountType === 'employee' ? results.insertId : null;
+          const employerId = accountType === 'employer' ? results.insertId : null;
+          const userType = accountType === 'employee' ? 'employee' : 'employer';
+
+          const userSql = 'INSERT INTO user (user_type, employee_id, employer_id) VALUES (?, ?, ?)';
+          db.query(userSql, [userType, employeeId, employerId], (err) => {
+              if (err) {
+                  return res.status(500).json({ error: 'Database error while inserting user', details: err.message });
+              }
+              res.json({ id: results.insertId }); // Return the ID of the created employee/employer
+          });
       });
   });
 });
 
-
-  
 // Login route with password comparison using bcrypt
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
-  const employeeSql = 'SELECT id, email, password, "employee" AS accountType FROM employee WHERE email = ?';
+  const employeeSql = 'SELECT employee_id, email, password, "employee" AS accountType FROM employee WHERE email = ?';
 
   db.query(employeeSql, [email], (err, employeeResults) => {
     if (err) {
@@ -140,7 +137,7 @@ app.post('/login', (req, res) => {
           return res.json({
             message: 'Login successful',
             accountType: employee.accountType,
-            id: employee.id,
+            employeeId: employee.employee_id,
           });
         } else {
           return res.status(401).json({ error: 'Invalid password' });
@@ -150,7 +147,7 @@ app.post('/login', (req, res) => {
     }
 
     // If no employee was found, check the employer table
-    const employerSql = 'SELECT id, email, password, "employer" AS accountType FROM employer WHERE email = ?';
+    const employerSql = 'SELECT employer_id, email, password, "employer" AS accountType FROM employer WHERE email = ?';
     db.query(employerSql, [email], (err, employerResults) => {
       if (err) {
         console.error('Error querying employer table:', err);
@@ -169,7 +166,7 @@ app.post('/login', (req, res) => {
             return res.json({
               message: 'Login successful',
               accountType: employer.accountType,
-              id: employer.id,
+              employerId: employer.employer_id,
             });
           } else {
             return res.status(401).json({ error: 'Invalid password' });
@@ -182,7 +179,6 @@ app.post('/login', (req, res) => {
     });
   });
 });
-
 
 app.post('/api/job_postings/AddJobPosting', (req, res) => {
   const { jobName, jobOverview, jobDescription, salary, country } = req.body;
@@ -206,11 +202,11 @@ app.post('/api/job_postings/AddJobPosting', (req, res) => {
 });
 
 // Route to delete an employee by ID
-app.delete('/api/employees/:id', (req, res) => {
-  const { id } = req.params;
+app.delete('/api/employees/:employeeId', (req, res) => {
+  const { employeeId } = req.params;
 
-  const deleteEmployeeSql = 'DELETE FROM employee WHERE id = ?';
-  db.query(deleteEmployeeSql, [id], (err, result) => {
+  const deleteEmployeeSql = 'DELETE FROM employee WHERE employee_id = ?';
+  db.query(deleteEmployeeSql, [employeeId], (err, result) => {
     if (err) {
       console.error('Error deleting employee:', err);
       return res.status(500).json({ error: 'Database error', details: err.message });
@@ -224,122 +220,95 @@ app.delete('/api/employees/:id', (req, res) => {
   });
 });
 
-// Update user profile
-app.put('/api/employees/:id', upload.fields([{ name: 'picture' }, { name: 'resume' }]), (req, res) => {
-  const { id } = req.params;
+// Route to get user profile by employee_id or employer_id
+app.get('/api/users/:userId', (req, res) => {
+  const { userId } = req.params;
 
-  const { firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber } = req.body;
-  
-  const picture = req.files['picture'] ? req.files['picture'][0].filename : null;
-  const resume = req.files['resume'] ? req.files['resume'][0].filename : null;
-
-  const sql = `UPDATE employee SET firstName = ?, lastName = ?, middleName = ?, province = ?, municipality = ?, barangay = ?, zipCode = ?, mobileNumber = ?, 
-      picture = COALESCE(?, picture), resume = COALESCE(?, resume) WHERE id = ?`;
-
-  db.query(sql, [firstName, lastName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, id], (err, result) => {
+  const employeeQuery = 'SELECT employee_id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, "Employee" AS userType FROM employee WHERE employee_id = ?';
+  db.query(employeeQuery, [userId], (err, employeeResults) => {
     if (err) {
-      console.error('Error updating profile:', err);
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
-    if (result.affectedRows > 0) {
-      res.json({ message: 'Profile updated successfully' });
-    } else {
-      res.status(404).json({ message: 'User not found' });
-    }
-  });
-});
-
-// Route to fetch all users (employees and employers)
-app.get('/api/users', (req, res) => {
-  const employeeSql = 'SELECT id, lastName, firstName, email, "Employee" AS userType FROM employee';
-  const employerSql = 'SELECT id, lastName, firstName, email, "Employer" AS userType FROM employer';
-
-  db.query(employeeSql, (err, employeeResults) => {
-    if (err) {
-      console.error('Error fetching employee data:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
+    if (employeeResults.length > 0) {
+      return res.json(employeeResults[0]);
     }
 
-    db.query(employerSql, (err, employerResults) => {
+    const employerQuery = 'SELECT employer_id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName AS companyName, NULL AS picture, NULL AS resume, "Employer" AS userType FROM employer WHERE employer_id = ?';
+    db.query(employerQuery, [userId], (err, employerResults) => {
       if (err) {
-        console.error('Error fetching employer data:', err);
         return res.status(500).json({ error: 'Database error', details: err.message });
       }
 
-      // Combine both results into a single array
-      const allUsers = [...employeeResults, ...employerResults];
-      res.json(allUsers);
+      if (employerResults.length > 0) {
+        return res.json(employerResults[0]);
+      }
+
+      res.status(404).json({ error: 'User not found' });
     });
   });
 });
 
-// Route to fetch a user by ID (either Employee or Employer)
-app.get('/api/users/:id', (req, res) => {
-  const { id } = req.params;
 
-  const employeeSql = `SELECT id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, 'Employee' AS userType FROM employee WHERE id = ?`;
-  const employerSql = `SELECT id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName AS companyName, NULL AS picture, NULL AS resume, 'Employer' AS userType FROM employer WHERE id = ?`;
+app.put('/api/users/:userId', upload.fields([{ name: 'picture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), (req, res) => {
+  const { userId } = req.params;
 
-  db.query(employeeSql, [id], (err, results) => {
+  const { 
+    lastName, 
+    firstName, 
+    middleName, 
+    province, 
+    municipality, 
+    barangay, 
+    zipCode, 
+    mobileNumber, 
+    companyName, 
+  } = req.body;
+
+  const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
+  const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
+
+  const employeeUpdateSql = `UPDATE employee SET 
+    lastName = COALESCE(?, lastName), 
+    firstName = COALESCE(?, firstName), 
+    middleName = COALESCE(?, middleName), 
+    province = COALESCE(?, province), 
+    municipality = COALESCE(?, municipality), 
+    barangay = COALESCE(?, barangay), 
+    zipCode = COALESCE(?, zipCode), 
+    mobileNumber = COALESCE(?, mobileNumber), 
+    picture = COALESCE(?, picture), 
+    resume = COALESCE(?, resume) 
+    WHERE employee_id = ?`;
+
+  const employeeValues = [
+    lastName, 
+    firstName, 
+    middleName, 
+    province, 
+    municipality, 
+    barangay, 
+    zipCode, 
+    mobileNumber, 
+    pictureUrl, 
+    resumeUrl, 
+    userId,
+  ];
+
+  db.query(employeeUpdateSql, employeeValues, (err, employeeResults) => {
     if (err) {
-      console.error('Error fetching employee data:', err);
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
-    if (results.length > 0) {
-      res.json(results[0]);
+    if (employeeResults.affectedRows > 0) {
+      return res.json({ message: 'Employee updated successfully' });
     } else {
-      db.query(employerSql, [id], (err, results) => {
-        if (err) {
-          console.error('Error fetching employer data:', err);
-          return res.status(500).json({ error: 'Database error', details: err.message });
-        }
-
-        if (results.length > 0) {
-          res.json(results[0]);
-        } else {
-          res.status(404).json({ error: 'User not found' });
-        }
-      });
+      return res.status(404).json({ error: 'Employee not found' });
     }
   });
 });
-
-
-// Route to get all job postings
-app.get('/api/job-postings', (req, res) => {
-  const sql = 'SELECT id, jobName AS name, jobOverview AS overview, jobDescription AS description, salary, country FROM job_postings';
-
-  db.query(sql, (err, results) => {
-      if (err) {
-          console.error('Error fetching job postings:', err);
-          return res.status(500).json({ error: 'Database error', details: err.message });
-      }
-
-      res.json(results);
-  });
-});
-
-app.get('/api/job-postings/:id', (req, res) => {
-  const { id } = req.params;
-  const sql = 'SELECT * FROM job_postings WHERE id = ?';
-  db.query(sql, [id], (err, results) => {
-    if (err) {
-      console.error('Error fetching job posting:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
-    if (results.length > 0) {
-      res.json(results[0]);
-    } else {
-      res.status(404).json({ error: 'Job posting not found' });
-    }
-  });
-});
-
-// Serve uploaded files
-app.use('/uploads', express.static(uploadsDir));
-
-app.listen(8081, () => {
-  console.log("Listening on port 8081");
+// Start the server
+const PORT = process.env.PORT || 8081;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });

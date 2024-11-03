@@ -44,30 +44,45 @@ const SignIn = ({ isOpen, onClose }) => {
     event.preventDefault();
     const validationErrors = Validation(values);
     setErrors(validationErrors);
-
-    // If there are no validation errors, submit the form
+  
     if (Object.keys(validationErrors).length === 0) {
-      setLoading(true); // Set loading state to true when request starts
+      setLoading(true);
+      let accountType; // Declare accountType outside the promise chain
+  
       axios
         .post('http://localhost:8081/login', values)
         .then((res) => {
-          setLoading(false); // Set loading state to false when request completes
-          const { id, accountType } = res.data; // Extract id and accountType from response
-
-          // Store token if needed (e.g., res.data.token)
-          // localStorage.setItem('token', res.data.token);
-
-          // Redirect to Profile page with user ID and account type
-          navigate(`/profile/${accountType}/${id}`);
+          setLoading(false);
+          console.log('Login response:', res.data); // Log the response to check its structure
+          const { id, accountType: fetchedAccountType } = res.data;
+          accountType = fetchedAccountType; // Assign the fetched accountType to the variable
+  
+          // Check if accountType is defined
+          if (!accountType) {
+            setErrors({ general: 'Account type is missing from the response.' });
+            return; // Exit if accountType is not defined
+          }
+  
+          // Check if user exists in the respective table
+          return axios.get(`http://localhost:8081/checkUser/${accountType}/${id}`);
+        })
+        .then((checkRes) => {
+          // Navigate to the Profile page if the user is found
+          const { found, profileId } = checkRes.data;
+          if (found) {
+            navigate(`/profile/${accountType}/${profileId}`);
+          } else {
+            setErrors({ general: 'User profile not found.' });
+          }
         })
         .catch((err) => {
-          setLoading(false); // Set loading state to false on error
-          // Display error message from server response or fallback to a generic one
+          setLoading(false);
           const errorMessage = err.response?.data?.error || 'Login failed. Please try again.';
           setErrors({ general: errorMessage });
         });
     }
   };
+  
 
   // Return early if modal is not open
   if (!isOpen) return null;

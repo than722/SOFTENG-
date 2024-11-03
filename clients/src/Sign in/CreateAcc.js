@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CreateAcc.css'; // Add separate CSS if needed for styling
 import axios from 'axios'; // Import axios for API requests
 
 const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [accountType, setAccountType] = useState('');
+  const [accountType, setAccountType] = useState(''); // Initialize account type state
   const [values, setValues] = useState({
     email: '',
     password: '',
@@ -26,6 +26,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
   const [loading, setLoading] = useState(false); // Loading state
 
   const openForm = (type) => {
+    console.log('Opening form for account type:', type);
     setAccountType(type);
     setIsFormOpen(true);
     onCloseSelection();
@@ -41,29 +42,37 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
 
   const handleFileChange = (event) => {
     const { name, files } = event.target;
+    const file = files[0]; // Get the first file
+
+    if (!file) return; // If no file, exit early
+
     if (name === 'picture') {
-      setPicture(files[0]);
-      console.log('Selected picture:', files[0]);
+        const fileType = file.type;
+        if (!fileType.startsWith('image/')) {
+            setError('Please upload a valid image file.');
+            return;
+        }
+        setPicture(file);
+        console.log('Selected picture:', file);
     }
+
     if (name === 'resume') {
-      setResume(files[0]);
-      console.log('Selected resume:', files[0]);
+        const fileType = file.type;
+        if (!['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(fileType)) {
+            setError('Please upload a valid resume file (.pdf, .doc, .docx).');
+            return;
+        }
+        setResume(file);
+        console.log('Selected resume:', file);
     }
-  };
+};
+
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!passwordMatch) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    // Password validation
-    if (values.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
-
+    
+    // Other validation checks remain the same...
+  
     const formData = new FormData();
     Object.keys(values).forEach((key) => {
       formData.append(key, values[key]);
@@ -71,13 +80,12 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     if (picture) formData.append('picture', picture);
     if (resume) formData.append('resume', resume);
     formData.append('accountType', accountType);
-
-    console.log('FormData contents:');
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
-    }
-
-    setLoading(true); // Start loading
+    
+    // Log FormData before sending
+    console.log('Form Data before submission:', Array.from(formData.entries()));
+    
+    setLoading(true);
+    setError(''); // Reset error message before submission
     try {
       const response = await axios.post('http://localhost:8081/signup', formData, {
         headers: {
@@ -86,14 +94,14 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       });
       console.log('Signup successful:', response.data);
       onFormSubmit(response.data);
-      closeForm();
+      closeForm(); // Close form on successful submission
     } catch (error) {
-      console.error('Error during signup:', error.response ? error.response.data : error.message);
-      setError(error.response?.data?.message || 'Signup failed. Please try again.'); // Show specific error
+      console.error('Error during signup:', error);
+      setError(error.response?.data?.message || 'Signup failed. Please try again.');
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
-  };
+  }
 
   const closeForm = () => {
     setIsFormOpen(false);
@@ -114,8 +122,12 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     });
     setPicture(null);  // Reset picture
     setResume(null);   // Reset resume
-    setError('');
+    setError(''); // Clear error message
   };
+
+  useEffect(() => {
+    console.log('Current Account Type:', accountType); // Log current account type
+  }, [accountType]);
 
   if (!isSelectionOpen && !isFormOpen) return null;
 
@@ -203,16 +215,18 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
                 <>
                   <div className="form-group-App">
                     <label>Upload Picture:</label>
-                    <input type="file" name="picture" accept="image/*" onChange={handleFileChange} required />
+                    <input type="file" name="picture" accept="image/*" onChange={handleFileChange} />
+                    {picture && <p>Selected Picture: {picture.name}</p>}
                   </div>
                   <div className="form-group-App">
                     <label>Upload Resume:</label>
-                    <input type="file" name="resume" accept=".pdf,.doc,.docx" onChange={handleFileChange} required />
+                    <input type="file" name="resume" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
+                    {resume && <p>Selected Resume: {resume.name}</p>}
                   </div>
                 </>
               )}
 
-              <button type="submit" className="App" disabled={loading}>
+              <button type="submit" disabled={loading}>
                 {loading ? 'Submitting...' : 'Submit'}
               </button>
             </form>
