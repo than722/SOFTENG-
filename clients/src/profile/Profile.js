@@ -109,7 +109,9 @@ const Profile = () => {
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
-      const url = `http://localhost:8081/api/${accountType.toLowerCase()}s/${id}`; // Adjust API endpoint based on accountType
+      // Adjust API endpoint based on accountType
+      const url = `http://localhost:8081/api/${accountType.toLowerCase()}s/${id}`; 
+      
       axios.delete(url)
         .then(() => {
           alert('Profile deleted successfully');
@@ -117,10 +119,13 @@ const Profile = () => {
         })
         .catch(error => {
           console.error('Error deleting profile:', error);
-          setError('Error deleting profile');
+          // Display a more specific error message if available
+          const errorMessage = error.response?.data?.error || 'Error deleting profile';
+          setError(errorMessage);
         });
     }
   };
+
 
   if (error) {
     return <div>{error}</div>;

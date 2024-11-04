@@ -1,9 +1,45 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './App.css'; // Keep the same CSS styling as App.js
 import logo from './assets/images/logo4.png';
 
-const EmployeeP = ({ onSignOut }) => {
+const EmployeeP = () => {
+  const [auth, setAuth] = useState(false);
+  const [name, setName] = useState('');
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is authenticated
+    axios.defaults.withCredentials = true;
+    axios.get('http://localhost:8081/') // Backend is on port 8081
+      .then(res => {
+        if (res.data.Status === "Success") {
+          setAuth(true);
+          setName(res.data.name);
+        } else {
+          setAuth(false);
+          setMessage(res.data.Message || 'Not authenticated');
+        }
+      })
+      .catch(err => console.log(err));
+  }, []);
+
+  const handleDelete = () => {
+    axios.get('http://localhost:8081/signout') // Backend signout route
+      .then(res => {
+        if (res.status === 200) {
+          setAuth(false); // Update auth state
+          navigate('/'); // Redirect to home or login page
+          window.location.reload(true); // Reload the page to reset state
+        } else {
+          console.error('Failed to sign out');
+        }
+      })
+      .catch(err => console.error('Error signing out:', err));
+  };
+
   return (
     <div className="employer-page-container">
       {/* Custom header for the employer page */}
@@ -19,7 +55,7 @@ const EmployeeP = ({ onSignOut }) => {
         </nav>
         <div className="button2">
           {/* Replace the Sign In button with Sign Out */}
-          <button className="sign-out-App" onClick={onSignOut}>SIGN OUT</button>
+          <button className="sign-out-App" onClick={handleDelete}>SIGN OUT</button>
         </div>
       </header>
 

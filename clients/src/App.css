@@ -15,6 +15,11 @@
   gap: 14px;
 }
 
+/* Class to hide elements */
+.hidden {
+  display: none !important;
+}
+
 /* Navbar */
 .navbar-App {
   display: flex;

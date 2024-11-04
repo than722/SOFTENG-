@@ -27,10 +27,11 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
 
   const openForm = (type) => {
     console.log('Opening form for account type:', type);
-    setAccountType(type);
+    setAccountType(type);  // Set account type to "employee" or "employer"
     setIsFormOpen(true);
     onCloseSelection();
   };
+  
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -47,42 +48,46 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     if (!file) return; // If no file, exit early
 
     if (name === 'picture') {
-        const fileType = file.type;
-        if (!fileType.startsWith('image/')) {
-            setError('Please upload a valid image file.');
-            return;
-        }
-        setPicture(file);
-        console.log('Selected picture:', file);
+      const fileType = file.type;
+      if (!fileType.startsWith('image/')) {
+        setError('Please upload a valid image file.');
+        return;
+      }
+      setPicture(file);
+      console.log('Selected picture:', file);
     }
 
     if (name === 'resume') {
-        const fileType = file.type;
-        if (!['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(fileType)) {
-            setError('Please upload a valid resume file (.pdf, .doc, .docx).');
-            return;
-        }
-        setResume(file);
-        console.log('Selected resume:', file);
+      const fileType = file.type;
+      if (!['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(fileType)) {
+        setError('Please upload a valid resume file (.pdf, .doc, .docx).');
+        return;
+      }
+      setResume(file);
+      console.log('Selected resume:', file);
     }
-};
-
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
-    // Other validation checks remain the same...
+  
+    if (!accountType) {
+      setError('Please select an account type.');
+      return;
+    }
   
     const formData = new FormData();
     Object.keys(values).forEach((key) => {
       formData.append(key, values[key]);
     });
+  
+    // Ensure `accountType` is appended correctly
+    formData.append('accountType', accountType);
     if (picture) formData.append('picture', picture);
     if (resume) formData.append('resume', resume);
-    formData.append('accountType', accountType);
-    
+  
     // Log FormData before sending
-    console.log('Form Data before submission:', Array.from(formData.entries()));
+    console.log('Form Data before submission:', Array.from(formData.entries()));  // Log all form data entries
     
     setLoading(true);
     setError(''); // Reset error message before submission
@@ -102,6 +107,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       setLoading(false);
     }
   }
+  
 
   const closeForm = () => {
     setIsFormOpen(false);

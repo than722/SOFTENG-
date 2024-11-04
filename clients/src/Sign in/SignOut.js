@@ -9,10 +9,16 @@ const SignOut = ({ onSignOut }) => {
   const handleSignOut = async () => {
     try {
       // Make a request to your sign-out API endpoint
-      await axios.post('http://localhost:8081/signout');
-      localStorage.removeItem('authToken'); // Remove the token from local storage
-      onSignOut(); // Update authentication state in App (setIsAuthenticated to false)
-      navigate('/'); // Redirect to the homepage or login page
+      await axios.post('http://localhost:8081/signout', {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`, // Send token if needed
+        }
+      });
+
+      // Clear local storage and update authentication state
+      localStorage.removeItem('authToken');
+      onSignOut(); // Set isAuthenticated to false in App.js
+      navigate('/'); // Redirect to the homepage
     } catch (error) {
       console.error('Error signing out:', error);
       alert('Failed to sign out. Please try again.');
