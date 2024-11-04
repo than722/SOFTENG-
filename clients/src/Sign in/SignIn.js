@@ -34,6 +34,7 @@ const SignIn = ({ isOpen, onClose }) => {
 
   const handleSignInSubmit = (event) => {
     event.preventDefault();
+    axios.defaults.withCredentials = true;
     const validationErrors = Validation(values);
     setErrors(validationErrors);
 

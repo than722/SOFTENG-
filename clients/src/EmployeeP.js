@@ -10,27 +10,41 @@ const EmployeeP = () => {
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [profileData, setProfileData] = useState(null); // State for profile data
+  const [userId, setUserId] = useState(null); // State for user ID
   const navigate = useNavigate();
-  const userId = 1; // Assuming you get this from your authentication logic
 
   useEffect(() => {
     // Check if user is authenticated
     axios.defaults.withCredentials = true;
     axios.get('http://localhost:8081/') // Backend is on port 8081
       .then(res => {
+        console.log(res.data); // Log response to check its structure
         if (res.data.Status === "Success") {
           setAuth(true);
           setName(res.data.name);
-          fetchProfile(res.data.userId); // Fetch profile if authenticated
+          const fetchedUserId = res.data.userId; // Get userId from response
+          setUserId(fetchedUserId); // Set userId state
+
+          // Fetch profile if userId is defined
+          if (fetchedUserId) {
+            fetchProfile(fetchedUserId); // Fetch profile if authenticated
+          } else {
+            console.error('User ID is undefined'); // Log if userId is not set
+          }
         } else {
           setAuth(false);
           setMessage(res.data.Message || 'Not authenticated');
         }
       })
-      .catch(err => console.log(err));
+      .catch(err => console.log('Error fetching authentication status:', err));
   }, []);
 
   const fetchProfile = async (userId) => {
+    if (!userId) {
+      console.error('User ID is undefined');
+      return;
+    }
+
     try {
       const response = await axios.get(`http://localhost:8081/api/users/${userId}`);
       setProfileData(response.data); // Set profile data
@@ -64,11 +78,12 @@ const EmployeeP = () => {
             <li><a href="#vision">VISION</a></li>
             <li><a href="#mission">MISSION</a></li>
             <li><Link to="/view-job">View Job Posting</Link></li>
-            <li><Link to={`/profile/`}>Profile</Link></li>
+            {auth && userId && ( // Show profile link only if authenticated and userId is defined
+              <li><Link to={`/profile/${userId}`}>Profile</Link></li>
+            )}
           </ul>
         </nav>
         <div className="button2">
-          {/* Replace the Sign In button with Sign Out */}
           <button className="sign-out-App" onClick={handleDelete}>SIGN OUT</button>
         </div>
       </header>

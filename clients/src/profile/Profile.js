@@ -86,7 +86,6 @@ const Profile = () => {
         if (updatedData[key]) {
           formData.append(key, updatedData[key]);
         } else {
-          // If no new file, append null to retain old file in the database
           formData.append(key, null);
         }
       } else {

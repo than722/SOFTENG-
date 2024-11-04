@@ -20,7 +20,7 @@ const App = () => {
   const [userId, setUserId] = useState(null); // Track user ID
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-  
+
   // Handle opening and closing of the selection modal
   const openSelectionModal = () => setIsSelectionModalOpen(true);
   const closeSelectionModal = () => setIsSelectionModalOpen(false);
@@ -55,7 +55,7 @@ const App = () => {
       if (res.data.id) {
         localStorage.setItem('authToken', res.data.token);
         setIsAuthenticated(true);
-        setAccountType(values.accountType); // Set account type
+        setAccountType(values.accountType.toLowerCase()); // Ensure lowercase account type
         setUserId(res.data.id); // Set user ID
       } else {
         console.error('No ID returned from the backend.');
@@ -118,7 +118,7 @@ const AppContent = ({
         } />
 
         <Route path="/admin" element={<Admin />} />
-        <Route path="/profile/:accountType/:id" element={<Profile />} />
+        <Route path="/profile/:id/:accountType" element={<Profile />} />
         <Route path="/profile-table" element={<ProfileTable />} />
         <Route path="/add-job" element={<AddJobPosting />} />
         <Route path="/view-job" element={<ViewJobPosting />} />
