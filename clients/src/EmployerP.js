@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './App.css'; // Keep the same CSS styling as App.js
 import logo from './assets/images/logo4.png';
+import Profile from './profile/Profile';
 
 const EmployerP = ({ onSignOut }) => {
   return (
@@ -15,6 +16,7 @@ const EmployerP = ({ onSignOut }) => {
             <li><a href="#vision">VISION</a></li>
             <li><a href="#mission">MISSION</a></li>
             <li><Link to="/add-job">Add Job Posting</Link></li>
+            <li><Link to={`/profile/`}>Profile</Link></li>
           </ul>
         </nav>
         <div className="button2">

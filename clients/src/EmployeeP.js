@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './App.css'; // Keep the same CSS styling as App.js
 import logo from './assets/images/logo4.png';
+import Profile from './profile/Profile';
 
 const EmployeeP = () => {
   const [auth, setAuth] = useState(false);
@@ -51,6 +52,7 @@ const EmployeeP = () => {
             <li><a href="#vision">VISION</a></li>
             <li><a href="#mission">MISSION</a></li>
             <li><Link to="/view-job">View Job Posting</Link></li>
+            <li><Link to={`/profile/`}>Profile</Link></li>
           </ul>
         </nav>
         <div className="button2">
