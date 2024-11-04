@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -326,6 +326,59 @@ app.put('/api/users/:userId', upload.fields([{ name: 'picture', maxCount: 1 }, {
     }
   });
 });
+
+// Route to get all job postings
+app.get('/api/job_postings', (req, res) => {
+  const sql = 'SELECT * FROM job_postings';
+  db.query(sql, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+    res.json(results);
+  });
+});
+
+// Route to get a job posting by ID (continuation from where it was cut off)
+app.get('/api/job_postings/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'SELECT * FROM job_postings WHERE id = ?';
+  db.query(sql, [id], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+    if (results.length === 0) return res.status(404).json({ error: 'Job posting not found' });
+    res.json(results[0]);
+  });
+});
+
+// Route to update a job posting by ID
+app.put('/api/job_postings/:id', (req, res) => {
+  const { id } = req.params;
+  const { jobName, jobOverview, jobDescription, salary, country } = req.body;
+
+  const sql = `UPDATE job_postings SET 
+               jobName = COALESCE(?, jobName), 
+               jobOverview = COALESCE(?, jobOverview), 
+               jobDescription = COALESCE(?, jobDescription), 
+               salary = COALESCE(?, salary), 
+               country = COALESCE(?, country) 
+               WHERE id = ?`;
+
+  const values = [jobName, jobOverview, jobDescription, salary, country, id];
+  db.query(sql, values, (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+    if (results.affectedRows === 0) return res.status(404).json({ error: 'Job posting not found' });
+    res.json({ message: 'Job posting updated successfully' });
+  });
+});
+
+// Route to delete a job posting by ID
+app.delete('/api/job_postings/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM job_postings WHERE id = ?';
+  db.query(sql, [id], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+    if (results.affectedRows === 0) return res.status(404).json({ error: 'Job posting not found' });
+    res.json({ message: 'Job posting deleted successfully' });
+  });
+});
+
 
 // Sign-out route to clear the JWT token
 app.post('/signout', (req, res) => {

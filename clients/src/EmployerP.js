@@ -1,10 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './App.css'; // Keep the same CSS styling as App.js
 import logo from './assets/images/logo4.png';
-import Profile from './profile/Profile';
+import Profile from './profile/Profile'; // Import Profile component
 
 const EmployerP = ({ onSignOut }) => {
+  const [profileData, setProfileData] = useState(null);
+  const userId = 1; // Assuming you get this from your authentication logic
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`/api/users/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile');
+        }
+        const data = await response.json();
+        setProfileData(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
+
   return (
     <div className="employer-page-container">
       {/* Custom header for the employer page */}
@@ -21,7 +41,7 @@ const EmployerP = ({ onSignOut }) => {
         </nav>
         <div className="button2">
           {/* Replace the Sign In button with Sign Out */}
-          <button className="sign-out-App" onClick={onSignOut}>SIGN OUT</button>
+          <button className="sign-out_App" onClick={onSignOut}>SIGN OUT</button>
         </div>
       </header>
 
@@ -41,6 +61,11 @@ const EmployerP = ({ onSignOut }) => {
         <div className="image-section-App">
           <img src="woman-smiling.png" alt="Smiling Woman" className="main-image-App" />
         </div>
+
+        {/* Display profile information if available */}
+        {profileData && (
+          <Profile profileData={profileData} />
+        )}
       </main>
     </div>
   );

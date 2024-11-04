@@ -3,13 +3,15 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './App.css'; // Keep the same CSS styling as App.js
 import logo from './assets/images/logo4.png';
-import Profile from './profile/Profile';
+import Profile from './profile/Profile'; // Import Profile component
 
 const EmployeeP = () => {
   const [auth, setAuth] = useState(false);
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
+  const [profileData, setProfileData] = useState(null); // State for profile data
   const navigate = useNavigate();
+  const userId = 1; // Assuming you get this from your authentication logic
 
   useEffect(() => {
     // Check if user is authenticated
@@ -19,6 +21,7 @@ const EmployeeP = () => {
         if (res.data.Status === "Success") {
           setAuth(true);
           setName(res.data.name);
+          fetchProfile(res.data.userId); // Fetch profile if authenticated
         } else {
           setAuth(false);
           setMessage(res.data.Message || 'Not authenticated');
@@ -26,6 +29,15 @@ const EmployeeP = () => {
       })
       .catch(err => console.log(err));
   }, []);
+
+  const fetchProfile = async (userId) => {
+    try {
+      const response = await axios.get(`http://localhost:8081/api/users/${userId}`);
+      setProfileData(response.data); // Set profile data
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    }
+  };
 
   const handleDelete = () => {
     axios.get('http://localhost:8081/signout') // Backend signout route
@@ -77,6 +89,11 @@ const EmployeeP = () => {
         <div className="image-section-App">
           <img src="woman-smiling.png" alt="Smiling Woman" className="main-image-App" />
         </div>
+
+        {/* Display profile information if available */}
+        {profileData && (
+          <Profile profileData={profileData} />
+        )}
       </main>
     </div>
   );

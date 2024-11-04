@@ -15,7 +15,7 @@ function ViewJobPosting() {
 
     useEffect(() => {
         // Fetch all job postings
-        axios.get('http://localhost:8081/api/job-postings')
+        axios.get('http://localhost:8081/api/job_postings') // Updated URL
             .then(response => {
                 setJobs(response.data);
                 setLoading(false);
@@ -34,7 +34,7 @@ function ViewJobPosting() {
 
     const fetchJobDetails = (id) => {
         setDetailsLoading(true);
-        axios.get(`http://localhost:8081/api/job-postings/${id}`)
+        axios.get(`http://localhost:8081/api/job_postings/${id}`) // Updated URL
             .then(response => {
                 setJobDetails(response.data);
                 setDetailsLoading(false);

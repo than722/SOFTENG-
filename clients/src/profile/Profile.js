@@ -24,7 +24,7 @@ const Profile = () => {
   });
 
   const fetchProfile = useCallback(() => {
-    const url = `http://localhost:8081/api/users/${id}`;
+    const url = `http://localhost:8081/api/${accountType.toLowerCase()}s/${id}`;
     
     axios.get(url)
       .then(response => {
@@ -48,7 +48,7 @@ const Profile = () => {
         console.error('Error fetching profile data:', error);
         setError('Error fetching profile data');
       });
-  }, [id]);
+  }, [id, accountType]);
 
   useEffect(() => {
     if (!id || !accountType) {
@@ -93,7 +93,7 @@ const Profile = () => {
         formData.append(key, updatedData[key]);
       }
     });
-  
+
     const url = `http://localhost:8081/api/${accountType.toLowerCase()}s/${id}`;
     axios.put(url, formData)
       .then(() => {
@@ -105,11 +105,9 @@ const Profile = () => {
         setError('Error updating profile data');
       });
   };
-  
 
   const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
-      // Adjust API endpoint based on accountType
       const url = `http://localhost:8081/api/${accountType.toLowerCase()}s/${id}`; 
       
       axios.delete(url)
@@ -119,13 +117,11 @@ const Profile = () => {
         })
         .catch(error => {
           console.error('Error deleting profile:', error);
-          // Display a more specific error message if available
           const errorMessage = error.response?.data?.error || 'Error deleting profile';
           setError(errorMessage);
         });
     }
   };
-
 
   if (error) {
     return <div>{error}</div>;
@@ -275,19 +271,9 @@ const Profile = () => {
             {accountType === 'Employer' && (
               <p><strong>Company Name:</strong> {profileData.companyName}</p>
             )}
-            {profileData.picture && (
-              <div className="profile-picture">
-                <img src={`http://localhost:8081/uploads/${profileData.picture}`} alt="Profile" />
-              </div>
-            )}
-            {profileData.resume && (
-              <div className="profile-resume">
-                <a href={`http://localhost:8081/uploads/${profileData.resume}`} download>Download Resume</a>
-              </div>
-            )}
             <div className="button-group">
               <button onClick={handleEditToggle}>Edit</button>
-              <button onClick={handleDelete} className="delete-button">Delete Profile</button>
+              <button onClick={handleDelete}>Delete Profile</button>
             </div>
           </>
         )}
