@@ -1,75 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import './App.css'; // Keep the same CSS styling as App.js
+import './App.css';
 import logo from './assets/images/logo4.png';
-import Profile from './profile/Profile'; // Import Profile component
+import Profile from './profile/Profile';
 
-const EmployeeP = () => {
-  const [auth, setAuth] = useState(false);
-  const [name, setName] = useState('');
-  const [message, setMessage] = useState('');
+const EmployeeP = ({ onSignOut, auth }) => {
   const [profileData, setProfileData] = useState(null); // State for profile data
-  const [userId, setUserId] = useState(null); // State for user ID
+  const [name, setName] = useState(''); // User name from authentication response
+  const [message, setMessage] = useState(''); // Message for authentication status
+  const { id: userId } = useParams(); // Get userId from route parameters
   const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user is authenticated
     axios.defaults.withCredentials = true;
-    axios.get('http://localhost:8081/') // Backend is on port 8081
+    axios.get('http://localhost:8081/')
       .then(res => {
-        console.log(res.data); // Log response to check its structure
         if (res.data.Status === "Success") {
-          setAuth(true);
           setName(res.data.name);
-          const fetchedUserId = res.data.userId; // Get userId from response
-          setUserId(fetchedUserId); // Set userId state
-
-          // Fetch profile if userId is defined
-          if (fetchedUserId) {
-            fetchProfile(fetchedUserId); // Fetch profile if authenticated
-          } else {
-            console.error('User ID is undefined'); // Log if userId is not set
-          }
+          fetchProfile(userId); // Fetch profile if authenticated
         } else {
-          setAuth(false);
           setMessage(res.data.Message || 'Not authenticated');
         }
       })
-      .catch(err => console.log('Error fetching authentication status:', err));
-  }, []);
+      .catch(err => console.error('Error fetching authentication status:', err));
+  }, [userId]);
 
-  const fetchProfile = async (userId) => {
-    if (!userId) {
-      console.error('User ID is undefined');
-      return;
-    }
-
+  const fetchProfile = async (id) => {
     try {
-      const response = await axios.get(`http://localhost:8081/api/users/${userId}`);
+      const response = await axios.get(`http://localhost:8081/api/users/${id}`);
       setProfileData(response.data); // Set profile data
     } catch (error) {
       console.error('Failed to fetch profile:', error);
     }
   };
 
-  const handleDelete = () => {
-    axios.get('http://localhost:8081/signout') // Backend signout route
-      .then(res => {
-        if (res.status === 200) {
-          setAuth(false); // Update auth state
-          navigate('/'); // Redirect to home or login page
-          window.location.reload(true); // Reload the page to reset state
-        } else {
-          console.error('Failed to sign out');
-        }
-      })
-      .catch(err => console.error('Error signing out:', err));
-  };
-
   return (
-    <div className="employer-page-container">
-      {/* Custom header for the employer page */}
+    <div className="employee-page-container">
+      {/* Custom header for the employee page */}
       <header className="navbar-App">
         <img src={logo} alt="Logo" className="logo-App" />
         <nav>
@@ -78,17 +47,17 @@ const EmployeeP = () => {
             <li><a href="#vision">VISION</a></li>
             <li><a href="#mission">MISSION</a></li>
             <li><Link to="/view-job">View Job Posting</Link></li>
-            {auth && userId && ( // Show profile link only if authenticated and userId is defined
+            {auth && userId && (
               <li><Link to={`/profile/${userId}`}>Profile</Link></li>
             )}
           </ul>
         </nav>
         <div className="button2">
-          <button className="sign-out-App" onClick={handleDelete}>SIGN OUT</button>
+          <button className="sign-out-App" onClick={onSignOut}>SIGN OUT</button>
         </div>
       </header>
 
-      {/* Main content for the employer page */}
+      {/* Main content for the employee page */}
       <main className="content-App">
         <div className="text-section-App">
           <h1 className="company-name-App">MMML</h1>

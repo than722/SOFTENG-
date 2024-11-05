@@ -1,12 +1,14 @@
+// src/EmployerP.js
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import './App.css'; // Keep the same CSS styling as App.js
+import { Link, useParams } from 'react-router-dom';
+import './App.css';
 import logo from './assets/images/logo4.png';
-import Profile from './profile/Profile'; // Import Profile component
+import Profile from './profile/Profile';
+import SignOut from './Sign in/SignOut'; // Import SignOut component
 
-const EmployerP = ({ onSignOut }) => {
+const EmployerP = ({ onSignOut, auth }) => {
   const [profileData, setProfileData] = useState(null);
-  const userId = 1; // Assuming you get this from your authentication logic
+  const { id: userId } = useParams(); // Get userId from route parameters
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -22,8 +24,12 @@ const EmployerP = ({ onSignOut }) => {
       }
     };
 
-    fetchProfile();
+    if (userId) {
+      fetchProfile();
+    }
   }, [userId]);
+
+  console.log("Auth:", auth, "User ID:", userId);
 
   return (
     <div className="employer-page-container">
@@ -36,12 +42,15 @@ const EmployerP = ({ onSignOut }) => {
             <li><a href="#vision">VISION</a></li>
             <li><a href="#mission">MISSION</a></li>
             <li><Link to="/add-job">Add Job Posting</Link></li>
-            <li><Link to={`/profile/`}>Profile</Link></li>
+            <li><Link to="/view-job">View Job Posting</Link></li>
+            {auth && userId && ( // Show profile link only if authenticated and userId is defined
+              <li><Link to={`/profile/${userId}/employer`}>Profile</Link></li>
+            )}
           </ul>
         </nav>
         <div className="button2">
-          {/* Replace the Sign In button with Sign Out */}
-          <button className="sign-out_App" onClick={onSignOut}>SIGN OUT</button>
+          {/* Use the SignOut component */}
+          <SignOut onSignOut={onSignOut} />
         </div>
       </header>
 

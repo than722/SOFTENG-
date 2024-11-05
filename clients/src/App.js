@@ -29,6 +29,27 @@ const App = () => {
   const openSignInModal = () => setIsSignInModalOpen(true);
   const closeSignInModal = () => setIsSignInModalOpen(false);
 
+  // Handle SignOut With Authentication
+  const handleSignOut = async () => {
+    try {
+      // Send sign-out request to the API
+      await axios.post('http://localhost:8081/signout', {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+
+      // Clear the authentication token and reset the state
+      localStorage.removeItem('authToken');
+      setIsAuthenticated(false);
+      setAccountType(null);
+      setUserId(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+      alert('Failed to sign out. Please try again.');
+    }
+  };
+
   // Handle form submission from CreateAcc
   const handleFormSubmit = (values, picture, resume) => {
     const formData = new FormData();
@@ -76,6 +97,7 @@ const App = () => {
         isSelectionModalOpen={isSelectionModalOpen}
         closeSelectionModal={closeSelectionModal}
         handleFormSubmit={handleFormSubmit}
+        handleSignOut={handleSignOut} 
         setIsAuthenticated={setIsAuthenticated}
         isSignInModalOpen={isSignInModalOpen} 
         openSignInModal={openSignInModal} 
@@ -93,7 +115,8 @@ const AppContent = ({
   openSelectionModal, 
   isSelectionModalOpen, 
   closeSelectionModal, 
-  handleFormSubmit, 
+  handleFormSubmit,
+  handleSignOut, 
   setIsAuthenticated,
   isSignInModalOpen,
   openSignInModal,
@@ -124,8 +147,8 @@ const AppContent = ({
         <Route path="/view-job" element={<ViewJobPosting />} />
         
         {/* Updated routes to include dynamic parameters for employee and employer */}
-        <Route path="/employee/:id" element={<EmployeeP />} />
-        <Route path="/employer/:id" element={<EmployerP />} />
+        <Route path="/employee/:id" element={<EmployeeP onSignOut={handleSignOut} auth={isAuthenticated} />} />
+        <Route path="/employer/:id" element={<EmployerP onSignOut={handleSignOut} auth={isAuthenticated} />} />
       </Routes>
 
       {/* Use the CreateAcc component for account creation modals */}
