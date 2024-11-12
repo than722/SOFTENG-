@@ -1,8 +1,7 @@
-// src/ViewJobPosting.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './ViewJobPosting.css';
-import './JobDetailView.css'; // Import the CSS for the detailed view
+import './JobDetailView.css';
 
 function ViewJobPosting() {
     const [jobs, setJobs] = useState([]);
@@ -15,8 +14,9 @@ function ViewJobPosting() {
 
     useEffect(() => {
         // Fetch all job postings
-        axios.get('http://localhost:8081/api/job_postings') // Updated URL
+        axios.get('http://localhost:8081/api/job_postings')
             .then(response => {
+                console.log(response.data); // Check job data here
                 setJobs(response.data);
                 setLoading(false);
             })
@@ -34,7 +34,7 @@ function ViewJobPosting() {
 
     const fetchJobDetails = (id) => {
         setDetailsLoading(true);
-        axios.get(`http://localhost:8081/api/job_postings/${id}`) // Updated URL
+        axios.get(`http://localhost:8081/api/job_postings/${id}`)
             .then(response => {
                 setJobDetails(response.data);
                 setDetailsLoading(false);
@@ -55,7 +55,7 @@ function ViewJobPosting() {
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
-        return date.toISOString().split('T')[0]; // This will give you "yyyy-mm-dd"
+        return date.toISOString().split('T')[0];
     };
 
     if (loading) return <div>Loading job postings...</div>;
@@ -68,10 +68,7 @@ function ViewJobPosting() {
         return (
             <div className="job-detail-view">
                 <button onClick={handleBack} className="back-button">&lt; Back to search results</button>
-                <h2>{jobDetails.name}</h2>
-                <div className="login-prompt">
-                    Please <a href="/login">login</a> or <a href="/register">register</a> as a jobseeker to apply for this job.
-                </div>
+                <h2>{jobDetails.jobName}</h2> {/* Updated */}
                 <div className="job-metadata">
                     <div>
                         <h4>Type of Work</h4>
@@ -101,7 +98,7 @@ function ViewJobPosting() {
                 {jobs.map(job => (
                     <li key={job.id} onClick={() => handleJobClick(job)} className="job-card">
                         <div className="job-metadata">
-                            <h3>{job.name}</h3>
+                            <h3>{job.jobName || "Job Title Not Available"}</h3> {/* Updated */}
                             <span>{job.typeOfWork || 'Full Time'}</span>
                         </div>
                         <p className="job-description">{job.description}</p>

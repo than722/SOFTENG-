@@ -13,16 +13,28 @@ const EmployerP = ({ onSignOut, auth }) => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`/api/users/${userId}`);
+        const response = await fetch(`http://localhost:8081/api/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`
+          }
+        });
+    
         if (!response.ok) {
-          throw new Error('Failed to fetch profile');
+          throw new Error(`Failed to fetch profile: ${response.statusText}`);
         }
+    
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Expected JSON, but received a non-JSON response");
+        }
+    
         const data = await response.json();
         setProfileData(data);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching profile:", error);
       }
     };
+    
 
     if (userId) {
       fetchProfile();

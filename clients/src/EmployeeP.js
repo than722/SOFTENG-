@@ -4,6 +4,7 @@ import axios from 'axios';
 import './App.css';
 import logo from './assets/images/logo4.png';
 import Profile from './profile/Profile';
+import SignOut from './Sign in/SignOut';
 
 const EmployeeP = ({ onSignOut, auth }) => {
   const [profileData, setProfileData] = useState(null); // State for profile data
@@ -13,28 +14,37 @@ const EmployeeP = ({ onSignOut, auth }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is authenticated
-    axios.defaults.withCredentials = true;
-    axios.get('http://localhost:8081/')
-      .then(res => {
-        if (res.data.Status === "Success") {
-          setName(res.data.name);
-          fetchProfile(userId); // Fetch profile if authenticated
-        } else {
-          setMessage(res.data.Message || 'Not authenticated');
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`http://localhost:8081/api/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`
+          }
+        });
+    
+        if (!response.ok) {
+          throw new Error(`Failed to fetch profile: ${response.statusText}`);
         }
-      })
-      .catch(err => console.error('Error fetching authentication status:', err));
+    
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Expected JSON, but received a non-JSON response");
+        }
+    
+        const data = await response.json();
+        setProfileData(data);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+    
+
+    if (userId) {
+      fetchProfile();
+    }
   }, [userId]);
 
-  const fetchProfile = async (id) => {
-    try {
-      const response = await axios.get(`http://localhost:8081/api/users/${id}`);
-      setProfileData(response.data); // Set profile data
-    } catch (error) {
-      console.error('Failed to fetch profile:', error);
-    }
-  };
+  console.log("Auth:", auth, "User ID:", userId);
 
   return (
     <div className="employee-page-container">
@@ -48,12 +58,12 @@ const EmployeeP = ({ onSignOut, auth }) => {
             <li><a href="#mission">MISSION</a></li>
             <li><Link to="/view-job">View Job Posting</Link></li>
             {auth && userId && (
-              <li><Link to={`/profile/${userId}`}>Profile</Link></li>
-            )}
+              <li><Link to={`/profile/${userId}/employee`}>Profile</Link></li> // Added /employee as accountType
+              )}
           </ul>
         </nav>
         <div className="button2">
-          <button className="sign-out-App" onClick={onSignOut}>SIGN OUT</button>
+        <SignOut onSignOut={onSignOut} />
         </div>
       </header>
 

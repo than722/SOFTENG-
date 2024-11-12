@@ -191,6 +191,22 @@ app.post('/login', (req, res) => {
   });
 });
 
+app.get('/verify-session', (req, res) => {
+  const token = req.cookies.token; // Retrieve the token from the cookie
+  if (!token) {
+    return res.status(401).json({ message: 'No token found. Unauthorized access.' });
+  }
+
+  jwt.verify(token, "our-jsonwebtoken-secret-key", (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token verification failed. Forbidden access.' });
+    }
+    return res.json({ message: 'Authenticated', userType: decoded.userType, userId: decoded.userId });
+  });
+});
+
+
+
 app.post('/api/job_postings/AddJobPosting', (req, res) => {
   const { jobName, jobOverview, jobDescription, salary, country } = req.body;
 
@@ -239,11 +255,52 @@ app.delete('/api/:accountType/:id', (req, res) => {
   });
 });
 
+app.get('/api/users', (req, res) => {
+  const employeeQuery = `
+    SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
+           zipCode, mobileNumber, picture, resume, status_id AS statusId, progress_id AS progressId, 
+           email, 'Employee' AS userType
+    FROM employee
+  `;
+
+  const employerQuery = `
+    SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
+           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id AS progressId, 
+           email, 'Employer' AS userType
+    FROM employer
+  `;
+
+  db.query(employeeQuery, (err, employeeResults) => {
+    if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+
+    db.query(employerQuery, (err, employerResults) => {
+      if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+
+      // Combine employee and employer data
+      const users = [...employeeResults, ...employerResults];
+      res.json(users);
+    });
+  });
+});
+
+
 // Route to get user profile by employee_id or employer_id
 app.get('/api/users/:userId', (req, res) => {
   const { userId } = req.params;
 
-  const employeeQuery = 'SELECT employee_id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, "employee" AS userType FROM employee WHERE employee_id = ?';
+  const employeeQuery = `
+    SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
+           zipCode, mobileNumber, picture, resume, 'employee' AS userType 
+    FROM employee 
+    WHERE employee_id = ?`;
+
+  const employerQuery = `
+    SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
+           zipCode, mobileNumber, companyName, 'employer' AS userType 
+    FROM employer 
+    WHERE employer_id = ?`;
+
+  // First, try to find the user as an employee
   db.query(employeeQuery, [userId], (err, employeeResults) => {
     if (err) {
       return res.status(500).json({ error: 'Database error', details: err.message });
@@ -253,7 +310,7 @@ app.get('/api/users/:userId', (req, res) => {
       return res.json(employeeResults[0]);
     }
 
-    const employerQuery = 'SELECT employer_id, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, "employer" AS userType FROM employer WHERE employer_id = ?';
+    // If not an employee, try to find the user as an employer
     db.query(employerQuery, [userId], (err, employerResults) => {
       if (err) {
         return res.status(500).json({ error: 'Database error', details: err.message });
@@ -263,10 +320,12 @@ app.get('/api/users/:userId', (req, res) => {
         return res.json(employerResults[0]);
       }
 
+      // If not found in either table, return a 404 error
       res.status(404).json({ error: 'User not found' });
     });
   });
 });
+
 
 
 app.put('/api/users/:userId', upload.fields([{ name: 'picture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), (req, res) => {

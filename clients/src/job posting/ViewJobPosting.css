@@ -15,6 +15,17 @@
     padding-left: 10px;
 }
 
+.view-job-posting h3 {
+    margin: 0;
+    color: #007bff;
+    font-weight: bold;
+    font-size: 1.2em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis; /* Adds ellipsis if text overflows */
+}
+
+
 .view-job-posting ul {
     list-style: none;
     padding: 0;

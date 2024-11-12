@@ -3,7 +3,7 @@ import './SignIn.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const SignIn = ({ isOpen, onClose }) => {
+const SignIn = ({ isOpen, onClose, setAuth }) => { // Pass setAuth to update auth state
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -47,7 +47,15 @@ const SignIn = ({ isOpen, onClose }) => {
           setLoading(false);
           console.log('Login response:', res.data);
           
-          const { userType, userId } = res.data;
+          const { userType, userId, authToken } = res.data;
+
+          // Store token in localStorage
+          if (authToken) {
+            localStorage.setItem('authToken', authToken);
+          }
+          
+          // Set auth status to true
+          setAuth(true);
 
           // Redirect based on userType
           if (userType === 'employee') {
