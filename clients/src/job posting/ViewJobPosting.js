@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './ViewJobPosting.css';
-import './JobDetailView.css';
+import JobDetailView from './JobDetailView';
 
 function ViewJobPosting() {
     const [jobs, setJobs] = useState([]);
@@ -52,42 +52,17 @@ function ViewJobPosting() {
         setDetailsError(null);
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        return date.toISOString().split('T')[0];
-    };
-
     if (loading) return <div>Loading job postings...</div>;
     if (error) return <div>{error}</div>;
 
     if (selectedJob && jobDetails) {
-        if (detailsLoading) return <div>Loading job details...</div>;
-        if (detailsError) return <div>{detailsError}</div>;
-
         return (
-            <div className="job-detail-view">
-                <button onClick={handleBack} className="back-button">&lt; Back to search results</button>
-                <h2>{jobDetails.jobName}</h2> {/* Updated */}
-                <div className="job-metadata">
-                    <div>
-                        <h4>Type of Work</h4>
-                        <p>{jobDetails.typeOfWork || 'Full Time'}</p>
-                    </div>
-                    <div>
-                        <h4>Salary</h4>
-                        <p>${jobDetails.salary}</p>
-                    </div>
-                    <div>
-                        <h4>Date Posted</h4>
-                        <p>{formatDate(jobDetails.datePosted)}</p>
-                    </div>
-                </div>
-                <div className="job-overview">
-                    <h3>Job Overview</h3>
-                    <p>{jobDetails.jobOverview}</p>
-                </div>
-            </div>
+            <JobDetailView 
+                jobDetails={jobDetails} 
+                onBack={handleBack} 
+                detailsLoading={detailsLoading} 
+                detailsError={detailsError} 
+            />
         );
     }
 
@@ -98,7 +73,7 @@ function ViewJobPosting() {
                 {jobs.map(job => (
                     <li key={job.id} onClick={() => handleJobClick(job)} className="job-card">
                         <div className="job-metadata">
-                            <h3>{job.jobName || "Job Title Not Available"}</h3> {/* Updated */}
+                            <h3>{job.jobName || "Job Title Not Available"}</h3>
                             <span>{job.typeOfWork || 'Full Time'}</span>
                         </div>
                         <p className="job-description">{job.description}</p>
