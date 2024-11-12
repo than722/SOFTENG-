@@ -1,11 +1,27 @@
 import React from 'react';
 import './JobDetailView.css';
+import axios from 'axios';
 
 function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
         return date.toISOString().split('T')[0];
+    };
+
+    const handleApply = async () => {
+        try {
+            const response = await axios.post('/api/apply', {
+                jobId: jobDetails.id,
+                applicantId: 123 // Replace with the actual logged-in user's ID
+            });
+            if (response.status === 200) {
+                alert('Application successfully sent!');
+            }
+        } catch (error) {
+            console.error('Failed to apply to the job:', error);
+            alert('There was an error while trying to apply. Please try again later.');
+        }
     };
 
     if (detailsLoading) return <div>Loading job details...</div>;
@@ -33,6 +49,7 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                 <h3>Job Overview</h3>
                 <p>{jobDetails.jobOverview}</p>
             </div>
+            <button onClick={handleApply} className="apply-button">Apply</button>
         </div>
     );
 }
