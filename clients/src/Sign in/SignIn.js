@@ -3,7 +3,7 @@ import './SignIn.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const SignIn = ({ isOpen, onClose, setAuth }) => { // Pass setAuth to update auth state
+const SignIn = ({ isOpen, onClose, setAuth }) => {
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -32,45 +32,54 @@ const SignIn = ({ isOpen, onClose, setAuth }) => { // Pass setAuth to update aut
     setValues({ ...values, [name]: value });
   };
 
-  const handleSignInSubmit = (event) => {
+  const handleSignInSubmit = async (event) => {
     event.preventDefault();
     axios.defaults.withCredentials = true;
+
     const validationErrors = Validation(values);
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
       setLoading(true);
 
-      axios
-        .post('http://localhost:8081/login', values)
-        .then((res) => {
-          setLoading(false);
-          console.log('Login response:', res.data);
-          
-          const { userType, userId, authToken } = res.data;
+      try {
+        const res = await axios.post('http://localhost:8081/login', values);
+        setLoading(false);
 
-          // Store token in localStorage
-          if (authToken) {
-            localStorage.setItem('authToken', authToken);
-          }
-          
-          // Set auth status to true
-          setAuth(true);
+        const { userType, userId, authToken } = res.data;
 
-          // Redirect based on userType
-          if (userType === 'employee') {
-            navigate(`/employee/${userId}`);
-          } else if (userType === 'employer') {
-            navigate(`/employer/${userId}`);
-          } else {
-            setErrors({ general: 'Unexpected user type.' });
-          }
-        })
-        .catch((err) => {
-          setLoading(false);
-          const errorMessage = err.response?.data?.error || 'Login failed. Please try again.';
-          setErrors({ general: errorMessage });
-        });
+        if (authToken) {
+          localStorage.setItem('authToken', authToken);
+          console.log('Auth token saved to localStorage');
+        }
+
+        if (userType) {
+          localStorage.setItem('userType', userType);
+        }
+
+        if (userId) {
+          localStorage.setItem('userId', userId);
+        }
+
+        setAuth(true);
+
+        if (userType === 'employee') {
+          navigate(`/employee/${userId}`);
+        } else if (userType === 'employer') {
+          navigate(`/employer/${userId}`);
+        } else {
+          setErrors({ general: 'Unexpected user type.' });
+        }
+      } catch (err) {
+        setLoading(false);
+        if (err.response) {
+          setErrors({ general: err.response.data.error || 'Invalid credentials. Please try again.' });
+        } else if (err.request) {
+          setErrors({ general: 'Network error. Please check your connection.' });
+        } else {
+          setErrors({ general: 'An unknown error occurred. Please try again.' });
+        }
+      }
     }
   };
 

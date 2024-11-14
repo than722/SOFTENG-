@@ -15,8 +15,8 @@ const SignOut = ({ onSignOut }) => {
         }
       });
 
-      // Clear local storage and update authentication state
-      localStorage.removeItem('authToken');
+      // Clear all local storage data and update authentication state
+      localStorage.clear();
       onSignOut(); // Set isAuthenticated to false in App.js
       navigate('/'); // Redirect to the homepage
     } catch (error) {

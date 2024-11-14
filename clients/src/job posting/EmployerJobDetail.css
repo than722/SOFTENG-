@@ -1,0 +1,118 @@
+/* src/EmployerJobDetailView.css */
+
+.employer-job-detail-view {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+.employer-job-detail-view .back-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+    text-decoration: underline;
+}
+
+.employer-job-detail-view h2 {
+    color: #003366;
+    font-size: 2em;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.employer-job-detail-view .login-prompt {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.employer-job-detail-view .login-prompt a {
+    color: #007bff;
+    text-decoration: underline;
+    margin: 0 5px;
+}
+
+.employer-job-detail-view .job-metadata {
+    display: flex;
+    justify-content: space-between;
+    background-color: #f7f9fc;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.employer-job-detail-view .job-metadata div {
+    text-align: center;
+    flex: 1;
+}
+
+.employer-job-detail-view .job-metadata div:not(:last-child) {
+    border-right: 1px solid #e0e0e0;
+}
+
+.employer-job-detail-view .job-metadata div h4 {
+    margin: 0;
+    font-size: 0.85em;
+    color: #333;
+    text-transform: uppercase;
+}
+
+.employer-job-detail-view .job-metadata div p {
+    margin: 5px 0 0;
+    font-weight: bold;
+    color: #00796b;
+    font-size: 1.1em;
+}
+
+.employer-job-detail-view .job-overview {
+    background-color: #f7f9fc;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.employer-job-detail-view .job-overview h3 {
+    border-bottom: 2px solid #003366;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    color: #003366;
+    font-size: 1.25em;
+    display: flex;
+    align-items: center;
+}
+
+.employer-job-detail-view .job-overview p {
+    color: #555;
+    line-height: 1.6;
+    font-size: 0.95em;
+}
+
+.employer-job-detail-view .job-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.employer-job-detail-view .edit-button, .employer-job-detail-view .delete-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.employer-job-detail-view .edit-button {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.employer-job-detail-view .delete-button {
+    background-color: #dc3545;
+    color: #fff;
+}

@@ -153,10 +153,19 @@ app.post('/login', (req, res) => {
       bcrypt.compare(password, employee.password, (err, isMatch) => {
         if (err) return res.status(500).json({ error: 'Internal error' });
         if (isMatch) {
-          const token = jwt.sign({ name: employee.email, userType: employee.userType, userId: employee.userId }, "our-jsonwebtoken-secret-key", { expiresIn: '1d' });
+          const token = jwt.sign(
+            { name: employee.email, userType: employee.userType, userId: employee.userId },
+            "our-jsonwebtoken-secret-key",
+            { expiresIn: '1d' }
+          );
           res.cookie('token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }); // 1 day expiry
 
-          return res.json({ message: 'Login successful', userType: employee.userType, userId: employee.userId });
+          return res.json({
+            message: 'Login successful',
+            userType: employee.userType,
+            userId: employee.userId,
+            token // Include token in the JSON response
+          });
         } else {
           return res.status(401).json({ error: 'Invalid password' });
         }
@@ -175,10 +184,19 @@ app.post('/login', (req, res) => {
         bcrypt.compare(password, employer.password, (err, isMatch) => {
           if (err) return res.status(500).json({ error: 'Internal error' });
           if (isMatch) {
-            const token = jwt.sign({ name: employer.email, userType: employer.userType, userId: employer.userId }, "our-jsonwebtoken-secret-key", { expiresIn: '1d' });
+            const token = jwt.sign(
+              { name: employer.email, userType: employer.userType, userId: employer.userId },
+              "our-jsonwebtoken-secret-key",
+              { expiresIn: '1d' }
+            );
             res.cookie('token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
 
-            return res.json({ message: 'Login successful', userType: employer.userType, userId: employer.userId });
+            return res.json({
+              message: 'Login successful',
+              userType: employer.userType,
+              userId: employer.userId,
+              token // Include token in the JSON response
+            });
           } else {
             return res.status(401).json({ error: 'Invalid password' });
           }
@@ -189,6 +207,7 @@ app.post('/login', (req, res) => {
     });
   });
 });
+
 
 app.get('/verify-session', (req, res) => {
   const token = req.cookies.token; // Retrieve the token from the cookie
@@ -446,27 +465,49 @@ app.post('/signout', (req, res) => {
 
 // Apply for a job
 app.post('/api/applications/apply', verifyUser, (req, res) => {
-  // Get job_id from the request body and the employee's ID from the decoded token (req.name contains the logged-in user's email)
   const { job_id } = req.body;
-  const employee_id = req.name; // Assuming req.name contains the logged-in employee's email or userId
+  const employee_id = req.name; // Retrieved from the token
 
   if (!job_id || !employee_id) {
-    return res.status(400).json({ error: 'Job ID and Employee ID are required' });
+      return res.status(400).json({ error: 'Job ID and Employee ID are required' });
   }
 
-  const apply_date = new Date().toISOString().slice(0, 19).replace('T', ' '); // Get current date in 'YYYY-MM-DD HH:MM:SS' format
+  const apply_date = new Date().toISOString().slice(0, 19).replace('T', ' '); // Current date in 'YYYY-MM-DD HH:MM:SS'
 
-  // Insert application into the 'applications' table
   const sql = 'INSERT INTO applications (job_id, employee_id, apply_date) VALUES (?, ?, ?)';
   const values = [job_id, employee_id, apply_date];
 
   db.query(sql, values, (err, results) => {
-    if (err) {
-      console.error('Error inserting application:', err);
-      return res.status(500).json({ error: 'Database error', details: err.message });
-    }
+      if (err) {
+          console.error('Error inserting application:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+      }
 
-    res.status(201).json({ message: 'Application submitted successfully', applicationId: results.insertId });
+      res.status(201).json({ message: 'Application submitted successfully', applicationId: results.insertId });
+  });
+});
+
+// Route to delete a job posting by ID (protected)
+app.delete('/api/jobs/:id', verifyUser, (req, res) => {
+  const { id } = req.params;
+
+  // Ensure only employers can delete their own job postings
+  if (req.userType !== 'employer') {
+      return res.status(403).json({ message: 'Access denied. Only employers can delete job postings.' });
+  }
+
+  const sql = 'DELETE FROM job_postings WHERE job_id = ? AND employer_id = ?';
+  db.query(sql, [id, req.userId], (err, results) => {
+      if (err) {
+          console.error('Error deleting job posting:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+
+      if (results.affectedRows === 0) {
+          return res.status(404).json({ message: 'Job posting not found or you are not authorized to delete it.' });
+      }
+
+      res.json({ message: 'Job posting deleted successfully' });
   });
 });
 
