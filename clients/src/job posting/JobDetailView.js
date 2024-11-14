@@ -12,15 +12,24 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const handleApply = async () => {
         try {
             const token = localStorage.getItem('authToken'); // Assuming the token is stored in localStorage
+            const userId = localStorage.getItem('userId'); // Get user ID from localStorage
+            if (!userId) {
+                alert('User not logged in');
+                return;
+            }
             const response = await axios.post('/api/apply', {
-                jobId: jobDetails.id
+                jobId: jobDetails.job_id, // Updated from jobDetails.id to jobDetails.job_id
+                userId: userId // Send userId along with jobId
             }, {
                 headers: {
-                    Authorization: `Bearer ${token}`
+                    Authorization: `Bearer ${token}` // Send the token for authentication
                 }
             });
+
             if (response.status === 200) {
                 alert('Application successfully sent!');
+            } else {
+                alert('There was an issue with your application.');
             }
         } catch (error) {
             console.error('Failed to apply to the job:', error);

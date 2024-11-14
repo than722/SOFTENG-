@@ -29,12 +29,12 @@ function ViewJobPosting() {
 
     const handleJobClick = (job) => {
         setSelectedJob(job);
-        fetchJobDetails(job.id);
+        fetchJobDetails(job.job_id); // Updated from job.id to job.job_id
     };
 
-    const fetchJobDetails = (id) => {
+    const fetchJobDetails = (job_id) => {  // Updated parameter name from id to job_id
         setDetailsLoading(true);
-        axios.get(`http://localhost:8081/api/job_postings/${id}`)
+        axios.get(`http://localhost:8081/api/job_postings/${job_id}`)  // Updated from id to job_id
             .then(response => {
                 setJobDetails(response.data);
                 setDetailsLoading(false);
@@ -71,7 +71,7 @@ function ViewJobPosting() {
             <h2>Job Postings</h2>
             <ul>
                 {jobs.map(job => (
-                    <li key={job.id} onClick={() => handleJobClick(job)} className="job-card">
+                    <li key={job.job_id} onClick={() => handleJobClick(job)} className="job-card"> {/* Updated from job.id to job.job_id */}
                         <div className="job-metadata">
                             <h3>{job.jobName || "Job Title Not Available"}</h3>
                             <span>{job.typeOfWork || 'Full Time'}</span>
