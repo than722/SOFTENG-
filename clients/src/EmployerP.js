@@ -4,10 +4,13 @@ import { Link, useParams } from 'react-router-dom';
 import './App.css';
 import logo from './assets/images/logo4.png';
 import Profile from './profile/Profile';
-import SignOut from './Sign in/SignOut'; // Import SignOut component
+import SignOut from './Sign in/SignOut';
+import EmployerJobDetailView from './job posting/EmployerJobDetailView';
 
 const EmployerP = ({ onSignOut, auth }) => {
   const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { id: userId } = useParams(); // Get userId from route parameters
 
   useEffect(() => {
@@ -15,26 +18,28 @@ const EmployerP = ({ onSignOut, auth }) => {
       try {
         const response = await fetch(`http://localhost:8081/api/users/${userId}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
         });
-    
+
         if (!response.ok) {
           throw new Error(`Failed to fetch profile: ${response.statusText}`);
         }
-    
+
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           throw new Error("Expected JSON, but received a non-JSON response");
         }
-    
+
         const data = await response.json();
         setProfileData(data);
       } catch (error) {
         console.error("Error fetching profile:", error);
+        setError("Failed to load profile information.");
+      } finally {
+        setLoading(false);
       }
     };
-    
 
     if (userId) {
       fetchProfile();
@@ -55,13 +60,17 @@ const EmployerP = ({ onSignOut, auth }) => {
             <li><a href="#mission">MISSION</a></li>
             <li><Link to="/add-job">Add Job Posting</Link></li>
             <li><Link to="/view-job">View Job Posting</Link></li>
+            <li>
+              <Link to={`/view-applied-applicants/${userId}`}>
+                View Applied Applicants
+              </Link>
+            </li>
             {auth && userId && ( // Show profile link only if authenticated and userId is defined
               <li><Link to={`/profile/${userId}/employer`}>Profile</Link></li>
             )}
           </ul>
         </nav>
         <div className="button2">
-          {/* Use the SignOut component */}
           <SignOut onSignOut={onSignOut} />
         </div>
       </header>
@@ -83,10 +92,14 @@ const EmployerP = ({ onSignOut, auth }) => {
           <img src="woman-smiling.png" alt="Smiling Woman" className="main-image-App" />
         </div>
 
+        {/* Loading state */}
+        {loading && <p>Loading profile...</p>}
+
+        {/* Error state */}
+        {error && <p className="error-message">{error}</p>}
+
         {/* Display profile information if available */}
-        {profileData && (
-          <Profile profileData={profileData} />
-        )}
+        {profileData && <Profile profileData={profileData} />}
       </main>
     </div>
   );

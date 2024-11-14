@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: 'root',
+  password: '1234',
   database: 'mydb'
 });
 
@@ -55,20 +55,25 @@ db.connect((err) => {
 
 // Middleware to verify user token
 const verifyUser = (req, res, next) => {
-  const token = req.cookies.token;
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.startsWith('Bearer ')
+      ? authHeader.split(' ')[1]
+      : req.cookies.token;
+
   if (!token) {
-    return res.json({ Message: "We need a token, please provide it." });
-  } else {
-    jwt.verify(token, "our-jsonwebtoken-secret-key", (err, decoded) => {
-      if (err) {
-        return res.json({ Message: "Authentication Error." });
-      } else {
-        req.name = decoded.name;
-        next();
-      }
-    });
+      return res.status(401).json({ message: "No token provided. Unauthorized access." });
   }
+
+  jwt.verify(token, "our-jsonwebtoken-secret-key", (err, decoded) => {
+      if (err) {
+          return res.status(403).json({ message: "Invalid token. Forbidden access." });
+      }
+      req.userId = decoded.userId;
+      req.userType = decoded.userType;
+      next();
+  });
 };
+
 
 // Protected route example that uses verifyUser middleware
 app.get('/', verifyUser, (req, res) => {
@@ -138,88 +143,105 @@ app.post('/signup', upload.fields([{ name: 'picture', maxCount: 1 }, { name: 're
 });
 
 
-// Login route with JWT and bcrypt
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
   const employeeSql = 'SELECT employee_id AS userId, email, password, "employee" AS userType FROM employee WHERE email = ?';
 
+  // Check if the user is an employee
   db.query(employeeSql, [email], (err, employeeResults) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-
-    if (employeeResults.length > 0) {
-      const employee = employeeResults[0];
-
-      bcrypt.compare(password, employee.password, (err, isMatch) => {
-        if (err) return res.status(500).json({ error: 'Internal error' });
-        if (isMatch) {
-          const token = jwt.sign(
-            { name: employee.email, userType: employee.userType, userId: employee.userId },
-            "our-jsonwebtoken-secret-key",
-            { expiresIn: '1d' }
-          );
-          res.cookie('token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }); // 1 day expiry
-
-          return res.json({
-            message: 'Login successful',
-            userType: employee.userType,
-            userId: employee.userId,
-            token // Include token in the JSON response
-          });
-        } else {
-          return res.status(401).json({ error: 'Invalid password' });
-        }
-      });
-      return;
-    }
-
-    // Similar logic for employers
-    const employerSql = 'SELECT employer_id AS userId, email, password, "employer" AS userType FROM employer WHERE email = ?';
-    db.query(employerSql, [email], (err, employerResults) => {
       if (err) return res.status(500).json({ error: 'Database error' });
 
-      if (employerResults.length > 0) {
-        const employer = employerResults[0];
+      if (employeeResults.length > 0) {
+          const employee = employeeResults[0];
 
-        bcrypt.compare(password, employer.password, (err, isMatch) => {
-          if (err) return res.status(500).json({ error: 'Internal error' });
-          if (isMatch) {
-            const token = jwt.sign(
-              { name: employer.email, userType: employer.userType, userId: employer.userId },
-              "our-jsonwebtoken-secret-key",
-              { expiresIn: '1d' }
-            );
-            res.cookie('token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+          bcrypt.compare(password, employee.password, (err, isMatch) => {
+              if (err) return res.status(500).json({ error: 'Internal error' });
+              if (isMatch) {
+                  // Generate the JWT token
+                  const token = jwt.sign(
+                      { name: employee.email, userType: employee.userType, userId: employee.userId },
+                      "our-jsonwebtoken-secret-key",
+                      { expiresIn: '1d' } // Token valid for 1 day
+                  );
 
-            return res.json({
-              message: 'Login successful',
-              userType: employer.userType,
-              userId: employer.userId,
-              token // Include token in the JSON response
-            });
-          } else {
-            return res.status(401).json({ error: 'Invalid password' });
-          }
-        });
-      } else {
-        return res.status(404).json({ error: 'User not found' });
+                  // Send the token as an httpOnly cookie
+                  res.cookie('token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }); // 1 day expiry
+
+                  return res.json({
+                      message: 'Login successful',
+                      userType: employee.userType,
+                      userId: employee.userId
+                  });
+              } else {
+                  return res.status(401).json({ error: 'Invalid password' });
+              }
+          });
+          return;
       }
-    });
+
+      // Check if the user is an employer
+      const employerSql = 'SELECT employer_id AS userId, email, password, "employer" AS userType FROM employer WHERE email = ?';
+      db.query(employerSql, [email], (err, employerResults) => {
+          if (err) return res.status(500).json({ error: 'Database error' });
+
+          if (employerResults.length > 0) {
+              const employer = employerResults[0];
+
+              bcrypt.compare(password, employer.password, (err, isMatch) => {
+                  if (err) return res.status(500).json({ error: 'Internal error' });
+                  if (isMatch) {
+                      // Generate the JWT token
+                      const token = jwt.sign(
+                          { name: employer.email, userType: employer.userType, userId: employer.userId },
+                          "our-jsonwebtoken-secret-key",
+                          { expiresIn: '1d' } // Token valid for 1 day
+                      );
+
+                      // Send the token as an httpOnly cookie
+                      res.cookie('token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }); // 1 day expiry
+
+                      return res.json({
+                          message: 'Login successful',
+                          userType: employer.userType,
+                          userId: employer.userId
+                      });
+                  } else {
+                      return res.status(401).json({ error: 'Invalid password' });
+                  }
+              });
+          } else {
+              return res.status(404).json({ error: 'User not found' });
+          }
+      });
   });
 });
 
 
+
 app.get('/verify-session', (req, res) => {
-  const token = req.cookies.token; // Retrieve the token from the cookie
+  const token = req.cookies.token; // Retrieve the token from cookies
   if (!token) {
-    return res.status(401).json({ message: 'No token found. Unauthorized access.' });
+      return res.status(401).json({ message: 'No token found. Unauthorized access.' });
   }
 
   jwt.verify(token, "our-jsonwebtoken-secret-key", (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: 'Token verification failed. Forbidden access.' });
-    }
-    return res.json({ message: 'Authenticated', userType: decoded.userType, userId: decoded.userId });
+      if (err) {
+          return res.status(403).json({ message: 'Token verification failed. Forbidden access.' });
+      }
+
+      // Ensure the token contains userType and userId
+      const { userType, userId } = decoded;
+      if (!userType || !userId) {
+          return res.status(403).json({ message: 'Invalid token payload.' });
+      }
+
+      // Return user type and ID
+      return res.json({
+          message: 'Authenticated',
+          userType: userType,
+          userId: userId
+      });
   });
 });
 
@@ -463,27 +485,51 @@ app.post('/signout', (req, res) => {
   res.status(200).json({ message: 'Sign out successful' });
 })
 
-// Apply for a job
-app.post('/api/applications/apply', verifyUser, (req, res) => {
+/app.post('/api/applications/apply', verifyUser, (req, res) => {
   const { job_id } = req.body;
-  const employee_id = req.name; // Retrieved from the token
+  const employee_id = req.userId; // Retrieved from the decoded token
 
   if (!job_id || !employee_id) {
-      return res.status(400).json({ error: 'Job ID and Employee ID are required' });
+    return res.status(400).json({ message: 'Job ID and Employee ID are required' });
   }
 
-  const apply_date = new Date().toISOString().slice(0, 19).replace('T', ' '); // Current date in 'YYYY-MM-DD HH:MM:SS'
+  // Check if the employee already applied for the same job
+  const checkIfAppliedQuery = 'SELECT * FROM applications WHERE job_id = ? AND employee_id = ?';
+  db.query(checkIfAppliedQuery, [job_id, employee_id], (err, applicationResults) => {
+    if (err) {
+      console.error('Error checking existing applications:', err);
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
 
-  const sql = 'INSERT INTO applications (job_id, employee_id, apply_date) VALUES (?, ?, ?)';
-  const values = [job_id, employee_id, apply_date];
+    if (applicationResults.length > 0) {
+      return res.status(409).json({ message: 'You have already applied for this job.' });
+    }
 
-  db.query(sql, values, (err, results) => {
+    // Check if the job exists
+    const checkJobQuery = 'SELECT * FROM job_postings WHERE job_id = ?';
+    db.query(checkJobQuery, [job_id], (err, jobResults) => {
       if (err) {
-          console.error('Error inserting application:', err);
-          return res.status(500).json({ error: 'Database error', details: err.message });
+        console.error('Error checking job:', err);
+        return res.status(500).json({ error: 'Database error', details: err.message });
       }
 
-      res.status(201).json({ message: 'Application submitted successfully', applicationId: results.insertId });
+      if (jobResults.length === 0) {
+        return res.status(404).json({ message: 'Job posting not found' });
+      }
+
+      // Insert the job application
+      const applyQuery = 'INSERT INTO applications (job_id, employee_id, apply_date) VALUES (?, ?, ?)';
+      const applyDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+      db.query(applyQuery, [job_id, employee_id, applyDate], (err, results) => {
+        if (err) {
+          console.error('Error inserting application:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+        }
+
+        res.status(201).json({ message: 'Application submitted successfully', applicationId: results.insertId });
+      });
+    });
   });
 });
 
@@ -510,6 +556,54 @@ app.delete('/api/jobs/:id', verifyUser, (req, res) => {
       res.json({ message: 'Job posting deleted successfully' });
   });
 });
+app.get('/api/applications/job/:jobId', verifyUser, (req, res) => {
+  const { jobId } = req.params;
+
+  // Ensure the jobId is a valid number
+  if (!jobId || isNaN(jobId)) {
+    return res.status(400).json({ message: 'Invalid job ID. Please provide a valid job ID.' });
+  }
+
+  // Verify user type - only employers or admins can view applicants
+  if (req.userType !== 'employer' && req.userType !== 'admin') {
+    return res.status(403).json({ message: 'Access denied. Only employers or admins can view applicants.' });
+  }
+
+  // SQL Query to fetch applicants for a specific jobId
+  const sql = `
+    SELECT 
+        applications.apply_id AS applicationId,
+        employee.firstName AS applicantName,
+        employee.email AS applicantEmail,
+        applications.apply_date AS appliedDate,
+        applications.status AS status -- Add status if needed
+    FROM 
+        applications
+    JOIN 
+        employee ON applications.employee_id = employee.employee_id
+    WHERE 
+        applications.job_id = ? AND applications.job_id IS NOT NULL AND applications.employee_id IS NOT NULL
+  `;
+
+  // Execute the query with the given jobId
+  db.query(sql, [jobId], (err, results) => {
+    if (err) {
+      // Log and handle SQL errors
+      console.error('Database error while fetching applicants:', err.message);
+      return res.status(500).json({ error: 'Database error occurred.', details: err.message });
+    }
+
+    // Handle case where no applicants were found
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No valid applicants found for this job.' });
+    }
+
+    // Successful response
+    res.status(200).json(results);
+  });
+});
+
+
 
 // Start the server
 const PORT = process.env.PORT || 8081;

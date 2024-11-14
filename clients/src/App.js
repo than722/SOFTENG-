@@ -12,6 +12,7 @@ import EmployeeP from './EmployeeP';
 import EmployerP from './EmployerP';
 import CreateAcc from './Sign in/CreateAcc';
 import Home from './Home';
+import ViewAppliedApplicants from './applicants/ViewAppliedApplicants';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -27,7 +28,7 @@ const App = () => {
       .then((response) => {
         if (response.data.message === 'Authenticated') {
           setIsAuthenticated(true);
-          setAccountType(response.data.userType);
+          setAccountType(response.data.userType || 'unknown'); // Add fallback value
           setUserId(response.data.userId);
         }
       })
@@ -57,31 +58,32 @@ const App = () => {
   const handleFormSubmit = (values, picture, resume) => {
     const formData = new FormData();
     formData.append('accountType', values.accountType);
-    Object.keys(values).forEach(key => formData.append(key, values[key]));
+    Object.keys(values).forEach((key) => formData.append(key, values[key]));
 
     if (picture) formData.append('picture', picture);
     if (resume) formData.append('resume', resume);
 
-    axios.post('http://localhost:8081/signup', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    .then(res => {
-      if (res.data.id) {
-        setIsAuthenticated(true);
-        setAccountType(values.accountType.toLowerCase());
-        setUserId(res.data.id);
-      } else {
-        console.error('No ID returned from the backend.');
-      }
-    })
-    .catch(err => {
-      console.error('Error during submission:', err);
-    });
+    axios
+      .post('http://localhost:8081/signup', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((res) => {
+        if (res.data.id) {
+          setIsAuthenticated(true);
+          setAccountType(values.accountType.toLowerCase());
+          setUserId(res.data.id);
+        } else {
+          console.error('No ID returned from the backend.');
+        }
+      })
+      .catch((err) => {
+        console.error('Error during submission:', err);
+      });
   };
 
   return (
     <Router>
-      <AppContent 
+      <AppContent
         isAuthenticated={isAuthenticated}
         accountType={accountType}
         userId={userId}
@@ -89,70 +91,80 @@ const App = () => {
         isSelectionModalOpen={isSelectionModalOpen}
         closeSelectionModal={closeSelectionModal}
         handleFormSubmit={handleFormSubmit}
-        handleSignOut={handleSignOut} 
+        handleSignOut={handleSignOut}
         setIsAuthenticated={setIsAuthenticated}
-        isSignInModalOpen={isSignInModalOpen} 
-        openSignInModal={openSignInModal} 
-        closeSignInModal={closeSignInModal} 
+        isSignInModalOpen={isSignInModalOpen}
+        openSignInModal={openSignInModal}
+        closeSignInModal={closeSignInModal}
       />
     </Router>
   );
 };
 
-const AppContent = ({ 
-  isAuthenticated, 
+const AppContent = ({
+  isAuthenticated,
   accountType,
   userId,
-  openSelectionModal, 
-  isSelectionModalOpen, 
-  closeSelectionModal, 
+  openSelectionModal,
+  isSelectionModalOpen,
+  closeSelectionModal,
   handleFormSubmit,
-  handleSignOut, 
+  handleSignOut,
   setIsAuthenticated,
   isSignInModalOpen,
   openSignInModal,
-  closeSignInModal
+  closeSignInModal,
 }) => {
   const location = useLocation();
+
+  useEffect(() => {
+    console.log('Current path:', location.pathname);
+  }, [location]);
 
   return (
     <div className="app-container-App">
       <Routes>
-        <Route path="/" element={
-          isAuthenticated && accountType && userId ? (
-            accountType === 'employee' ? (
-              <Navigate to={`/employee/${userId}`} replace />
+        <Route
+          path="/"
+          element={
+            isAuthenticated && accountType && userId ? (
+              accountType === 'employee' ? (
+                <Navigate to={`/employee/${userId}`} replace />
+              ) : (
+                <Navigate to={`/employer/${userId}`} replace />
+              )
             ) : (
-              <Navigate to={`/employer/${userId}`} replace />
+              <Home openSelectionModal={openSelectionModal} openSignInModal={openSignInModal} />
             )
-          ) : (
-            <Home openSelectionModal={openSelectionModal} openSignInModal={openSignInModal} />
-          )
-        } />
-
-        <Route path="/admin" element={<Admin />} />
-        
-        {/* Pass accountType as a prop to Profile */}
-        <Route 
-          path="/profile/:id/:accountType" 
-          element={<Profile accountType={accountType} />} 
+          }
         />
-        
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/profile/:id/:accountType" element={<Profile accountType={accountType} />} />
         <Route path="/profile-table" element={<ProfileTable />} />
         <Route path="/add-job" element={<AddJobPosting />} />
         <Route path="/view-job" element={<ViewJobPosting />} />
-
+        <Route
+          path="/view-applied-applicants/:jobId"
+          element={
+            isAuthenticated ? (
+              <ViewAppliedApplicants />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
         <Route path="/employee/:id" element={<EmployeeP onSignOut={handleSignOut} auth={isAuthenticated} />} />
         <Route path="/employer/:id" element={<EmployerP onSignOut={handleSignOut} auth={isAuthenticated} />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
-      <CreateAcc 
+      <CreateAcc
         isSelectionOpen={isSelectionModalOpen}
         onCloseSelection={closeSelectionModal}
         onFormSubmit={handleFormSubmit}
       />
 
-      <SignIn 
+      <SignIn
         isOpen={isSignInModalOpen}
         onClose={closeSignInModal}
         setAuth={setIsAuthenticated} // Pass setAuth to SignIn

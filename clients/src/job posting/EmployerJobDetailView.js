@@ -1,28 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import './EmployerJobDetailView.css';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsError, onEdit, onDelete }) {
-    const navigate = useNavigate();
-
-    // Verify session on component load
-    useEffect(() => {
-        axios
-            .get('http://localhost:8081/verify-session', { withCredentials: true }) // Include cookies in the request
-            .then((res) => {
-                if (res.status !== 200 || res.data.userType !== 'employer') {
-                    alert('Access denied: This page is only accessible to employers.');
-                    navigate('/'); // Redirect unauthorized users
-                }
-            })
-            .catch((err) => {
-                console.error('Session verification failed:', err);
-                alert('You must be logged in to view this page.');
-                navigate('/login'); // Redirect to login if verification fails
-            });
-    }, [navigate]);
-
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
@@ -31,11 +11,17 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
 
     const handleDelete = async () => {
         try {
-            // Delete a job posting
-            const response = await axios.delete(
-                `http://localhost:8081/api/jobs/${jobDetails.job_id}`,
-                { withCredentials: true } // Include cookies in the request
-            );
+            const token = localStorage.getItem('authToken'); // Assuming the token is stored in localStorage
+            const employerId = localStorage.getItem('userId'); // Get employer ID from localStorage
+            if (!employerId) {
+                alert('User not logged in');
+                return;
+            }
+            const response = await axios.delete(`/api/jobs/${jobDetails.job_id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}` // Send the token for authentication
+                }
+            });
 
             if (response.status === 200) {
                 alert('Job posting successfully deleted!');
@@ -55,7 +41,7 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
     return (
         <div className="employer-job-detail-view">
             <button onClick={onBack} className="back-button">&lt; Back to job list</button>
-            <h2>{jobDetails.jobName || 'Job Name Not Available'}</h2>
+            <h2>{jobDetails.jobName}</h2>
             <div className="job-metadata">
                 <div>
                     <h4>Type of Work</h4>
@@ -63,7 +49,7 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
                 </div>
                 <div>
                     <h4>Salary</h4>
-                    <p>${jobDetails.salary || 'Not Disclosed'}</p>
+                    <p>${jobDetails.salary}</p>
                 </div>
                 <div>
                     <h4>Date Posted</h4>
@@ -72,7 +58,7 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
             </div>
             <div className="job-overview">
                 <h3>Job Overview</h3>
-                <p>{jobDetails.jobOverview || 'No overview available.'}</p>
+                <p>{jobDetails.jobOverview}</p>
             </div>
             <div className="job-actions">
                 <button onClick={() => onEdit(jobDetails.job_id)} className="edit-button">Edit</button>

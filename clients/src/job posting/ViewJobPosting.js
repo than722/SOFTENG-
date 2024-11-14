@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './ViewJobPosting.css';
 import JobDetailView from './JobDetailView';
+import EmployerJobDetailView from './EmployerJobDetailView';
 
 function ViewJobPosting() {
     const [jobs, setJobs] = useState([]);
@@ -11,12 +12,16 @@ function ViewJobPosting() {
     const [jobDetails, setJobDetails] = useState(null);
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [detailsError, setDetailsError] = useState(null);
+    const [userRole, setUserRole] = useState(null); // To store the role of the logged-in user
 
     useEffect(() => {
+        // Fetch user role from local storage
+        const role = localStorage.getItem('userType');
+        setUserRole(role);
+
         // Fetch all job postings
         axios.get('http://localhost:8081/api/job_postings')
             .then(response => {
-                console.log(response.data); // Check job data here
                 setJobs(response.data);
                 setLoading(false);
             })
@@ -29,12 +34,12 @@ function ViewJobPosting() {
 
     const handleJobClick = (job) => {
         setSelectedJob(job);
-        fetchJobDetails(job.job_id); // Updated from job.id to job.job_id
+        fetchJobDetails(job.job_id);
     };
 
-    const fetchJobDetails = (job_id) => {  // Updated parameter name from id to job_id
+    const fetchJobDetails = (job_id) => {
         setDetailsLoading(true);
-        axios.get(`http://localhost:8081/api/job_postings/${job_id}`)  // Updated from id to job_id
+        axios.get(`http://localhost:8081/api/job_postings/${job_id}`)
             .then(response => {
                 setJobDetails(response.data);
                 setDetailsLoading(false);
@@ -56,14 +61,28 @@ function ViewJobPosting() {
     if (error) return <div>{error}</div>;
 
     if (selectedJob && jobDetails) {
-        return (
-            <JobDetailView 
-                jobDetails={jobDetails} 
-                onBack={handleBack} 
-                detailsLoading={detailsLoading} 
-                detailsError={detailsError} 
-            />
-        );
+        // Render based on user role
+        if (userRole === 'employee') {
+            return (
+                <JobDetailView 
+                    jobDetails={jobDetails} 
+                    onBack={handleBack} 
+                    detailsLoading={detailsLoading} 
+                    detailsError={detailsError} 
+                />
+            );
+        } else if (userRole === 'employer') {
+            return (
+                <EmployerJobDetailView 
+                    jobDetails={jobDetails} 
+                    onBack={handleBack} 
+                    detailsLoading={detailsLoading} 
+                    detailsError={detailsError} 
+                />
+            );
+        } else {
+            return <div>Unauthorized user role</div>;
+        }
     }
 
     return (
@@ -71,7 +90,7 @@ function ViewJobPosting() {
             <h2>Job Postings</h2>
             <ul>
                 {jobs.map(job => (
-                    <li key={job.job_id} onClick={() => handleJobClick(job)} className="job-card"> {/* Updated from job.id to job.job_id */}
+                    <li key={job.job_id} onClick={() => handleJobClick(job)} className="job-card">
                         <div className="job-metadata">
                             <h3>{job.jobName || "Job Title Not Available"}</h3>
                             <span>{job.typeOfWork || 'Full Time'}</span>
