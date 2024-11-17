@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -97,12 +97,16 @@ app.post('/signup', upload.fields([{ name: 'picture', maxCount: 1 }, { name: 're
     password,
   } = req.body;
 
-  console.log('Received signup data:', req.body);
-  console.log('Received files:', req.files);
+  // Log the received data for debugging
+  console.log('Received signup data:', req.body); // Check if accountType is in req.body
+  console.log('Received files:', req.files);      // Check if files are correctly received
 
+  // Check if accountType is provided
   if (!accountType) {
     return res.status(400).json({ error: 'Missing account type' });
   }
+
+  // Check for other required fields
   if (!email) {
     return res.status(400).json({ error: 'Missing email' });
   }
@@ -110,37 +114,46 @@ app.post('/signup', upload.fields([{ name: 'picture', maxCount: 1 }, { name: 're
     return res.status(400).json({ error: 'Missing password' });
   }
 
+  // Handle password hashing
   bcrypt.hash(password, 10, (err, hashedPassword) => {
     if (err) return res.status(500).json({ error: 'Internal server error' });
 
+    // Handle file uploads and file URLs
     const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
     const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
 
     let sql, values;
+
+    // Determine the SQL query based on account type
     if (accountType === 'employee') {
-      sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, 2, email, hashedPassword];
+      sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, email, hashedPassword];
     } else if (accountType === 'employer') {
-      sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, status_id, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, 2, email, hashedPassword];
+      sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, email, hashedPassword];
     } else {
       return res.status(400).json({ error: 'Invalid account type' });
     }
 
+    // Insert the user data into the respective table (employee or employer)
     db.query(sql, values, (err, results) => {
       if (err) return res.status(500).json({ error: 'Database error', details: err.message });
 
       const userId = results.insertId;
       const userType = accountType === 'employee' ? 'employee' : 'employer';
 
+      // Insert the user_type reference into the user table
       const userSql = 'INSERT INTO user (user_type, employee_id, employer_id) VALUES (?, ?, ?)';
       db.query(userSql, [userType, userType === 'employee' ? userId : null, userType === 'employer' ? userId : null], (err) => {
         if (err) return res.status(500).json({ error: 'Database error while inserting user', details: err.message });
+        
+        // Send a success response with the user id
         res.json({ id: userId });
       });
     });
   });
 });
+
 
 
 app.post('/login', (req, res) => {
@@ -245,19 +258,17 @@ app.get('/verify-session', (req, res) => {
   });
 });
 
-
-
 app.post('/api/job_postings/AddJobPosting', (req, res) => {
-  const { jobName, jobOverview, jobDescription, salary, country } = req.body;
+  const { jobName, jobOverview, jobDescription, salary, country, employer_id } = req.body;
 
-  console.log('Received job posting data:', jobName, jobOverview, jobDescription, salary, country);
+  console.log('Received job posting data:', jobName, jobOverview, jobDescription, salary, country, employer_id);
 
-  if (!jobName || !jobDescription || !salary || !country) {
+  if (!jobName || !jobDescription || !salary || !country || !employer_id) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const sql = 'INSERT INTO job_postings (jobName, jobOverview, jobDescription, salary, country) VALUES (?, ?, ?, ?, ?)';
-  const values = [jobName, jobOverview || null, jobDescription, salary, country];
+  const sql = 'INSERT INTO job_postings (jobName, jobOverview, jobDescription, salary, country, employer_id) VALUES (?, ?, ?, ?, ?, ?)';
+  const values = [jobName, jobOverview || null, jobDescription, salary, country, employer_id];
 
   db.query(sql, values, (err, results) => {
     if (err) {
@@ -267,6 +278,9 @@ app.post('/api/job_postings/AddJobPosting', (req, res) => {
     res.status(201).json({ message: 'Job posting created successfully', job_id: results.insertId });
   });
 });
+
+
+
 
 // Route to delete an employee or employer by ID based on account type
 app.delete('/api/:accountType/:id', (req, res) => {
@@ -346,7 +360,7 @@ app.get('/api/users/:userId', (req, res) => {
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
-    if (employeeResults.length > 0) {
+    if (employeeResults.length > 0) { 
       return res.json(employeeResults[0]);
     }
 
@@ -485,53 +499,102 @@ app.post('/signout', (req, res) => {
   res.status(200).json({ message: 'Sign out successful' });
 })
 
-/app.post('/api/applications/apply', verifyUser, (req, res) => {
+app.post('/api/applications/apply', verifyUser, (req, res) => {
   const { job_id } = req.body;
-  const employee_id = req.userId; // Retrieved from the decoded token
+  const employee_id = req.userId;  // Retrieved from the decoded token
 
-  if (!job_id || !employee_id) {
-    return res.status(400).json({ message: 'Job ID and Employee ID are required' });
-  }
-
-  // Check if the employee already applied for the same job
-  const checkIfAppliedQuery = 'SELECT * FROM applications WHERE job_id = ? AND employee_id = ?';
-  db.query(checkIfAppliedQuery, [job_id, employee_id], (err, applicationResults) => {
+  // Fetch employee details from the employee table
+  const getEmployeeDetailsQuery = 'SELECT email, lastName, firstName, status_id FROM employee WHERE employee_id = ?';
+  db.query(getEmployeeDetailsQuery, [employee_id], (err, employeeResults) => {
     if (err) {
-      console.error('Error checking existing applications:', err);
+      console.error('Error fetching employee details:', err);
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
-    if (applicationResults.length > 0) {
-      return res.status(409).json({ message: 'You have already applied for this job.' });
+    if (employeeResults.length === 0) {
+      return res.status(404).json({ message: 'Employee not found' });
     }
 
-    // Check if the job exists
-    const checkJobQuery = 'SELECT * FROM job_postings WHERE job_id = ?';
-    db.query(checkJobQuery, [job_id], (err, jobResults) => {
+    const { email, lastName, firstName, status_id } = employeeResults[0];
+
+    // Check if the employee already applied for the same job
+    const checkIfAppliedQuery = 'SELECT * FROM applications WHERE job_id = ? AND employee_id = ?';
+    db.query(checkIfAppliedQuery, [job_id, employee_id], (err, applicationResults) => {
       if (err) {
-        console.error('Error checking job:', err);
+        console.error('Error checking existing applications:', err);
         return res.status(500).json({ error: 'Database error', details: err.message });
       }
 
-      if (jobResults.length === 0) {
-        return res.status(404).json({ message: 'Job posting not found' });
+      if (applicationResults.length > 0) {
+        return res.status(409).json({ message: 'You have already applied for this job.' });
       }
 
-      // Insert the job application
-      const applyQuery = 'INSERT INTO applications (job_id, employee_id, apply_date) VALUES (?, ?, ?)';
-      const applyDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-      db.query(applyQuery, [job_id, employee_id, applyDate], (err, results) => {
+      // Check if the job exists and get the employer_id
+      const checkJobQuery = 'SELECT employer_id FROM job_postings WHERE job_id = ?';
+      db.query(checkJobQuery, [job_id], (err, jobResults) => {
         if (err) {
-          console.error('Error inserting application:', err);
+          console.error('Error checking job:', err);
           return res.status(500).json({ error: 'Database error', details: err.message });
         }
 
-        res.status(201).json({ message: 'Application submitted successfully', applicationId: results.insertId });
+        if (jobResults.length === 0) {
+          return res.status(404).json({ message: 'Job posting not found' });
+        }
+
+        const employer_id = jobResults[0].employer_id;
+
+        // Insert the job application
+        const applyQuery = 'INSERT INTO applications (job_id, employee_id, apply_date, email, lastName, firstName, status_id, employer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        const applyDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        db.query(applyQuery, [job_id, employee_id, applyDate, email, lastName, firstName, status_id, employer_id], (err, results) => {
+          if (err) {
+            console.error('Error inserting application:', err);
+            return res.status(500).json({ error: 'Database error', details: err.message });
+          }
+
+          res.status(201).json({ message: 'Application submitted successfully', applicationId: results.insertId, employer_id });
+        });
       });
     });
   });
 });
+
+// Get applicants for all jobs posted by an employer
+app.get('/api/applications/employer/:employerId', (req, res) => {
+  const employerId = req.params.employerId;
+
+  if (!employerId) {
+      return res.status(400).send("Missing employerId.");
+  }
+
+  const query = `
+      SELECT 
+          j.job_id, 
+          a.applications_id, 
+          a.firstName, 
+          a.lastName, 
+          a.email, 
+          a.apply_date, 
+          a.status_id
+      FROM 
+          applications a
+      JOIN 
+          job_postings j ON a.job_id = j.job_id
+      WHERE 
+          j.employer_id = ?;
+  `;
+
+  db.query(query, [employerId], (err, results) => {
+      if (err) {
+          console.error("Error fetching applicants for employer:", err);
+          return res.status(500).send("Failed to fetch applicants.");
+      }
+      res.json(results);
+  });
+});
+
+
 
 // Route to delete a job posting by ID (protected)
 app.delete('/api/jobs/:id', verifyUser, (req, res) => {
@@ -556,52 +619,7 @@ app.delete('/api/jobs/:id', verifyUser, (req, res) => {
       res.json({ message: 'Job posting deleted successfully' });
   });
 });
-app.get('/api/applications/job/:jobId', verifyUser, (req, res) => {
-  const { jobId } = req.params;
 
-  // Ensure the jobId is a valid number
-  if (!jobId || isNaN(jobId)) {
-    return res.status(400).json({ message: 'Invalid job ID. Please provide a valid job ID.' });
-  }
-
-  // Verify user type - only employers or admins can view applicants
-  if (req.userType !== 'employer' && req.userType !== 'admin') {
-    return res.status(403).json({ message: 'Access denied. Only employers or admins can view applicants.' });
-  }
-
-  // SQL Query to fetch applicants for a specific jobId
-  const sql = `
-    SELECT 
-        applications.apply_id AS applicationId,
-        employee.firstName AS applicantName,
-        employee.email AS applicantEmail,
-        applications.apply_date AS appliedDate,
-        applications.status AS status -- Add status if needed
-    FROM 
-        applications
-    JOIN 
-        employee ON applications.employee_id = employee.employee_id
-    WHERE 
-        applications.job_id = ? AND applications.job_id IS NOT NULL AND applications.employee_id IS NOT NULL
-  `;
-
-  // Execute the query with the given jobId
-  db.query(sql, [jobId], (err, results) => {
-    if (err) {
-      // Log and handle SQL errors
-      console.error('Database error while fetching applicants:', err.message);
-      return res.status(500).json({ error: 'Database error occurred.', details: err.message });
-    }
-
-    // Handle case where no applicants were found
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'No valid applicants found for this job.' });
-    }
-
-    // Successful response
-    res.status(200).json(results);
-  });
-});
 
 
 

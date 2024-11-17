@@ -34,12 +34,14 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             // Make an API request to apply for a job
             const response = await axios.post(
                 'http://localhost:8081/api/applications/apply',
-                { job_id: jobDetails?.job_id }, // Only job_id is required, employee_id is derived from the token
+                { job_id: jobDetails?.job_id }, // Only send job_id
                 { withCredentials: true } // Include credentials (cookies)
             );
-
+        
             if (response.status === 201) {
                 alert('Application successfully sent!');
+                const employerId = response.data.employer_id; // Access the employer_id from the response
+                console.log('Employer ID:', employerId);
             } else {
                 alert('There was an issue with your application.');
             }
@@ -53,7 +55,8 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             }
         }
     };
-
+    
+    
     if (detailsLoading) return <div>Loading job details...</div>;
     if (detailsError) return <div>{detailsError}</div>;
 
