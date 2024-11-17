@@ -12,14 +12,24 @@ function AddJobPosting() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+    
+        // Get userId from localStorage (no need for Base64 decoding)
+        const userId = localStorage.getItem('userId');
+    
+        if (!userId) {
+            setErrorMessage('User not authenticated.');
+            return;
+        }
+    
         const jobData = {
             jobName,
             jobDescription,
             jobOverview,
             salary,
             country,
+            employer_id: userId,  // Add employer_id to the data
         };
-
+    
         try {
             const response = await fetch('http://localhost:8081/api/job_postings/AddJobPosting', {
                 method: 'POST',
@@ -28,11 +38,10 @@ function AddJobPosting() {
                 },
                 body: JSON.stringify(jobData),
             });
-
+    
             if (response.ok) {
                 const data = await response.json();
-                setSuccessMessage('Job posting created successfully.');
-                console.log('Job Data Submitted: ', data);
+                window.alert('Job posting created successfully.');
                 setJobName('');
                 setJobDescription('');
                 setJobOverview('');
@@ -47,6 +56,7 @@ function AddJobPosting() {
             setErrorMessage('An error occurred while submitting the job posting.');
         }
     };
+    
 
     return (
         <div className="add-job-posting">

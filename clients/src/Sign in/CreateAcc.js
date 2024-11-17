@@ -81,16 +81,15 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       formData.append(key, values[key]);
     });
   
-    // Ensure `accountType` is appended correctly
+    // Append accountType and log FormData
     formData.append('accountType', accountType);
+    console.log('Form Data after appending accountType:', Array.from(formData.entries()));
+  
     if (picture) formData.append('picture', picture);
     if (resume) formData.append('resume', resume);
   
-    // Log FormData before sending
-    console.log('Form Data before submission:', Array.from(formData.entries()));  // Log all form data entries
-    
     setLoading(true);
-    setError(''); // Reset error message before submission
+    setError('');
     try {
       const response = await axios.post('http://localhost:8081/signup', formData, {
         headers: {
@@ -99,7 +98,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       });
       console.log('Signup successful:', response.data);
       onFormSubmit(response.data);
-      closeForm(); // Close form on successful submission
+      closeForm();
     } catch (error) {
       console.error('Error during signup:', error);
       setError(error.response?.data?.message || 'Signup failed. Please try again.');
@@ -107,6 +106,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       setLoading(false);
     }
   }
+  
   
 
   const closeForm = () => {
