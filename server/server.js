@@ -80,80 +80,110 @@ app.get('/', verifyUser, (req, res) => {
   return res.json({ Status: "Success", name: req.name });
 });
 
-// Signup route
-app.post('/signup', upload.fields([{ name: 'picture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), (req, res) => {
-  const { 
-    accountType,
-    lastName, 
-    firstName, 
-    middleName, 
-    province, 
-    municipality, 
-    barangay, 
-    zipCode, 
-    mobileNumber, 
-    companyName, 
-    email, 
-    password,
-  } = req.body;
+// Update the file upload logic in server.js
+app.post(
+  '/signup',
+  upload.fields([
+    { name: 'picture', maxCount: 1 },
+    { name: 'resume', maxCount: 1 },
+    { name: 'birth_certificate', maxCount: 1 },
+    { name: 'validId', maxCount: 1 },
+    { name: 'passport', maxCount: 1 },
+    { name: 'marriage_contract', maxCount: 1 },
+  ]),
+  (req, res) => {
+    const {
+      accountType,
+      lastName,
+      firstName,
+      middleName,
+      province,
+      municipality,
+      barangay,
+      zipCode,
+      mobileNumber,
+      companyName,
+      email,
+      password
+    } = req.body;
 
-  // Log the received data for debugging
-  console.log('Received signup data:', req.body); // Check if accountType is in req.body
-  console.log('Received files:', req.files);      // Check if files are correctly received
+    // Log received data and files
+    console.log('Received signup data:', req.body);
+    console.log('Received files:', req.files);
 
-  // Check if accountType is provided
-  if (!accountType) {
-    return res.status(400).json({ error: 'Missing account type' });
-  }
+    const birthCertificateUrl = req.files['birth_certificate']?.[0]?.filename || null;
+    const validIdUrl = req.files['validId']?.[0]?.filename || null;
+    const passportUrl = req.files['passport']?.[0]?.filename || null;
+    const marriageContractUrl = req.files['marriage_contract']?.[0]?.filename || null;
 
-  // Check for other required fields
-  if (!email) {
-    return res.status(400).json({ error: 'Missing email' });
-  }
-  if (!password) {
-    return res.status(400).json({ error: 'Missing password' });
-  }
+    bcrypt.hash(password, 10, (err, hashedPassword) => {
+      if (err) return res.status(500).json({ error: 'Internal server error' });
 
-  // Handle password hashing
-  bcrypt.hash(password, 10, (err, hashedPassword) => {
-    if (err) return res.status(500).json({ error: 'Internal server error' });
+      const pictureUrl = req.files['picture']?.[0]?.filename || null;
+      const resumeUrl = req.files['resume']?.[0]?.filename || null;
 
-    // Handle file uploads and file URLs
-    const pictureUrl = req.files['picture'] ? req.files['picture'][0].filename : null;
-    const resumeUrl = req.files['resume'] ? req.files['resume'][0].filename : null;
+      let sql, values;
+      if (accountType === 'employee') {
+        sql = `
+          INSERT INTO employee 
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        values = [
+          lastName,
+          firstName,
+          middleName,
+          province,
+          municipality,
+          barangay,
+          zipCode,
+          mobileNumber,
+          pictureUrl,
+          resumeUrl,
+          birthCertificateUrl,
+          validIdUrl,
+          passportUrl,
+          marriageContractUrl,
+          email,
+          hashedPassword
+        ];
+      } else if (accountType === 'employer') {
+        sql = `
+          INSERT INTO employer 
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, validId, email, password) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        values = [
+          lastName,
+          firstName,
+          middleName,
+          province,
+          municipality,
+          barangay,
+          zipCode,
+          mobileNumber,
+          companyName,
+          validIdUrl,
+          email,
+          hashedPassword,
+        ];
+      } else {
+        return res.status(400).json({ error: 'Invalid account type' });
+      }
 
-    let sql, values;
+      db.query(sql, values, (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error', details: err.message });
 
-    // Determine the SQL query based on account type
-    if (accountType === 'employee') {
-      sql = 'INSERT INTO employee (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, pictureUrl, resumeUrl, email, hashedPassword];
-    } else if (accountType === 'employer') {
-      sql = 'INSERT INTO employer (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-      values = [lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, email, hashedPassword];
-    } else {
-      return res.status(400).json({ error: 'Invalid account type' });
-    }
+        const userId = results.insertId;
+        const userType = accountType === 'employee' ? 'employee' : 'employer';
 
-    // Insert the user data into the respective table (employee or employer)
-    db.query(sql, values, (err, results) => {
-      if (err) return res.status(500).json({ error: 'Database error', details: err.message });
-
-      const userId = results.insertId;
-      const userType = accountType === 'employee' ? 'employee' : 'employer';
-
-      // Insert the user_type reference into the user table
-      const userSql = 'INSERT INTO user (user_type, employee_id, employer_id) VALUES (?, ?, ?)';
-      db.query(userSql, [userType, userType === 'employee' ? userId : null, userType === 'employer' ? userId : null], (err) => {
-        if (err) return res.status(500).json({ error: 'Database error while inserting user', details: err.message });
-        
-        // Send a success response with the user id
-        res.json({ id: userId });
+        const userSql = 'INSERT INTO user (user_type, employee_id, employer_id) VALUES (?, ?, ?)';
+        db.query(userSql, [userType, userType === 'employee' ? userId : null, userType === 'employer' ? userId : null], (err) => {
+          if (err) return res.status(500).json({ error: 'Database error while inserting user', details: err.message });
+          res.json({ id: userId });
+        });
       });
     });
-  });
-});
-
+  }
+);
 
 
 app.post('/login', (req, res) => {
