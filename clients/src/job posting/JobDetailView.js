@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './JobDetailView.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const navigate = useNavigate();
+    const [isSubmitting, setIsSubmitting] = useState(false); // Fix the error by defining state
+    const [hasApplied, setHasApplied] = useState(false); // Track if the user has already applied
 
     useEffect(() => {
         // Verify session by calling the backend
@@ -21,7 +23,21 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                 alert('You must be logged in to view this page.');
                 navigate('/login'); // Redirect to login if verification fails
             });
-    }, [navigate]);
+
+        // Check if the user has already applied for the job
+        if (jobDetails?.job_id) {
+            axios
+                .get(`http://localhost:8081/api/applications/check/${jobDetails.job_id}`, { withCredentials: true })
+                .then((res) => {
+                    if (res.data.applied) {
+                        setHasApplied(true);
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error checking application status:', err);
+                });
+        }
+    }, [navigate, jobDetails]);
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -30,6 +46,8 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     };
 
     const handleApply = async () => {
+        if (isSubmitting || hasApplied) return;
+        setIsSubmitting(true);
         try {
             // Make an API request to apply for a job
             const response = await axios.post(
@@ -37,11 +55,12 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                 { job_id: jobDetails?.job_id }, // Only send job_id
                 { withCredentials: true } // Include credentials (cookies)
             );
-        
+
             if (response.status === 201) {
                 alert('Application successfully sent!');
                 const employerId = response.data.employer_id; // Access the employer_id from the response
                 console.log('Employer ID:', employerId);
+                setHasApplied(true); // Mark as applied
             } else {
                 alert('There was an issue with your application.');
             }
@@ -53,10 +72,11 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                 console.error('Failed to apply to the job:', error);
                 alert('There was an error while trying to apply. Please try again later.');
             }
+        } finally {
+            setIsSubmitting(false);
         }
     };
-    
-    
+
     if (detailsLoading) return <div>Loading job details...</div>;
     if (detailsError) return <div>{detailsError}</div>;
 
@@ -82,7 +102,12 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                 <h3>Job Overview</h3>
                 <p>{jobDetails?.jobOverview || 'No overview available.'}</p>
             </div>
-            <button onClick={handleApply} className="apply-button">Apply</button>
+            <button 
+                onClick={handleApply} 
+                className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
+                disabled={isSubmitting || hasApplied}>
+                {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
+            </button>
         </div>
     );
 }

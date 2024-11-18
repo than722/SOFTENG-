@@ -651,6 +651,32 @@ app.delete('/api/jobs/:id', verifyUser, (req, res) => {
 });
 
 
+// Route to check if the user has already applied for a job
+app.get('/api/applications/check/:job_id', verifyUser, (req, res) => {
+  const { job_id } = req.params;
+  const employee_id = req.userId; // Retrieve the employee ID from the verified token
+
+  if (!job_id || !employee_id) {
+      return res.status(400).json({ message: "Missing job ID or user ID" });
+  }
+
+  const query = 'SELECT * FROM applications WHERE job_id = ? AND employee_id = ?';
+  db.query(query, [job_id, employee_id], (err, results) => {
+      if (err) {
+          console.error('Error checking application status:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+
+      if (results.length > 0) {
+          return res.json({ applied: true }); // User has already applied
+      } else {
+          return res.json({ applied: false }); // User has not applied
+      }
+  });
+});
+
+
+
 
 
 // Start the server
