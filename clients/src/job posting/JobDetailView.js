@@ -10,7 +10,6 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const [hasApplied, setHasApplied] = useState(false); // Track if the user has already applied
 
     useEffect(() => {
-        // Verify session by calling the backend
         axios
             .get('http://localhost:8081/verify-session', { withCredentials: true }) // Include cookies in the request
             .then((res) => {
