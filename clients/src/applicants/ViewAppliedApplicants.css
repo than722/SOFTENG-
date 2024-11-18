@@ -31,16 +31,16 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.applicant-card h3 {
+.applicant-card, h3 {
     margin: 0 0 10px;
     color: #007bff;
     font-size: 1.2em;
 }
 
-.applicant-card p {
+.applicant-card, .note {
     margin: 5px 0;
     font-size: 0.95em;
-    color: #555;
+    color: black;
 }
 
 .applicant-card p strong {

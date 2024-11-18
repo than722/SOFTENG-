@@ -21,6 +21,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
   });
   const [picture, setPicture] = useState(null);
   const [resume, setResume] = useState(null);
+  const [birthCert, setBirthCert] = useState(null);
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false); // Loading state
@@ -31,7 +32,6 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     setIsFormOpen(true);
     onCloseSelection();
   };
-  
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -66,28 +66,39 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       setResume(file);
       console.log('Selected resume:', file);
     }
+
+    if (name === 'birthCert') {
+      const fileType = file.type;
+      if (!fileType.startsWith('image/')) {
+        setError('Please upload a valid image file.');
+        return;
+      }
+      setBirthCert(file);
+      console.log('Selected Birth Certificate:', file);
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
+
     if (!accountType) {
       setError('Please select an account type.');
       return;
     }
-  
+
     const formData = new FormData();
     Object.keys(values).forEach((key) => {
       formData.append(key, values[key]);
     });
-  
+
     // Append accountType and log FormData
     formData.append('accountType', accountType);
     console.log('Form Data after appending accountType:', Array.from(formData.entries()));
-  
+
     if (picture) formData.append('picture', picture);
     if (resume) formData.append('resume', resume);
-  
+    if (birthCert) formData.append('birthCert', birthCert);
+
     setLoading(true);
     setError('');
     try {
@@ -105,9 +116,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     } finally {
       setLoading(false);
     }
-  }
-  
-  
+  };
 
   const closeForm = () => {
     setIsFormOpen(false);
@@ -128,6 +137,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     });
     setPicture(null);  // Reset picture
     setResume(null);   // Reset resume
+    setBirthCert(null); // Reset birthCert
     setError(''); // Clear error message
   };
 
@@ -229,6 +239,11 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
                     <input type="file" name="resume" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
                     {resume && <p>Selected Resume: {resume.name}</p>}
                   </div>
+                  <div className="form-group-App">
+                    <label>Upload Birth Certificate:</label>
+                    <input type="file" name="birthCert" accept="image/*" onChange={handleFileChange} />
+                    {birthCert && <p>Selected Birth Certificate: {birthCert.name}</p>}
+                  </div>
                 </>
               )}
 
@@ -244,3 +259,4 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
 };
 
 export default CreateAcc;
+

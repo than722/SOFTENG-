@@ -57,7 +57,7 @@ function ViewAppliedApplicants() {
         <div className="view-applied-applicants">
             <h2>Applicants for Your Job Postings</h2>
             {applicants.length === 0 ? (
-                <p>No one has applied for your jobs yet.</p>
+                <p className='note'>No one has applied for your jobs yet.</p>
             ) : (
                 <ul className="applicants-list">
                     {applicants.map((applicant) => (
