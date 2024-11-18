@@ -3,6 +3,7 @@ import './JobDetailView.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+//test 
 function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false); // Fix the error by defining state
