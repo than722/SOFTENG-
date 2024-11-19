@@ -18,7 +18,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     zipCode: "",
     mobileNumber: "",
     companyName: "",
-    maritalStatus: "single", // Default to single
+    civil_status: "single", // Default to single
   });
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [files, setFiles] = useState({
@@ -83,22 +83,24 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+  
     if (!accountType) {
       setError("Please select an account type.");
       return;
     }
-
+  
     const formData = new FormData();
     Object.keys(values).forEach((key) => {
       formData.append(key, values[key]);
     });
-
-    formData.append("accountType", accountType);
+  
     Object.keys(files).forEach((key) => {
-      if (files[key]) formData.append(key, files[key]);
+      if (files[key]) {
+        console.log(`Appending file for ${key}:`, files[key]);
+        formData.append(key, files[key]);
+      }
     });
-
+  
     setLoading(true);
     setError("");
     try {
@@ -115,6 +117,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       setLoading(false);
     }
   };
+  
 
   const closeForm = () => {
     setIsFormOpen(false);
@@ -132,7 +135,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       zipCode: "",
       mobileNumber: "",
       companyName: "",
-      maritalStatus: "single",
+      civil_status: "single",
     });
     setFiles({
       validId: null,
@@ -265,8 +268,8 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
                   <div className="form-group-App">
                     <label>Marital Status:</label>
                     <select
-                      name="maritalStatus"
-                      value={values.maritalStatus}
+                      name="civil_status"
+                      value={values.civil_status}
                       onChange={handleChange}
                     >
                       <option value="single">Single</option>
@@ -277,7 +280,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
                   {renderUploadField("resume", "Upload Resume", ".pdf,.doc,.docx")}
                   {renderUploadField("birth_certificate","Upload Birth Certificate","image/*")}
                   {renderUploadField("passport","Upload Passport (Optional)","image/*")}
-                  {values.maritalStatus === "married" &&
+                  {values.civil_status === "married" &&
                     renderUploadField("marriage_contract","Upload Marriage Contract","image/*")}
                 </>
               )}
