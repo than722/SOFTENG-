@@ -25,17 +25,17 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     validId: null,
     picture: null,
     resume: null,
-    birthCert: null,
+    birth_certificate: null,
     passport: null,
-    marriageContract: null,
+    marriage_contract: null,
   });
   const [uploadedFiles, setUploadedFiles] = useState({
     validId: false,
     picture: false,
     resume: false,
-    birthCert: false,
+    birth_certificate: false,
     passport: false,
-    marriageContract: false,
+    marriage_contract: false,
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,9 +63,9 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       validId: "image/*",
       picture: "image/*",
       resume: ".pdf,.doc,.docx",
-      birthCert: "image/*",
+      birth_certificate: "image/*",
       passport: "image/*",
-      marriageContract: "image/*",
+      marriage_contract: "image/*",
     };
 
     const allowedTypes = fileValidation[name].split(",");
@@ -138,17 +138,17 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       validId: null,
       picture: null,
       resume: null,
-      birthCert: null,
+      birth_certificate: null,
       passport: null,
-      marriageContract: null,
+      marriage_contract: null,
     });
     setUploadedFiles({
       validId: false,
       picture: false,
       resume: false,
-      birthCert: false,
+      birth_certificate: false,
       passport: false,
-      marriageContract: false,
+      marriage_contract: false,
     });
     setError("");
   };
@@ -275,10 +275,10 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
                   </div>
                   {renderUploadField("picture", "Upload Picture", "image/*")}
                   {renderUploadField("resume", "Upload Resume", ".pdf,.doc,.docx")}
-                  {renderUploadField("birthCert","Upload Birth Certificate","image/*")}
+                  {renderUploadField("birth_certificate","Upload Birth Certificate","image/*")}
                   {renderUploadField("passport","Upload Passport (Optional)","image/*")}
                   {values.maritalStatus === "married" &&
-                    renderUploadField("marriageContract","Upload Marriage Contract","image/*")}
+                    renderUploadField("marriage_contract","Upload Marriage Contract","image/*")}
                 </>
               )}
 

@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -80,7 +80,6 @@ app.get('/', verifyUser, (req, res) => {
   return res.json({ Status: "Success", name: req.name });
 });
 
-// Update the file upload logic in server.js
 app.post(
   '/signup',
   upload.fields([
@@ -104,7 +103,8 @@ app.post(
       mobileNumber,
       companyName,
       email,
-      password
+      password,
+      civilStatus, // New field for marital status
     } = req.body;
 
     // Log received data and files
@@ -115,19 +115,23 @@ app.post(
     const validIdUrl = req.files['validId']?.[0]?.filename || null;
     const passportUrl = req.files['passport']?.[0]?.filename || null;
     const marriageContractUrl = req.files['marriage_contract']?.[0]?.filename || null;
+    const pictureUrl = req.files['picture']?.[0]?.filename || null;
+    const resumeUrl = req.files['resume']?.[0]?.filename || null;
+
+    // Check for required marriage contract if civil status is "Married"
+    if (civilStatus === 'Married' && !marriageContractUrl) {
+      return res.status(400).json({ error: 'Marriage contract is required for married users.' });
+    }
 
     bcrypt.hash(password, 10, (err, hashedPassword) => {
       if (err) return res.status(500).json({ error: 'Internal server error' });
-
-      const pictureUrl = req.files['picture']?.[0]?.filename || null;
-      const resumeUrl = req.files['resume']?.[0]?.filename || null;
 
       let sql, values;
       if (accountType === 'employee') {
         sql = `
           INSERT INTO employee 
-          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, civil_status) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         values = [
           lastName,
           firstName,
@@ -144,7 +148,8 @@ app.post(
           passportUrl,
           marriageContractUrl,
           email,
-          hashedPassword
+          hashedPassword,
+          civilStatus,
         ];
       } else if (accountType === 'employer') {
         sql = `
