@@ -277,8 +277,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
                   {renderUploadField("resume", "Upload Resume", ".pdf,.doc,.docx")}
                   {renderUploadField("birthCert","Upload Birth Certificate","image/*")}
                   {renderUploadField("passport","Upload Passport (Optional)","image/*")}
-                  {values.maritalStatus === "married" &&
-                    renderUploadField("marriageContract","Upload Marriage Contract","image/*")}
+                  {values.maritalStatus === "married" && renderUploadField("marriageContract","Upload Marriage Contract","image/*")}
                 </>
               )}
 
