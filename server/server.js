@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -107,49 +107,31 @@ app.post(
       civilStatus,
     } = req.body;
 
+    // Log received data and files
     console.log('Received signup data:', req.body);
     console.log('Received files:', req.files);
 
-    // Validate required fields
-    if (!email || !password || !accountType || !lastName || !firstName) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    if (!['employee', 'employer'].includes(accountType)) {
-      return res.status(400).json({ error: 'Invalid account type' });
-    }
-
-    if (accountType === 'employer' && !companyName) {
-      return res.status(400).json({ error: 'Company name is required for employers' });
-    }
-
-    if (civilStatus === 'Married' && !req.files['marriage_contract']) {
-      return res
-        .status(400)
-        .json({ error: 'Marriage contract is required for married users' });
-    }
-
-    // Extract file URLs or paths
+    const birthCertificateUrl = req.files['birth_certificate']?.[0]?.filename || null;
     const validIdUrl = req.files['validId']?.[0]?.filename || null;
+    const passportUrl = req.files['passport']?.[0]?.filename || null;
+    const marriageContractUrl = req.files['marriage_contract']?.[0]?.filename || null;
+    const pictureUrl = req.files['picture']?.[0]?.filename || null;
+    const resumeUrl = req.files['resume']?.[0]?.filename || null;
 
-    if (!validIdUrl) {
-      return res.status(400).json({ error: 'Valid ID is required' });
+    // Validate required fields
+    if (civilStatus === 'Married' && !marriageContractUrl) {
+      return res.status(400).json({ error: 'Marriage contract is required for married users.' });
     }
 
-    // Hash password
     bcrypt.hash(password, 10, (err, hashedPassword) => {
-      if (err) {
-        console.error('Error hashing password:', err.message);
-        return res.status(500).json({ error: 'Internal server error' });
-      }
+      if (err) return res.status(500).json({ error: 'Internal server error', details: err.message });
 
       let sql, values;
-
       if (accountType === 'employee') {
         sql = `
           INSERT INTO employee 
-          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, email, password, civil_status) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         values = [
           lastName,
           firstName,
@@ -159,11 +141,17 @@ app.post(
           barangay,
           zipCode,
           mobileNumber,
+          civilStatus, // Corrected position
+          pictureUrl,
+          resumeUrl,
+          birthCertificateUrl,
+          validIdUrl,
+          passportUrl,
+          marriageContractUrl,
           email,
           hashedPassword,
-          civilStatus || 'Single', // Default to Single if not provided
         ];
-      } else {
+      } else if (accountType === 'employer') {
         sql = `
           INSERT INTO employer 
           (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, validId, email, password) 
@@ -182,40 +170,31 @@ app.post(
           email,
           hashedPassword,
         ];
+      } else {
+        return res.status(400).json({ error: 'Invalid account type' });
       }
 
-      // Execute query
       db.query(sql, values, (err, results) => {
         if (err) {
-          console.error('Database error:', err.message);
+          console.error('Database error:', err);
           return res.status(500).json({ error: 'Database error', details: err.message });
         }
 
         const userId = results.insertId;
         const userType = accountType === 'employee' ? 'employee' : 'employer';
 
-        // Insert into user table
-        const userSql =
-          'INSERT INTO user (user_type, employee_id, employer_id) VALUES (?, ?, ?)';
-        db.query(
-          userSql,
-          [userType, userType === 'employee' ? userId : null, userType === 'employer' ? userId : null],
-          (err) => {
-            if (err) {
-              console.error('Error creating user:', err.message);
-              return res
-                .status(500)
-                .json({ error: 'Database error while inserting user', details: err.message });
-            }
-
-            res.status(201).json({ id: userId });
+        const userSql = 'INSERT INTO user (user_type, employee_id, employer_id) VALUES (?, ?, ?)';
+        db.query(userSql, [userType, userType === 'employee' ? userId : null, userType === 'employer' ? userId : null], (err) => {
+          if (err) {
+            console.error('Error inserting into user table:', err);
+            return res.status(500).json({ error: 'Database error while inserting user', details: err.message });
           }
-        );
+          res.json({ id: userId });
+        });
       });
     });
   }
 );
-
 
 
 
@@ -400,10 +379,102 @@ app.get('/api/users', (req, res) => {
   });
 });
 
+app.put('/api/users/:id/status', (req, res) => {
+  console.log(req.originalUrl); // Log the requested URL
+  console.log(req.body); // Log the request body
+
+  const userId = req.params.id;  // This is now the employee_id, not user_id
+  const { progressId } = req.body;
+
+  // Validate progressId is provided in the request body
+  if (!progressId) {
+    return res.status(400).json({ error: 'Missing progressId in request body' });
+  }
+
+  const queryEmployee = `UPDATE employee SET progress_id = ? WHERE employee_id = ?`;
+  const queryEmployer = `UPDATE employer SET progress_id = ? WHERE employer_id = ?`;
+
+  // Check if the user is an employee by querying the employee table
+  db.query('SELECT * FROM employee WHERE employee_id = ?', [userId], (err, employeeResults) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Failed to query employee data' });
+    }
+
+    if (employeeResults.length > 0) {
+      // If the employee exists, update their progress
+      db.query(queryEmployee, [progressId, userId], (err, updateResults) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Failed to update employee progress' });
+        }
+
+        if (updateResults.affectedRows > 0) {
+          return res.json({ message: 'Employee progress updated successfully' });
+        } else {
+          return res.status(404).json({ error: 'Employee not found or progress not updated' });
+        }
+      });
+    } else {
+      // If the user is not an employee, check if they are an employer
+      db.query('SELECT * FROM employer WHERE employer_id = ?', [userId], (err, employerResults) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ error: 'Failed to query employer data' });
+        }
+
+        if (employerResults.length > 0) {
+          // If the employer exists, update their progress
+          db.query(queryEmployer, [progressId, userId], (err, updateResults) => {
+            if (err) {
+              console.error(err);
+              return res.status(500).json({ error: 'Failed to update employer progress' });
+            }
+
+            if (updateResults.affectedRows > 0) {
+              return res.json({ message: 'Employer progress updated successfully' });
+            } else {
+              return res.status(404).json({ error: 'Employer not found or progress not updated' });
+            }
+          });
+        } else {
+          return res.status(404).json({ error: 'User not found in both employee and employer tables' });
+        }
+      });
+    }
+  });
+});
+
+
+
+// Delete rejected users
+app.delete('/api/users/rejected', (req, res) => {
+  const queryEmployee = `DELETE FROM employees WHERE progress_id = 2`;
+  const queryEmployer = `DELETE FROM employers WHERE progress_id = 2`;
+
+  db.query(queryEmployee, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Failed to delete rejected employees' });
+    }
+    db.query(queryEmployer, (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to delete rejected employers' });
+      }
+      return res.json({ message: 'Rejected users deleted successfully' });
+    });
+  });
+});
 
 // Route to get user profile by user_id (employee or employer)
 app.get('/api/users/:userId', (req, res) => {
   const { userId } = req.params;
+  const { userType } = req.query; // Get userType from the query parameter
+
+  if (!userType || (userType !== 'employee' && userType !== 'employer')) {
+    return res.status(400).json({ error: 'Invalid user type' });
+  }
 
   const employeeQuery = `
     SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
@@ -417,33 +488,20 @@ app.get('/api/users/:userId', (req, res) => {
     FROM employer 
     WHERE employer_id = ?`;
 
-  // First, try to find the user as an employee
-  db.query(employeeQuery, [userId], (err, employeeResults) => {
+  const query = userType === 'employee' ? employeeQuery : employerQuery;
+
+  db.query(query, [userId], (err, results) => {
     if (err) {
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
-    if (employeeResults.length > 0) { 
-      return res.json(employeeResults[0]);
+    if (results.length > 0) {
+      return res.json(results[0]);
     }
 
-    // If not an employee, try to find the user as an employer
-    db.query(employerQuery, [userId], (err, employerResults) => {
-      if (err) {
-        return res.status(500).json({ error: 'Database error', details: err.message });
-      }
-
-      if (employerResults.length > 0) {
-        return res.json(employerResults[0]);
-      }
-
-      // If not found in either table, return a 404 error
-      res.status(404).json({ error: 'User not found' });
-    });
+    res.status(404).json({ error: 'User not found' });
   });
 });
-
-
 
 app.put('/api/users/:userId', upload.fields([{ name: 'picture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), (req, res) => {
   const { userId } = req.params;

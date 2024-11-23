@@ -19,7 +19,7 @@ const Admin = () => {
     if (username === correctUsername && password === correctPassword) {
       setIsLoggedIn(true);
     } else {
-      alert('Incorrect username or password');
+      setError('Incorrect username or password');
     }
   };
 
@@ -27,88 +27,74 @@ const Admin = () => {
     if (isLoggedIn) {
       fetch('http://localhost:8081/api/users')
         .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error('Network response was not ok.');
-          }
+          if (!response.ok) throw new Error(`Error: ${response.status}`);
+          return response.json();
         })
         .then((data) => {
-          const employeesData = data.filter((user) => user.userType === 'Employee');
-          const employersData = data.filter((user) => user.userType === 'Employer');
-          setEmployees(employeesData);
-          setEmployers(employersData);
+          setEmployees(data.filter((user) => user.userType === 'Employee'));
+          setEmployers(data.filter((user) => user.userType === 'Employer'));
         })
-        .catch((error) => {
-          console.error('Error fetching data:', error);
-          setError(error.message);
-        });
+        .catch((err) => setError(err.message));
     }
   }, [isLoggedIn]);
 
-  const handleProgressChange = (id, newProgressId, userType) => {
+  const handleProgressChange = (id, newProgressId) => {
     fetch(`http://localhost:8081/api/users/${id}/status`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ progressId: newProgressId }),
     })
       .then((response) => {
-        if (response.ok) {
-          if (userType === 'Employee') {
-            setEmployees((prevState) =>
-              prevState.map((emp) =>
-                emp.id === id ? { ...emp, progressId: newProgressId } : emp
-              )
-            );
-          } else {
-            setEmployers((prevState) =>
-              prevState.map((emp) =>
-                emp.id === id ? { ...emp, progressId: newProgressId } : emp
-              )
-            );
-          }
-        } else {
-          throw new Error('Failed to update progress: ' + response.statusText);
-        }
+        if (!response.ok) throw new Error(`Update failed: ${response.status}`);
+        return response.json();
       })
-      .catch((error) => console.error('Error updating progress:', error));
+      .then((data) => {
+        console.log(data); // Handle success
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.message);
+      });
   };
+  
+  
 
   const deleteRejected = () => {
-    fetch('http://localhost:8081/api/users/rejected', {
-      method: 'DELETE',
-    })
+    fetch('http://localhost:8081/api/users/rejected', { method: 'DELETE' })
       .then((response) => {
-        if (response.ok) {
-          setEmployees((prevState) => prevState.filter((emp) => emp.progressId !== 2));
-          setEmployers((prevState) => prevState.filter((emp) => emp.progressId !== 2));
-        } else {
-          throw new Error('Failed to delete rejected applicants: ' + response.statusText);
-        }
+        if (!response.ok) throw new Error(`Delete failed: ${response.status}`);
+        setEmployees((prev) => prev.filter((emp) => emp.progressId !== 2));
+        setEmployers((prev) => prev.filter((emp) => emp.progressId !== 2));
       })
-      .catch((error) => console.error('Error deleting rejected applicants:', error));
+      .catch((err) => setError(err.message));
   };
 
   const viewProfile = (user) => {
-    fetch(`http://localhost:8081/api/users/${user.id}`)
+    // Log the user object to check its structure
+    console.log(user); 
+  
+    const userId = user.id;  // Use the general 'id' field
+    const userType = user.userType;  // 'Employee' or 'Employer'
+    
+    if (!userId) {
+      setError('User ID is missing.');
+      return;
+    }
+  
+    fetch(`http://localhost:8081/api/users/${userId}?userType=${userType}`)
       .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error('Failed to fetch user details');
-        }
+        if (!response.ok) throw new Error('Failed to fetch user details');
+        return response.json();
       })
       .then((data) => {
         setSelectedUser({ ...user, ...data });
         setShowModal(true);
       })
-      .catch((error) => {
-        console.error('Error fetching user details:', error);
-        setError('Failed to fetch user details');
-      });
+      .catch((err) => setError(err.message));
   };
+  
+  
+  
 
   const closeModal = () => {
     setShowModal(false);
@@ -139,14 +125,17 @@ const Admin = () => {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            aria-label="Username"
           />
           <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            aria-label="Password"
           />
           <button onClick={handleLogin}>Login</button>
+          {error && <p className="error">{error}</p>}
         </div>
       ) : (
         <>
@@ -305,7 +294,7 @@ const Admin = () => {
                   </p>
                   <p>
                     <strong>Status:</strong>{' '}
-                    {selectedUser.progressId === 1 ? 'Active' : 'Inactive'}
+                    {selectedUser.progressId === 1 ? 'Active' : selectedUser.progressId === 2 ? 'Inactive' : 'Pending'}
                   </p>
                   <p>
                     <strong>Resume:</strong>{' '}
