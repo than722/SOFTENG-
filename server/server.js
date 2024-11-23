@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: 'root',
+  password: '1234',
   database: 'mydb'
 });
 
@@ -104,34 +104,52 @@ app.post(
       companyName,
       email,
       password,
-      civilStatus, // New field for marital status
+      civilStatus,
     } = req.body;
 
-    // Log received data and files
     console.log('Received signup data:', req.body);
     console.log('Received files:', req.files);
 
-    const birthCertificateUrl = req.files['birth_certificate']?.[0]?.filename || null;
-    const validIdUrl = req.files['validId']?.[0]?.filename || null;
-    const passportUrl = req.files['passport']?.[0]?.filename || null;
-    const marriageContractUrl = req.files['marriage_contract']?.[0]?.filename || null;
-    const pictureUrl = req.files['picture']?.[0]?.filename || null;
-    const resumeUrl = req.files['resume']?.[0]?.filename || null;
-
-    // Check for required marriage contract if civil status is "Married"
-    if (civilStatus === 'Married' && !marriageContractUrl) {
-      return res.status(400).json({ error: 'Marriage contract is required for married users.' });
+    // Validate required fields
+    if (!email || !password || !accountType || !lastName || !firstName) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    if (!['employee', 'employer'].includes(accountType)) {
+      return res.status(400).json({ error: 'Invalid account type' });
+    }
+
+    if (accountType === 'employer' && !companyName) {
+      return res.status(400).json({ error: 'Company name is required for employers' });
+    }
+
+    if (civilStatus === 'Married' && !req.files['marriage_contract']) {
+      return res
+        .status(400)
+        .json({ error: 'Marriage contract is required for married users' });
+    }
+
+    // Extract file URLs or paths
+    const validIdUrl = req.files['validId']?.[0]?.filename || null;
+
+    if (!validIdUrl) {
+      return res.status(400).json({ error: 'Valid ID is required' });
+    }
+
+    // Hash password
     bcrypt.hash(password, 10, (err, hashedPassword) => {
-      if (err) return res.status(500).json({ error: 'Internal server error' });
+      if (err) {
+        console.error('Error hashing password:', err.message);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
 
       let sql, values;
+
       if (accountType === 'employee') {
         sql = `
           INSERT INTO employee 
-          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, civil_status) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, email, password, civil_status) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         values = [
           lastName,
           firstName,
@@ -141,17 +159,11 @@ app.post(
           barangay,
           zipCode,
           mobileNumber,
-          pictureUrl,
-          resumeUrl,
-          birthCertificateUrl,
-          validIdUrl,
-          passportUrl,
-          marriageContractUrl,
           email,
           hashedPassword,
-          civilStatus,
+          civilStatus || 'Single', // Default to Single if not provided
         ];
-      } else if (accountType === 'employer') {
+      } else {
         sql = `
           INSERT INTO employer 
           (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, validId, email, password) 
@@ -170,25 +182,41 @@ app.post(
           email,
           hashedPassword,
         ];
-      } else {
-        return res.status(400).json({ error: 'Invalid account type' });
       }
 
+      // Execute query
       db.query(sql, values, (err, results) => {
-        if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+        if (err) {
+          console.error('Database error:', err.message);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+        }
 
         const userId = results.insertId;
         const userType = accountType === 'employee' ? 'employee' : 'employer';
 
-        const userSql = 'INSERT INTO user (user_type, employee_id, employer_id) VALUES (?, ?, ?)';
-        db.query(userSql, [userType, userType === 'employee' ? userId : null, userType === 'employer' ? userId : null], (err) => {
-          if (err) return res.status(500).json({ error: 'Database error while inserting user', details: err.message });
-          res.json({ id: userId });
-        });
+        // Insert into user table
+        const userSql =
+          'INSERT INTO user (user_type, employee_id, employer_id) VALUES (?, ?, ?)';
+        db.query(
+          userSql,
+          [userType, userType === 'employee' ? userId : null, userType === 'employer' ? userId : null],
+          (err) => {
+            if (err) {
+              console.error('Error creating user:', err.message);
+              return res
+                .status(500)
+                .json({ error: 'Database error while inserting user', details: err.message });
+            }
+
+            res.status(201).json({ id: userId });
+          }
+        );
       });
     });
   }
 );
+
+
 
 
 app.post('/login', (req, res) => {

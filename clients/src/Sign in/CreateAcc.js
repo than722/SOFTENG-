@@ -59,23 +59,6 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     const file = fileList[0];
     if (!file) return;
 
-    const fileValidation = {
-      validId: "image/*",
-      picture: "image/*",
-      resume: ".pdf,.doc,.docx",
-      birth_certificate: "image/*",
-      passport: "image/*",
-      marriage_contract: "image/*",
-    };
-
-    const allowedTypes = fileValidation[name].split(",");
-    if (
-      !allowedTypes.some((type) => file.type.includes(type.replace("*", "")))
-    ) {
-      setError(`Invalid file type for ${name}.`);
-      return;
-    }
-
     setFiles((prevFiles) => ({ ...prevFiles, [name]: file }));
     setUploadedFiles((prevUploaded) => ({ ...prevUploaded, [name]: true }));
     setError("");
@@ -83,26 +66,33 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
+
     if (!accountType) {
       setError("Please select an account type.");
       return;
     }
-  
+
     const formData = new FormData();
+
+    // Append common fields
+    formData.append("accountType", accountType); // Include accountType explicitly
     Object.keys(values).forEach((key) => {
-      formData.append(key, values[key]);
+      // Append each field to formData
+      if (values[key]) {
+        formData.append(key, values[key]);
+      }
     });
-  
+
+    // Append files
     Object.keys(files).forEach((key) => {
       if (files[key]) {
-        console.log(`Appending file for ${key}:`, files[key]);
         formData.append(key, files[key]);
       }
     });
-  
+
     setLoading(true);
     setError("");
+
     try {
       const response = await axios.post("http://localhost:8081/signup", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -112,12 +102,11 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       closeForm();
     } catch (error) {
       console.error("Error during signup:", error);
-      setError(error.response?.data?.message || "Signup failed. Please try again.");
+      setError(error.response?.data?.error || "Signup failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-  
 
   const closeForm = () => {
     setIsFormOpen(false);
@@ -258,11 +247,24 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
                 </div>
               ))}
 
-              {/* Employer Fields */}
-              {accountType === "employer" &&
-                renderUploadField("validId", "Upload Valid ID", "image/*")}
+              {/* Upload Valid ID for Both Employee and Employer */}
+              {renderUploadField("validId", "Upload Valid ID", "image/*")}
 
-              {/* Employee Fields */}
+              {/* Employer-Specific Fields */}
+              {accountType === "employer" && (
+                <div className="form-group-App">
+                  <label>Company Name:</label>
+                  <input
+                    type="text"
+                    name="companyName"
+                    placeholder="Company Name"
+                    required
+                    onChange={handleChange}
+                  />
+                </div>
+              )}
+
+              {/* Employee-Specific Fields */}
               {accountType === "employee" && (
                 <>
                   <div className="form-group-App">
@@ -278,10 +280,10 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
                   </div>
                   {renderUploadField("picture", "Upload Picture", "image/*")}
                   {renderUploadField("resume", "Upload Resume", ".pdf,.doc,.docx")}
-                  {renderUploadField("birth_certificate","Upload Birth Certificate","image/*")}
-                  {renderUploadField("passport","Upload Passport (Optional)","image/*")}
+                  {renderUploadField("birth_certificate", "Upload Birth Certificate", "image/*")}
+                  {renderUploadField("passport", "Upload Passport (Optional)", "image/*")}
                   {values.civil_status === "married" &&
-                    renderUploadField("marriage_contract","Upload Marriage Contract","image/*")}
+                    renderUploadField("marriage_contract", "Upload Marriage Contract", "image/*")}
                 </>
               )}
 
