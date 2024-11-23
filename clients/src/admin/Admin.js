@@ -71,10 +71,10 @@ const Admin = () => {
 
   const viewProfile = (user) => {
     // Log the user object to check its structure
-    console.log(user); 
+    console.log(user);
   
     const userId = user.id;  // Use the general 'id' field
-    const userType = user.userType;  // 'Employee' or 'Employer'
+    const userType = user.userType.toLowerCase();  // Ensure it's lowercase
     
     if (!userId) {
       setError('User ID is missing.');
@@ -92,7 +92,6 @@ const Admin = () => {
       })
       .catch((err) => setError(err.message));
   };
-  
   
   
 

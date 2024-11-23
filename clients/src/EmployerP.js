@@ -16,9 +16,11 @@ const EmployerP = ({ onSignOut, auth }) => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`http://localhost:8081/api/users/${userId}`, {
+        // Make sure the API call includes userType to differentiate between employee and employer
+        const userType = 'employer';  // This can be dynamic based on user role
+        const response = await fetch(`http://localhost:8081/api/users/${userId}?userType=${userType}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`, // Authentication token
           },
         });
 
