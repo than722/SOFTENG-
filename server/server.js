@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: 'root',
+  password: '1234',
   database: 'mydb'
 });
 
@@ -781,6 +781,8 @@ app.get('/api/applications/check/:job_id', verifyUser, (req, res) => {
       }
   });
 });
+
+
 
 
 
