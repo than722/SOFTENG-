@@ -58,6 +58,7 @@ const EmployeeP = ({ onSignOut, auth }) => {
             <li><a href="#vision">VISION</a></li>
             <li><a href="#mission">MISSION</a></li>
             <li><Link to="/view-job">View Job Posting</Link></li>
+            <li><Link to="/employee/:id/applied-jobs">View Applied Jobs</Link></li>
             {auth && userId && (
               <li><Link to={`/profile/${userId}/employee`}>Profile</Link></li> // Added /employee as accountType
             )}
