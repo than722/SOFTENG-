@@ -770,6 +770,8 @@ app.get('/api/applications/check/:job_id', verifyUser, (req, res) => {
 
 
 
+
+
 // Start the server
 const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
