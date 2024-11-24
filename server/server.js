@@ -503,6 +503,22 @@ app.get('/api/users/:userId', (req, res) => {
   });
 });
 
+app.get('/uploads/:fileName', (req, res) => {
+  const { fileName } = req.params;
+
+  if (!fileName) {
+    return res.status(400).send('File name is required.');
+  }
+
+  const filePath = path.join(__dirname, 'uploads', fileName);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('File not found.');
+  }
+
+  res.sendFile(filePath);
+});
+
+
 app.put('/api/users/:userId', upload.fields([{ name: 'picture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), (req, res) => {
   const { userId } = req.params;
 
