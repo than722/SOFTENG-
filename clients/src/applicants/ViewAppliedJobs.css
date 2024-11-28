@@ -1,0 +1,86 @@
+/* Container styling */
+.applied-jobs-container {
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 800px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Header styling */
+  .applied-jobs-container h2 {
+    font-size: 24px;
+    color: #333333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    display: inline-block;
+  }
+  
+  /* Table styling */
+  .applied-jobs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .applied-jobs-table th,
+  .applied-jobs-table td {
+    border: 1px solid #dddddd;
+    padding: 10px 15px;
+    text-align: left;
+    font-size: 14px;
+  }
+  
+  /* Table header styling */
+  .applied-jobs-table th {
+    background-color: #007bff;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  
+  /* Alternate row coloring */
+  .applied-jobs-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  /* Hover effect for rows */
+  .applied-jobs-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* Empty table message styling */
+  .applied-jobs-container p {
+    font-size: 16px;
+    color: #666666;
+    margin-top: 20px;
+  }
+  
+  /* Error message styling */
+  .applied-jobs-container p[style="color: red"] {
+    color: red;
+    font-weight: bold;
+  }
+  
+  /* Loading message styling */
+  .applied-jobs-container p[style="color: green"] {
+    color: green;
+    font-weight: bold;
+  }
+  
+  /* Responsive table for smaller screens */
+  @media screen and (max-width: 600px) {
+    .applied-jobs-table th,
+    .applied-jobs-table td {
+      font-size: 12px;
+      padding: 8px;
+    }
+  
+    .applied-jobs-container h2 {
+      font-size: 20px;
+    }
+  }
+  

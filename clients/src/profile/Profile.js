@@ -25,31 +25,32 @@ const Profile = () => {
 
   // Fetch profile data based on account type (employee or employer)
   const fetchProfile = useCallback(() => {
-    const url = `http://localhost:8081/api/users/${id}`; // Use unified endpoint
+  const url = `http://localhost:8081/api/users/${id}?userType=${accountType}`; // Add userType as a query parameter
 
-    axios.get(url)
-      .then(response => {
-        setProfileData(response.data);
-        setUpdatedData({
-          firstName: response.data.firstName,
-          lastName: response.data.lastName,
-          middleName: response.data.middleName,
-          province: response.data.province,
-          municipality: response.data.municipality,
-          barangay: response.data.barangay,
-          zipCode: response.data.zipCode,
-          mobileNumber: response.data.mobileNumber,
-          picture: null,
-          resume: null,
-          companyName: response.data.companyName || '',
-        });
-        setError(null);
-      })
-      .catch(error => {
-        console.error('Error fetching profile data:', error);
-        setError('Error fetching profile data');
+  axios.get(url)
+    .then(response => {
+      setProfileData(response.data);
+      setUpdatedData({
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        middleName: response.data.middleName,
+        province: response.data.province,
+        municipality: response.data.municipality,
+        barangay: response.data.barangay,
+        zipCode: response.data.zipCode,
+        mobileNumber: response.data.mobileNumber,
+        picture: null,
+        resume: null,
+        companyName: response.data.companyName || '', // For employer
       });
-  }, [id, accountType]);
+      setError(null);
+    })
+    .catch(error => {
+      console.error('Error fetching profile data:', error);
+      setError('Error fetching profile data');
+    });
+}, [id, accountType]);
+
 
   useEffect(() => {
     if (!id || !accountType) {

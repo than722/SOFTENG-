@@ -8,36 +8,37 @@ import SignOut from './Sign in/SignOut';
 
 const EmployeeP = ({ onSignOut, auth }) => {
   const [profileData, setProfileData] = useState(null); // State for profile data
-  const [name, setName] = useState(''); // User name from authentication response
-  const [message, setMessage] = useState(''); // Message for authentication status
   const { id: userId } = useParams(); // Get userId from route parameters
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`http://localhost:8081/api/users/${userId}`, {
+        // Determine userType dynamically (adjust logic if needed)
+        const userType = 'employee'; // Replace with logic to get actual user type if needed
+
+        // API call with userType as a query parameter
+        const response = await fetch(`http://localhost:8081/api/users/${userId}?userType=${userType}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+          },
         });
-    
+
         if (!response.ok) {
           throw new Error(`Failed to fetch profile: ${response.statusText}`);
         }
-    
+
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           throw new Error("Expected JSON, but received a non-JSON response");
         }
-    
+
         const data = await response.json();
         setProfileData(data);
       } catch (error) {
         console.error("Error fetching profile:", error);
       }
     };
-    
 
     if (userId) {
       fetchProfile();
@@ -57,13 +58,14 @@ const EmployeeP = ({ onSignOut, auth }) => {
             <li><a href="#vision">VISION</a></li>
             <li><a href="#mission">MISSION</a></li>
             <li><Link to="/view-job">View Job Posting</Link></li>
+            <li><Link to="/employee/:id/applied-jobs">View Applied Jobs</Link></li>
             {auth && userId && (
               <li><Link to={`/profile/${userId}/employee`}>Profile</Link></li> // Added /employee as accountType
-              )}
+            )}
           </ul>
         </nav>
         <div className="button2">
-        <SignOut onSignOut={onSignOut} />
+          <SignOut onSignOut={onSignOut} />
         </div>
       </header>
 

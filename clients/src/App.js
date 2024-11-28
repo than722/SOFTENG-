@@ -13,6 +13,7 @@ import EmployerP from './EmployerP';
 import CreateAcc from './Sign in/CreateAcc';
 import Home from './Home';
 import ViewAppliedApplicants from './applicants/ViewAppliedApplicants';
+import ViewAppliedJobs from './applicants/ViewAppliedJobs';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -143,16 +144,8 @@ const AppContent = ({
         <Route path="/profile-table" element={<ProfileTable />} />
         <Route path="/add-job" element={<AddJobPosting />} />
         <Route path="/view-job" element={<ViewJobPosting />} />
-        <Route
-          path="/view-applied-applicants/:jobId"
-          element={
-            isAuthenticated ? (
-              <ViewAppliedApplicants />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
+        <Route path="/view-applied-applicants/:jobId" element={isAuthenticated ? (<ViewAppliedApplicants />) : (<Navigate to="/" replace />)}/>
+        <Route path="/employee/:id/applied-jobs" element={<ViewAppliedJobs />} />
         <Route path="/employee/:id" element={<EmployeeP onSignOut={handleSignOut} auth={isAuthenticated} />} />
         <Route path="/employer/:id" element={<EmployerP onSignOut={handleSignOut} auth={isAuthenticated} />} />
         <Route path="*" element={<Navigate to="/" />} />
