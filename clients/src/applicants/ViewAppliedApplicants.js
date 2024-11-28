@@ -18,7 +18,9 @@ function ViewAppliedApplicants() {
             case 3:
                 return "Pending";
             case 4:
-                return "Hired"; // New status for hired applicants
+                return "Hired"; // Status for hired applicants
+            case 5:
+                return "Rejected"; // Status for rejected applicants
             default:
                 return "Unknown";
         }
@@ -33,14 +35,11 @@ function ViewAppliedApplicants() {
             return;
         }
 
-        console.log("Employer ID from local storage:", userId);
-
         const fetchApplicants = async () => {
             try {
                 const response = await axios.get(`http://localhost:8081/api/applications/employer/${userId}`, {
                     withCredentials: true,
                 });
-                console.log("Applicants data:", response.data);
                 setApplicants(response.data);
             } catch (err) {
                 console.error("Error fetching applicants:", err);
@@ -61,7 +60,6 @@ function ViewAppliedApplicants() {
             const response = await axios.get(`http://localhost:8081/api/applicants/${applicationId}`, {
                 withCredentials: true,
             });
-            console.log("Selected applicant details:", response.data);
             setSelectedApplicant(response.data);
         } catch (err) {
             console.error("Error fetching applicant details:", err);
@@ -75,17 +73,29 @@ function ViewAppliedApplicants() {
         try {
             const response = await axios.put(
                 `http://localhost:8081/api/applicants/${applicationId}/hire`,
-                { status_id: 4 }, // Set status to 'Hired'
+                { status_id: 4 }, // Set status to 'Hired' (4)
                 { withCredentials: true }
             );
-            console.log("Hire response:", response.data);
             alert("Applicant successfully hired!");
-
-            // Refresh applicant details to show updated status
-            viewDetails(applicationId);
+            viewDetails(applicationId); // Refresh the details to reflect updated status
         } catch (err) {
             console.error("Error hiring applicant:", err);
             alert("Failed to hire applicant. Please try again.");
+        }
+    };
+    
+    const rejectApplicant = async (applicationId) => {
+        try {
+            const response = await axios.put(
+                `http://localhost:8081/api/applicants/${applicationId}/reject`,
+                { status_id: 5 }, // Set status to 'Rejected' (5)
+                { withCredentials: true }
+            );
+            alert("Applicant successfully rejected!");
+            viewDetails(applicationId); // Refresh the details to reflect updated status
+        } catch (err) {
+            console.error("Error rejecting applicant:", err);
+            alert("Failed to reject applicant. Please try again.");
         }
     };
 
@@ -109,9 +119,67 @@ function ViewAppliedApplicants() {
                     <p><strong>Status:</strong> {getStatusLabel(selectedApplicant.status_id)}</p>
                     <h4>Uploaded Documents:</h4>
                     <ul>
-                        <li><a href={selectedApplicant.picture_url} target="_blank" rel="noopener noreferrer">Picture</a></li>
-                        <li><a href={selectedApplicant.resume_url} target="_blank" rel="noopener noreferrer">Resume</a></li>
-                        <li><a href={selectedApplicant.valid_id_url} target="_blank" rel="noopener noreferrer">Valid ID</a></li>
+                        <li>
+                            {selectedApplicant.picture_base64 && (
+                                <>
+                                    <h5>Picture:</h5>
+                                    <img 
+                                        src={`data:image/jpeg;base64,${selectedApplicant.picture_base64}`} 
+                                        alt="Applicant Picture" 
+                                        style={{ maxWidth: '300px', maxHeight: '300px' }}
+                                    />
+                                    <br />
+                                    <a 
+                                        href={`data:image/jpeg;base64,${selectedApplicant.picture_base64}`} 
+                                        download="applicant_picture.jpg"
+                                    >
+                                        Download Picture
+                                    </a>
+                                </>
+                            )}
+                        </li>
+                        <li>
+                            {selectedApplicant.resume_base64 && (
+                                <>
+                                    <h5>Resume:</h5>
+                                    <a 
+                                        href={`data:application/pdf;base64,${selectedApplicant.resume_base64}`} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                    >
+                                        View Resume
+                                    </a>
+                                    <br />
+                                    <a 
+                                        href={`data:application/pdf;base64,${selectedApplicant.resume_base64}`} 
+                                        download="resume.pdf"
+                                    >
+                                        Download Resume
+                                    </a>
+                                </>
+                            )}
+                        </li>
+                        <li>
+                            {selectedApplicant.validId_base64 && (  
+                                <>
+                                    <h5>Valid ID:</h5>
+                                    <a 
+                                        href={`data:image/jpeg;base64,${selectedApplicant.validId_base64}`} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                    >
+                                        View Valid ID
+                                    </a>
+                                    <br />
+                                    <a 
+                                        href={`data:image/jpeg;base64,${selectedApplicant.validId_base64}`} 
+                                        download="valid_id.jpg"
+                                    >
+                                        Download Valid ID
+                                    </a>
+                                </>
+                            )}
+                        </li>
                     </ul>
                     <button
                         className="hire-button"
@@ -120,29 +188,32 @@ function ViewAppliedApplicants() {
                     >
                         {selectedApplicant.status_id === 4 ? "Already Hired" : "Hire Applicant"}
                     </button>
+
+                    {/* Reject button */}
+                    <button
+                        className="reject-button"
+                        onClick={() => rejectApplicant(selectedApplicant.application_id)}
+                        disabled={selectedApplicant.status_id === 5} // Disable if already rejected
+                    >
+                        {selectedApplicant.status_id === 5 ? "Already Rejected" : "Reject Applicant"}
+                    </button>
                 </div>
             ) : (
-                /* Display applicants list */
-                <>
-                    {applicants.length === 0 ? (
-                        <p className='note'>No one has applied for your jobs yet.</p>
-                    ) : (
-                        <ul className="applicants-list">
-                            {applicants.map((applicant) => (
-                                <li key={applicant.application_id} className="applicant-card">
-                                    <div className="applicant-overview">
-                                        <h3>{applicant.firstName} {applicant.lastName}</h3>
-                                        <p><strong>Email:</strong> {applicant.email}</p>
-                                        <p><strong>Job ID:</strong> {applicant.job_id}</p>
-                                        <p><strong>Applied on:</strong> {new Date(applicant.apply_date).toLocaleDateString()}</p>
-                                        <p><strong>Status:</strong> {getStatusLabel(applicant.status_id)}</p>
-                                        <button onClick={() => viewDetails(applicant.application_id)}>View Details</button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </>
+                // Display applicants list as before
+                <ul className="applicants-list">
+                    {applicants.map((applicant) => (
+                        <li key={applicant.applications_id} className="applicant-card">
+                            <div className="applicant-overview">
+                                <h3>{applicant.firstName} {applicant.lastName}</h3>
+                                <p><strong>Email:</strong> {applicant.email}</p>
+                                <p><strong>Job:</strong> {applicant.jobName}</p>
+                                <p><strong>Applied on:</strong> {new Date(applicant.apply_date).toLocaleDateString()}</p>
+                                <p><strong>Status:</strong> {getStatusLabel(applicant.status_id)}</p>
+                                <button onClick={() => viewDetails(applicant.applications_id)}>View Details</button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
             )}
         </div>
     );

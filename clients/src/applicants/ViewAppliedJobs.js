@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./ViewAppliedJobs.css"; // Ensure you have a CSS file for styling
 
-const ViewAppliedJobs = ({ employeeID }) => {
+const ViewAppliedJobs = () => {
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -11,10 +11,14 @@ const ViewAppliedJobs = ({ employeeID }) => {
     const fetchAppliedJobs = async () => {
       try {
         setLoading(true);
+        const employeeID = localStorage.getItem("userId"); // Retrieve employee ID from local storage
+        if (!employeeID) {
+          throw new Error("User ID not found in local storage");
+        }
         const response = await axios.get(`http://localhost:8081/api/applied-jobs/${employeeID}`);
         setAppliedJobs(response.data);
       } catch (err) {
-        setError("Failed to load applied jobs. Please try again.");
+        setError(err.response?.data?.message || "Failed to load applied jobs. Please try again.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -22,7 +26,7 @@ const ViewAppliedJobs = ({ employeeID }) => {
     };
 
     fetchAppliedJobs();
-  }, [employeeID]);
+  }, []);
 
   if (loading) {
     return <p>Loading applied jobs...</p>;
@@ -36,24 +40,28 @@ const ViewAppliedJobs = ({ employeeID }) => {
     <div className="applied-jobs-container">
       <h2>Jobs You've Applied For</h2>
       {appliedJobs.length === 0 ? (
-        <p>No jobs applied yet.</p>
+        <p>No jobs applied yet.</p> // This message will now show when the backend returns an empty array
       ) : (
         <table className="applied-jobs-table">
           <thead>
             <tr>
               <th>Job Title</th>
+              <th>Job Overview</th>
+              <th>Job Description</th>
+              <th>Salary</th>
+              <th>Country</th>
               <th>Company Name</th>
-              <th>Application Date</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {appliedJobs.map((job) => (
-              <tr key={job.applicationID}>
-                <td>{job.jobTitle}</td>
+              <tr key={job.job_id}>
+                <td>{job.jobName}</td>
+                <td>{job.jobOverview}</td>
+                <td>{job.jobDescription}</td>
+                <td>{job.salary}</td>
+                <td>{job.country}</td>
                 <td>{job.companyName}</td>
-                <td>{new Date(job.applicationDate).toLocaleDateString()}</td>
-                <td>{job.status}</td>
               </tr>
             ))}
           </tbody>

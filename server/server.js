@@ -708,12 +708,14 @@ app.get('/api/applications/employer/:employerId', (req, res) => {
   const query = `
       SELECT 
           j.job_id, 
-          a.applications_id, 
+          j.jobName,  -- Add jobName from job_postings table
+          a.applications_id,  -- Keep applications_id as per your schema
           a.firstName, 
           a.lastName, 
           a.email, 
           a.apply_date, 
-          a.status_id
+          a.status_id,
+          a.employee_id  -- Add employee_id for reference
       FROM 
           applications a
       JOIN 
@@ -727,9 +729,172 @@ app.get('/api/applications/employer/:employerId', (req, res) => {
           console.error("Error fetching applicants for employer:", err);
           return res.status(500).send("Failed to fetch applicants.");
       }
+
+      // If there are no applicants, return an empty array
+      if (results.length === 0) {
+          return res.status(404).send("No applicants found for this employer.");
+      }
+
+      // Send the results, which include job details and applicant info
       res.json(results);
   });
 });
+
+// Get details of an applicant based on application ID
+app.get('/api/applicants/:applicationId', (req, res) => {
+  const applicationId = req.params.applicationId;
+
+  if (!applicationId) {
+      return res.status(400).send("Missing applicationId.");
+  }
+
+  // Step 1: Get the employee_id corresponding to the application_id
+  const getEmployeeIdQuery = `
+      SELECT employee_id
+      FROM applications
+      WHERE applications_id = ?;
+  `;
+
+  db.query(getEmployeeIdQuery, [applicationId], (err, results) => {
+      if (err) {
+          console.error("Error fetching employee_id from applications:", err);
+          return res.status(500).send("Failed to fetch employee_id from applications.");
+      }
+
+      if (results.length === 0) {
+          return res.status(404).send("Application not found.");
+      }
+
+      const employeeId = results[0].employee_id; // Get the employee_id from the applications table
+
+      // Step 2: Use the employee_id to fetch the corresponding details from the employees table
+      const getEmployeeDetailsQuery = `
+          SELECT 
+              e.employee_id, 
+              e.firstName, 
+              e.lastName, 
+              e.email, 
+              e.province, 
+              e.municipality, 
+              e.barangay, 
+              e.zipCode,
+              e.picture, 
+              e.resume,   
+              e.validId,  
+              e.status_id
+          FROM employee e
+          WHERE e.employee_id = ?;
+      `;
+
+      db.query(getEmployeeDetailsQuery, [employeeId], (err, employeeResults) => {
+          if (err) {
+              console.error("Error fetching employee details:", err);
+              return res.status(500).send("Failed to fetch employee details.");
+          }
+
+          if (employeeResults.length === 0) {
+              return res.status(404).send("Employee details not found.");
+          }
+
+          const employee = employeeResults[0];
+
+          // Convert BLOB data to Base64
+          const pictureBase64 = employee.picture ? Buffer.from(employee.picture).toString('base64') : null;
+          const resumeBase64 = employee.resume ? Buffer.from(employee.resume).toString('base64') : null;
+          const validIdBase64 = employee.validId ? Buffer.from(employee.validId).toString('base64') : null;
+
+          // Map the status_id to human-readable status
+          let status = '';
+          switch (employee.status_id) {
+              case 1:
+                  status = 'Active';
+                  break;
+              case 2:
+                  status = 'Inactive';
+                  break;
+              case 3:
+                  status = 'Pending';
+                  break;
+              default:
+                  status = 'Unknown';
+                  break;
+          }
+
+          // Return the employee details with the Base64 data and mapped status
+          res.json({
+              ...employee,
+              status: status,  // Add the status field
+              picture_base64: pictureBase64,
+              resume_base64: resumeBase64,
+              valid_id_base64: validIdBase64,
+          });
+      });
+  });
+});
+
+
+
+
+
+// Route to hire an applicant (set status_id to 4)
+app.put('/api/applicants/:applicationId/hire', (req, res) => {
+  const applicationId = req.params.applicationId;
+  console.log("Received application ID for hire:", applicationId);
+  // Check if applicationId is valid
+  if (!applicationId || isNaN(applicationId)) {
+      return res.status(400).send("Invalid applicationId.");
+  }
+
+  const hireApplicantQuery = `
+      UPDATE applications
+      SET status_id = 4  
+      WHERE applications_id = ?;
+  `;
+
+  db.query(hireApplicantQuery, [applicationId], (err, results) => {
+      if (err) {
+          console.error("Error hiring applicant:", err);
+          return res.status(500).send("Failed to hire applicant.");
+      }
+
+      if (results.affectedRows === 0) {
+          return res.status(404).send("Application not found.");
+      }
+
+      res.send("Applicant hired successfully.");
+  });
+});
+
+// Route to reject an applicant (set status_id to 5)
+app.put('/api/applicants/:applicationId/reject', (req, res) => {
+  const applicationId = req.params.applicationId;
+
+  // Check if applicationId is valid
+  if (!applicationId || isNaN(applicationId)) {
+      return res.status(400).send("Invalid applicationId.");
+  }
+
+  const rejectApplicantQuery = `
+      UPDATE applications
+      SET status_id = 5  
+      WHERE applications_id = ?;
+  `;
+
+  db.query(rejectApplicantQuery, [applicationId], (err, results) => {
+      if (err) {
+          console.error("Error rejecting applicant:", err);
+          return res.status(500).send("Failed to reject applicant.");
+      }
+
+      if (results.affectedRows === 0) {
+          return res.status(404).send("Application not found.");
+      }
+
+      res.send("Applicant rejected successfully.");
+  });
+});
+
+
 
 
 
@@ -782,6 +947,59 @@ app.get('/api/applications/check/:job_id', verifyUser, (req, res) => {
   });
 });
 
+app.get("/api/applied-jobs/:employeeID", (req, res) => {
+  const { employeeID } = req.params;
+
+  if (!employeeID) {
+    return res.status(400).json({ message: "Employee ID is required" });
+  }
+
+  // Query to check if the employeeID exists in the applications table
+  const queryApplications = `
+    SELECT job_id 
+    FROM applications 
+    WHERE employee_id = ?;
+  `;
+
+  db.query(queryApplications, [employeeID], (err, applicationResults) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    // If no applications found, return an empty array
+    if (applicationResults.length === 0) {
+      return res.json([]);  // Send an empty array instead of a 404
+    }
+
+    // Get all job_id values
+    const jobIds = applicationResults.map((row) => row.job_id);
+
+    // Query to fetch job details based on job_ids
+    const queryJobDetails = `
+      SELECT 
+        jp.job_id, 
+        jp.jobName, 
+        jp.jobOverview, 
+        jp.jobDescription, 
+        jp.salary, 
+        jp.country, 
+        e.companyName AS companyName
+      FROM job_postings jp
+      JOIN employer e ON jp.employer_id = e.employer_id
+      WHERE jp.job_id IN (?);
+    `;
+
+    db.query(queryJobDetails, [jobIds], (err, jobResults) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+
+      res.json(jobResults); // Send the job results
+    });
+  });
+});
 
 
 
