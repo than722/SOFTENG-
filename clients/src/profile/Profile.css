@@ -1,3 +1,13 @@
+@font-face {
+  font-family: 'Mulish';
+  src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+}
+
 body, html {
   margin: 0;
   font-family: 'Arial, sans-serif';
@@ -13,7 +23,7 @@ body, html {
   color: black;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-width: 800px;
+  max-width: 1000px;
   width: 100%;
   box-sizing: border-box;
   padding: 20px;
@@ -21,12 +31,22 @@ body, html {
   position: relative;
   overflow-y: auto;
 }
+h1 {
+  font-family: 'Roboto'; 
+  font-size: 2.0rem; 
+  color: #333; 
+  text-align: center;
+  margin-bottom: 20px; 
+  text-transform: capitalize; 
+  letter-spacing: 1px; 
+}
 
 .profile-info {
   padding-right: 140px;
 }
 
 .profile-info p, .profile-info label {
+  font-family: 'Mulish-Regular';
   margin: 5px 0;
   background-color: #E0E0E0;
   padding: 10px;
@@ -68,6 +88,7 @@ body, html {
 }
 
 .button-group button {
+  font-family: 'Mulish-Regular';
   padding: 10px 20px;
   margin-right: 10px;
   background-color: #0077C8;

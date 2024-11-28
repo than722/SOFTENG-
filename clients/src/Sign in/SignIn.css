@@ -1,4 +1,9 @@
-/* Sign In Modal Styling */
+@font-face {
+  font-family: 'Mulish';
+  src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+}
+
+
 .sign-in-modal-App {
   display: flex;
   justify-content: center;
@@ -22,6 +27,7 @@
 
 
 .sign-in-modal-content-App {
+  font-family: 'Mulish-Regular';
   background-color: #fff;
   padding: 20px;
   border-radius: 8px;
@@ -65,11 +71,12 @@
 }
 
 button.sign-in-App {
+  font-family: 'Mulish-Regular';
   width: 100%;
   padding: 10px;
   background-color: #0077C8;
-  color: hsl(0, 7%, 95%);
-  border: 2px solid #fff;
+  color: rgb(10, 10, 10);
+  border: 2px solid #0a0a0a;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;

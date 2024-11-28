@@ -1,1 +1,122 @@
-/* trial */
+/* CreateAcc.css */
+
+@font-face {
+    font-family: 'Mulish';
+    src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+  }
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+  }
+  
+.modal-App {
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+  }
+  
+  .modal-content-App {
+    font-family: 'Mulish-Regular';
+    background-color: #ffffff;
+    color: #333333;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .account-type-button-App {
+    font-family: 'Mulish-Regular';
+    margin: 0 15px; /* Adds horizontal space between buttons */
+    padding: 15px;
+    color: #fff;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.account-type-button-App:hover {
+    background-color: hsl(247, 93%, 47%);
+}
+  
+  /* Form Group */
+  .form-group-App {
+    margin-bottom: 15px;
+  }
+  
+  .form-group-App label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+  }
+  
+  .form-group-App input[type="text"],
+  .form-group-App input[type="email"],
+  .form-group-App input[type="password"],
+  .form-group-App input[type="number"],
+  .form-group-App input[type="tel"],
+  .form-group-App input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  /* File Input Feedback */
+  .form-group-App p {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+  }
+  
+  /* Submit Button */
+  button[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button[type="submit"]:disabled {
+    background-color: #6c757d;
+  }
+  
+  button[type="submit"]:hover:not(:disabled) {
+    background-color: #218838;
+  }
+  
+  /* Loading State */
+  button[type="submit"][disabled] {
+    cursor: not-allowed;
+    background-color: #6c757d;
+    opacity: 0.7;
+  }
+  
+  /* Error Message */
+  .modal-content-App p {
+    color: red;
+    font-size: 14px;
+    margin: 5px 0;
+  }
+  
+  /* Success Message for Password Match */
+  .modal-content-App p[style*="color: green"] {
+    color: green;
+  }
+  

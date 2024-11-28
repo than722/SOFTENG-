@@ -1,3 +1,13 @@
+@font-face {
+    font-family: 'Mulish';
+    src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+  }
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+  }
+
 .add-job-posting {
     background-color: #ffffff;
     border-radius: 8px;
@@ -8,6 +18,7 @@
 }
 
 .add-job-posting h2 {
+    font-family: 'Roboto';
     font-size: 24px;
     margin-bottom: 20px;
     color: #333;
@@ -24,6 +35,7 @@
 }
 
 .add-job-posting label {
+    font-family: 'Mulish-Regular';
     font-size: 14px;
     margin-bottom: 5px;
     color: #555;
@@ -31,6 +43,7 @@
 
 .add-job-posting input,
 .add-job-posting textarea {
+    font-family: 'Mulish-Regular';
     width: 100%;
     padding: 10px;
     font-size: 14px;
@@ -45,6 +58,7 @@
 }
 
 .add-job-posting button {
+    font-family: 'Mulish-Regular';
     background-color: #007bff;
     color: #fff;
     padding: 10px 20px;

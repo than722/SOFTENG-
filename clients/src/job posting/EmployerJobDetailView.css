@@ -1,5 +1,13 @@
 /* src/EmployerJobDetailView.css */
+@font-face {
+    font-family: 'Mulish';
+    src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+  }
 
+@font-face {
+    font-family: 'Roboto';
+    src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+  }
 .employer-job-detail-view {
     background-color: #ffffff;
     border-radius: 12px;
@@ -10,6 +18,7 @@
 }
 
 .employer-job-detail-view .back-button {
+    font-family: 'Mulish-Regular';
     background: none;
     border: none;
     color: #007bff;
@@ -20,6 +29,7 @@
 }
 
 .employer-job-detail-view h2 {
+    font-family: 'Roboto';
     color: #003366;
     font-size: 2em;
     margin-bottom: 10px;
@@ -58,6 +68,7 @@
 
 .employer-job-detail-view .job-metadata div h4 {
     margin: 0;
+    font-family: 'Mulish-Regular';
     font-size: 0.85em;
     color: #333;
     text-transform: uppercase;
@@ -65,6 +76,7 @@
 
 .employer-job-detail-view .job-metadata div p {
     margin: 5px 0 0;
+    font-family: 'Mulish-Regular';
     font-weight: bold;
     color: #00796b;
     font-size: 1.1em;
@@ -101,6 +113,7 @@
 
 .employer-job-detail-view .edit-button, .employer-job-detail-view .delete-button {
     padding: 10px 20px;
+    font-family: 'Mulish-Regular';
     font-size: 1em;
     border: none;
     border-radius: 8px;

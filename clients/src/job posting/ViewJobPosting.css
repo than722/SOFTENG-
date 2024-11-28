@@ -1,14 +1,32 @@
-.view-job-posting {
-    background-color: #f5f7fa; /* Light background for the entire section */
+@font-face {
+    font-family: 'Mulish';
+    src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+  }
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+  }
+
+  .view-job-posting {
+    display: flex;
+    justify-content: space-evenly; /* Equal spacing between cards */
+    align-items: center; /* Align vertically (if needed) */
+    flex-wrap: wrap; /* Allow wrapping if cards exceed container width */
+    gap: 20px; /* Add consistent spacing between cards */
+    background-color: #f5f7fa;
     border-radius: 8px;
     padding: 20px;
-    width: 1400px; /* Wider to accommodate multiple cards */
+    width: 1400px;
     margin: 40px auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
+   
 }
 
 .view-job-posting h2 {
+    text-align: center;
+    font-family: 'Roboto';
     text-align: left;
     color: #333;
     margin-bottom: 20px;
@@ -16,6 +34,7 @@
 }
 
 .view-job-posting h3 {
+    font-family: 'Roboto';
     margin: 0;
     color: #007bff;
     font-weight: bold;
@@ -32,8 +51,10 @@
     display: flex;
     flex-wrap: wrap; /* Allow wrapping of items */
     gap: 20px; /* Space between each card */
-    justify-content: flex-start; /* Align cards to the left */
+    justify-content: center; /* Center the cards */
+    align-items: center; /* Align cards vertically if needed */
 }
+
 
 .view-job-posting li {
     background-color: #ffffff;
@@ -70,6 +91,7 @@
 }
 
 .view-job-posting .job-metadata span {
+    font-family: 'Mulish-Regular';
     background-color: #e0f7fa;
     color: #00796b;
     border-radius: 12px;
@@ -86,6 +108,7 @@
 
 .view-job-posting .job-salary,
 .view-job-posting .job-country {
+    font-family: 'Mulish-Regular';
     font-size: 0.95em;
     font-weight: bold;
     color: #333;

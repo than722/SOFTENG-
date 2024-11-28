@@ -1,5 +1,13 @@
 /* ViewAppliedApplicants.css */
+@font-face {
+    font-family: 'Mulish';
+    src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+  }
 
+@font-face {
+    font-family: 'Roboto';
+    src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+  }
 .view-applied-applicants {
     padding: 20px;
     font-family: Arial, sans-serif;
@@ -11,6 +19,7 @@
 }
 
 .view-applied-applicants h2 {
+    font-family: 'Roboto';
     text-align: center;
     color: #333;
     margin-bottom: 20px;
@@ -32,6 +41,7 @@
 }
 
 .applicant-card, h3 {
+    font-family: 'Mulish-Regular';
     margin: 0 0 10px;
     color: #007bff;
     font-size: 1.2em;
@@ -44,5 +54,6 @@
 }
 
 .applicant-card p strong {
+    font-family: 'Mulish-Regular';
     color: #333;
 }

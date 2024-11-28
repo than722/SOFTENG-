@@ -1,7 +1,7 @@
 // Home.js
 import React from 'react';
 import './App.css'; // Use the same CSS for consistency
-import logo from './assets/images/logo4.png';
+import logo from './assets/images/MMML LogoF.svg';
 
 const Home = ({ openSelectionModal, openSignInModal }) => {
   return (

@@ -1,13 +1,32 @@
+@font-face {
+  font-family: 'Archivo';
+  src: url('assets/fonts/Archivo_Black/ArchivoBlack-Regular.ttf');
+}
+@font-face {
+  font-family: 'Roboto';
+  src: url('assets/fonts/Roboto/Roboto-BlackItalic.ttf');
+}
+@font-face {
+  font-family: 'RobotoBlack';
+  src: url('assets/fonts/Roboto/Roboto-Black.ttf');
+}
+@font-face {
+  font-family: 'Mulish-Regular';
+  src: url('assets/fonts/Mulish/static/Mulish-Regular.ttf');
+}
+
 /* Overall App Container */
 .app-container-App {
   font-family: 'Arial, sans-serif';
-  color: #fff;
-  background-color: #0077C8;
+  color: black;
+  background-color: #0047ab;
   height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  overflow: hidden; /* Prevent overflow from breaking the layout */
+  overflow-y: auto; 
+  overflow-x: hidden; 
+
 }
 
 .button2 {
@@ -25,13 +44,18 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 10px;
+  border: 1px solid black;
+  background-color: white;
 }
 
 .navbar-App .logo-App {
-  width: 50px;
-  height: auto;
+  max-height: 90px; /* Limit the logo's maximum height */
+  width: auto;      /* Maintain aspect ratio */
+  display: block;   /* Remove inline spacing issues */
 }
+
+
 
 .navbar-App ul {
   list-style: none;
@@ -40,18 +64,24 @@
 }
 
 .navbar-App ul li a {
-  color: #fff;
+  color: black;
   text-decoration: none;
   font-weight: bold;
+  font-family: 'Roboto';
+  font-size: 20px;
+  
 }
 
 .create-account-App {
-  background-color: transparent;
-  border: 2px solid #fff;
-  padding: 10px 20px;
-  color: #fff;
+  font-family: 'Mulish-Regular';
+  width: 100%;
+  padding: 10px;
+  background-color: #0077C8;
+  color: black;
+  border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  margin-top: 15px;
 }
 
 /* Main Content Area */
@@ -60,8 +90,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 100px;
-  overflow-y: auto; /* Enable vertical scrolling if content exceeds height */
-  flex-grow: 1; /* Ensure the content section grows */
+  overflow-y: auto;
+  flex-grow: 1;
 }
 
 .text-section-App {
@@ -69,30 +99,38 @@
 }
 
 .company-name-App {
-  font-size: 48px;
+  font-family: 'Roboto';
+  font-size: 100px;
   font-weight: bold;
+  color: #ffffff;
 }
 
 .tagline-App {
+  font-family: 'Roboto';
   font-size: 24px;
-  color: #FFD700;
+  color: hwb(60 12% 4%);
   margin-bottom: 20px;
+  margin-top: 0px;
 }
 
 .description-App {
+  font-family: 'Mulish-Regular';
   font-size: 16px;
   line-height: 1.5;
   margin-bottom: 20px;
+  color: #fffefe;
 }
 
-.sign-up-App {
-  background-color: #38C9FF;
-  border: none;
-  padding: 15px 30px;
-  font-size: 18px;
-  color: #fff;
+.create-account-App {
+  width: 100%;
+  padding: 10px;
+  background-color: #0077C8;
+  color: black;
+  border: 2px solid black;
+  border-radius: 4px;
   cursor: pointer;
-  border-radius: 5px;
+  font-weight: bold;
+  margin-top: 15px;
 }
 
 .image-section-App .main-image-App {
@@ -112,7 +150,7 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
-  overflow-y: auto; /* Enable scrolling if content exceeds screen height */
+  overflow-y: auto;
 }
 
 .modal-content-App {
@@ -121,21 +159,20 @@
   border-radius: 8px;
   width: 400px;
   max-width: 80%;
-  max-height: 90vh; /* Ensure the modal doesn't exceed the viewport height */
-  overflow-y: auto; /* Add vertical scroll if the content is too tall */
-  position: relative; /* Required for positioning close button */
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
 }
 
-/* Close Button */
 .close-button-App {
-  position: absolute; /* Position it absolutely within the modal-content */
+  position: absolute;
   top: 10px;
   right: 10px;
   font-size: 1.5rem;
   font-weight: bold;
   cursor: pointer;
-  color: #333; /* Ensure it's visible against the modal background */
-  z-index: 1100; /* Ensure it's above other content */
+  color: black;
+  z-index: 1100;
 }
 
 /* Form Styling */
@@ -146,7 +183,7 @@
 .form-group-App label {
   display: block;
   margin-bottom: 5px;
-  color: #333; /* Ensures the label is visible */
+  color: black;
 }
 
 .form-group-App input {
@@ -160,7 +197,7 @@ button[type="submit"].App {
   width: 100%;
   padding: 10px;
   background-color: #007bff;
-  color: #fff;
+  color: black;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -179,9 +216,9 @@ button[type="submit"].App:hover {
 
 .account-type-button-App {
   background-color: #0077C8;
-  border: 2px solid #fff;
+  border: 2px solid black;
   padding: 10px 20px;
-  color: #fff;
+  color: black;
   cursor: pointer;
   font-weight: bold;
   margin: 10px 0;
@@ -194,7 +231,7 @@ button[type="submit"].App:hover {
 }
 
 .file-name-App {
-  color: black; /* Set text color to black */
-  font-size: 14px; /* Adjust font size as needed */
-  margin-top: 5px; /* Space between the input field and file name */
+  color: black;
+  font-size: 14px;
+  margin-top: 5px;
 }
