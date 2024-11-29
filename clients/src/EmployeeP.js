@@ -5,6 +5,7 @@ import './App.css';
 import logo from './assets/images/logo4.png';
 import Profile from './profile/Profile';
 import SignOut from './Sign in/SignOut';
+import HeaderEmployee from './Header/HeaderEmployee';
 
 const EmployeeP = ({ onSignOut, auth }) => {
   const [profileData, setProfileData] = useState(null); // State for profile data
@@ -50,24 +51,11 @@ const EmployeeP = ({ onSignOut, auth }) => {
   return (
     <div className="employee-page-container">
       {/* Custom header for the employee page */}
-      <header className="navbar-App">
-        <img src={logo} alt="Logo" className="logo-App" />
-        <nav>
-          <ul>
-            <li><a href="#about">ABOUT US</a></li>
-            <li><a href="#vision">VISION</a></li>
-            <li><a href="#mission">MISSION</a></li>
-            <li><Link to="/view-job">View Job Posting</Link></li>
-            <li><Link to="/employee/:id/applied-jobs">View Applied Jobs</Link></li>
-            {auth && userId && (
-              <li><Link to={`/profile/${userId}/employee`}>Profile</Link></li> // Added /employee as accountType
-            )}
-          </ul>
-        </nav>
-        <div className="button2">
-          <SignOut onSignOut={onSignOut} />
-        </div>
-      </header>
+      <HeaderEmployee 
+        userId={userId} 
+        auth={auth} 
+        onSignOut={onSignOut} 
+        />
 
       {/* Main content for the employee page */}
       <main className="content-App">

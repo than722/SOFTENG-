@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import './App.css';
-import logo from './assets/images/logo4.png';
 import Profile from './profile/Profile';
 import SignOut from './Sign in/SignOut';
 import EmployerJobDetailView from './job posting/EmployerJobDetailView';
+import HeaderEmployer from './Header/HeaderEmployer';
 
 const EmployerP = ({ onSignOut, auth }) => {
   const [profileData, setProfileData] = useState(null);
@@ -53,29 +53,11 @@ const EmployerP = ({ onSignOut, auth }) => {
   return (
     <div className="employer-page-container">
       {/* Custom header for the employer page */}
-      <header className="navbar-App">
-        <img src={logo} alt="Logo" className="logo-App" />
-        <nav>
-          <ul>
-            <li><a href="#about">ABOUT US</a></li>
-            <li><a href="#vision">VISION</a></li>
-            <li><a href="#mission">MISSION</a></li>
-            <li><Link to="/add-job">Add Job Posting</Link></li>
-            <li><Link to="/view-job">View Job Posting</Link></li>
-            <li>
-              <Link to={`/view-applied-applicants/${userId}`}>
-                View Applied Applicants
-              </Link>
-            </li>
-            {auth && userId && ( // Show profile link only if authenticated and userId is defined
-              <li><Link to={`/profile/${userId}/employer`}>Profile</Link></li>
-            )}
-          </ul>
-        </nav>
-        <div className="button2">
-          <SignOut onSignOut={onSignOut} />
-        </div>
-      </header>
+      <HeaderEmployer 
+        userId={userId} 
+        auth={auth} 
+        onSignOut={onSignOut} 
+        />
 
       {/* Main content for the employer page */}
       <main className="content-App">

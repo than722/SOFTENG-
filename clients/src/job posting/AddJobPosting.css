@@ -1,19 +1,19 @@
-@font-face {
-    font-family: 'Mulish';
-    src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
-  }
+/* Ensure the main content starts below the header */
+.main-content {
+    margin-top: 80px; /* Adjust to match the height of your header */
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #0047ab; /* Matches your blue background */
+    min-height: 100vh; /* Ensures the content fills the screen */
+}
 
-@font-face {
-    font-family: 'Roboto';
-    src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
-  }
-
+/* Existing styles for Add Job Posting */
 .add-job-posting {
     background-color: #ffffff;
     border-radius: 8px;
     padding: 20px;
     max-width: 500px;
-    margin: 40px auto;
+    margin: 0 auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 

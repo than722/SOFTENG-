@@ -3,6 +3,8 @@ import axios from 'axios';
 import './ViewJobPosting.css';
 import JobDetailView from './JobDetailView';
 import EmployerJobDetailView from './EmployerJobDetailView';
+import HeaderEmployer from '../Header/HeaderEmployer';
+import HeaderEmployee from '../Header/HeaderEmployee';
 
 function ViewJobPosting() {
     const [jobs, setJobs] = useState([]);
@@ -12,13 +14,18 @@ function ViewJobPosting() {
     const [jobDetails, setJobDetails] = useState(null);
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [detailsError, setDetailsError] = useState(null);
-    const [userRole, setUserRole] = useState(null); // To store the role of the logged-in user
+
+    // Get user role and ID
+    const userType = localStorage.getItem('userType'); // e.g., "employer" or "employee"
+    const userId = localStorage.getItem('userId'); // User ID
+
+    // Sign out function
+    const handleSignOut = () => {
+        localStorage.clear(); // Clear user data
+        window.location.href = '/login'; // Redirect to login page
+    };
 
     useEffect(() => {
-        // Fetch user role from local storage
-        const role = localStorage.getItem('userType');
-        setUserRole(role);
-
         // Fetch all job postings
         axios.get('http://localhost:8081/api/job_postings')
             .then(response => {
@@ -62,23 +69,29 @@ function ViewJobPosting() {
 
     if (selectedJob && jobDetails) {
         // Render based on user role
-        if (userRole === 'employee') {
+        if (userType === 'employee') {
             return (
-                <JobDetailView 
-                    jobDetails={jobDetails} 
-                    onBack={handleBack} 
-                    detailsLoading={detailsLoading} 
-                    detailsError={detailsError} 
-                />
+                <>
+                    <HeaderEmployee userId={userId} onSignOut={handleSignOut} />
+                    <JobDetailView 
+                        jobDetails={jobDetails} 
+                        onBack={handleBack} 
+                        detailsLoading={detailsLoading} 
+                        detailsError={detailsError} 
+                    />
+                </>
             );
-        } else if (userRole === 'employer') {
+        } else if (userType === 'employer') {
             return (
-                <EmployerJobDetailView 
-                    jobDetails={jobDetails} 
-                    onBack={handleBack} 
-                    detailsLoading={detailsLoading} 
-                    detailsError={detailsError} 
-                />
+                <>
+                    <HeaderEmployer userId={userId} onSignOut={handleSignOut} />
+                    <EmployerJobDetailView 
+                        jobDetails={jobDetails} 
+                        onBack={handleBack} 
+                        detailsLoading={detailsLoading} 
+                        detailsError={detailsError} 
+                    />
+                </>
             );
         } else {
             return <div>Unauthorized user role</div>;
@@ -86,22 +99,31 @@ function ViewJobPosting() {
     }
 
     return (
-        <div className="view-job-posting">
-            <h2>Job Postings</h2>
-            <ul>
-                {jobs.map(job => (
-                    <li key={job.job_id} onClick={() => handleJobClick(job)} className="job-card">
-                        <div className="job-metadata">
-                            <h3>{job.jobName || "Job Title Not Available"}</h3>
-                            <span>{job.typeOfWork || 'Full Time'}</span>
-                        </div>
-                        <p className="job-description">{job.description}</p>
-                        <p className="job-salary">Salary: ${job.salary}</p>
-                        <p className="job-country">Country: {job.country}</p>
-                    </li>
-                ))}
-            </ul>
-        </div>
+        <>
+            {/* Dynamically render the header */}
+            {userType === 'employer' ? (
+                <HeaderEmployer userId={userId} onSignOut={handleSignOut} />
+            ) : (
+                <HeaderEmployee userId={userId} onSignOut={handleSignOut} />
+            )}
+
+            <div className="view-job-posting">
+                <h2>Job Postings</h2>
+                <ul>
+                    {jobs.map(job => (
+                        <li key={job.job_id} onClick={() => handleJobClick(job)} className="job-card">
+                            <div className="job-metadata">
+                                <h3>{job.jobName || "Job Title Not Available"}</h3>
+                                <span>{job.typeOfWork || 'Full Time'}</span>
+                            </div>
+                            <p className="job-description">{job.description}</p>
+                            <p className="job-salary">Salary: ${job.salary}</p>
+                            <p className="job-country">Country: {job.country}</p>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </>
     );
 }
 

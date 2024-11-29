@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Profile.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import HeaderEmployer from '../Header/HeaderEmployer';
+import HeaderEmployee from '../Header/HeaderEmployee';
+import SignOut from '../Sign in/SignOut';
 
 const Profile = () => {
   const { id, accountType } = useParams(); // Extract both id and accountType from route params
@@ -137,6 +140,20 @@ const Profile = () => {
   }
 
   return (
+    <>
+      {/* Dynamically render the header */}
+      {accountType === 'employer' ? (
+        <HeaderEmployer 
+          userId={id} 
+          onSignOut={() => <SignOut />} // Call SignOut for employer
+        />
+      ) : (
+        <HeaderEmployee 
+          userId={id} 
+          onSignOut={() => <SignOut />} // Call SignOut for employee
+        />
+      )}
+
     <div className="profile-container">
       <h1>{profileData.firstName} {profileData.lastName}'s Profile</h1>
       <div className="profile-info">
@@ -284,6 +301,7 @@ const Profile = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 
