@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -732,7 +732,7 @@ app.get('/api/applications/employer/:employerId', (req, res) => {
 
       // If there are no applicants, return an empty array
       if (results.length === 0) {
-          return res.status(404).send("No applicants found for this employer.");
+          return res.json([]); // Send an empty array instead of a 404
       }
 
       // Send the results, which include job details and applicant info
@@ -740,7 +740,9 @@ app.get('/api/applications/employer/:employerId', (req, res) => {
   });
 });
 
-// Get details of an applicant based on application ID
+
+
+// Get details of an applicant based on applicationId
 app.get('/api/applicants/:applicationId', (req, res) => {
   const applicationId = req.params.applicationId;
 
@@ -832,69 +834,103 @@ app.get('/api/applicants/:applicationId', (req, res) => {
   });
 });
 
+app.put('/api/employees/:employeeId/hire', (req, res) => {
+  const { employeeId } = req.params;
+  const { status_id } = req.body; // Should be 4 for hired
 
+  console.log(`Hiring employee with ID: ${employeeId} and status_id: ${status_id}`); // Debugging log
 
-
-
-// Route to hire an applicant (set status_id to 4)
-app.put('/api/applicants/:applicationId/hire', (req, res) => {
-  const applicationId = req.params.applicationId;
-  console.log("Received application ID for hire:", applicationId);
-  // Check if applicationId is valid
-  if (!applicationId || isNaN(applicationId)) {
-      return res.status(400).send("Invalid applicationId.");
+  if (status_id !== 4) {
+    return res.status(400).json({ success: false, message: 'Invalid status_id for hiring. Must be 4.' });
   }
 
-  const hireApplicantQuery = `
+  // Step 1: Update the employee table first
+  const updateEmployeeSql = 'UPDATE employee SET status_id = ? WHERE employee_id = ?';
+  db.query(updateEmployeeSql, [status_id, employeeId], (empError, empResult) => {
+    if (empError) {
+      console.error(empError);
+      return res.status(500).json({ success: false, message: 'Server error while updating employee status.' });
+    }
+
+    if (empResult.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Employee not found or already hired.' });
+    }
+
+    console.log(`Employee status updated for employee_id: ${employeeId}`);
+
+    // Step 2: Update the applications table for the specific employee_id
+    const updateApplicationSql = `
       UPDATE applications
-      SET status_id = 4  
-      WHERE applications_id = ?;
-  `;
+      SET status_id = ?
+      WHERE employee_id = ?`; // Ensures only this employee's applications are updated
 
-  db.query(hireApplicantQuery, [applicationId], (err, results) => {
-      if (err) {
-          console.error("Error hiring applicant:", err);
-          return res.status(500).send("Failed to hire applicant.");
+    db.query(updateApplicationSql, [status_id, employeeId], (appError, appResult) => {
+      if (appError) {
+        console.error(appError);
+        return res.status(500).json({ success: false, message: 'Server error while updating application status.' });
       }
 
-      if (results.affectedRows === 0) {
-          return res.status(404).send("Application not found.");
+      if (appResult.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'No applications found for the given employee ID.' });
       }
 
-      res.send("Applicant hired successfully.");
+      console.log(`Application status updated for employee_id: ${employeeId}`);
+      res.status(200).json({
+        success: true,
+        message: 'Applicant hired successfully. Status updated in both employee and applications tables.',
+      });
+    });
   });
 });
 
-// Route to reject an applicant (set status_id to 5)
-app.put('/api/applicants/:applicationId/reject', (req, res) => {
-  const applicationId = req.params.applicationId;
+app.put('/api/employees/:employeeId/reject', (req, res) => {
+  const { employeeId } = req.params;
+  const { status_id } = req.body; // Should be 5 for rejected
 
-  // Check if applicationId is valid
-  if (!applicationId || isNaN(applicationId)) {
-      return res.status(400).send("Invalid applicationId.");
+  console.log(`Rejecting employee with ID: ${employeeId} and status_id: ${status_id}`); // Debugging log
+
+  if (status_id !== 5) {
+    return res.status(400).json({ success: false, message: 'Invalid status_id for rejection. Must be 5.' });
   }
 
-  const rejectApplicantQuery = `
+  // Step 1: Update the employee table first
+  const updateEmployeeSql = 'UPDATE employee SET status_id = ? WHERE employee_id = ?';
+  db.query(updateEmployeeSql, [status_id, employeeId], (empError, empResult) => {
+    if (empError) {
+      console.error(empError);
+      return res.status(500).json({ success: false, message: 'Server error while updating employee status.' });
+    }
+
+    if (empResult.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Employee not found or already rejected.' });
+    }
+
+    console.log(`Employee status updated for employee_id: ${employeeId}`);
+
+    // Step 2: Update the applications table for the specific employee_id
+    const updateApplicationSql = `
       UPDATE applications
-      SET status_id = 5  
-      WHERE applications_id = ?;
-  `;
+      SET status_id = ?
+      WHERE employee_id = ?`; // Ensures only this employee's applications are updated
 
-  db.query(rejectApplicantQuery, [applicationId], (err, results) => {
-      if (err) {
-          console.error("Error rejecting applicant:", err);
-          return res.status(500).send("Failed to reject applicant.");
+    db.query(updateApplicationSql, [status_id, employeeId], (appError, appResult) => {
+      if (appError) {
+        console.error(appError);
+        return res.status(500).json({ success: false, message: 'Server error while updating application status.' });
       }
 
-      if (results.affectedRows === 0) {
-          return res.status(404).send("Application not found.");
+      if (appResult.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'No applications found for the given employee ID.' });
       }
 
-      res.send("Applicant rejected successfully.");
+      console.log(`Application status updated for employee_id: ${employeeId}`);
+      res.status(200).json({
+        success: true,
+        message: 'Applicant rejected successfully. Status updated in both employee and applications tables.',
+      });
+    });
   });
 });
-
-
 
 
 
