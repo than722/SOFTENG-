@@ -19,6 +19,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
     mobileNumber: "",
     companyName: "",
     civil_status: "single", // Default to single
+    birthday: "", // Added birthday field
   });
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [files, setFiles] = useState({
@@ -48,9 +49,26 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
     if (name === "reEnterPassword") {
       setPasswordMatch(value === values.password);
     }
+
+    // Validate birthday
+    if (name === "birthday") {
+      const today = new Date();
+      const minDate = new Date(today.getFullYear() - 45, today.getMonth(), today.getDate()); // 45 years ago
+      const maxDate = new Date(today.getFullYear() - 23, today.getMonth(), today.getDate()); // 23 years ago
+
+      const selectedDate = new Date(value);
+      if (selectedDate < minDate || selectedDate > maxDate) {
+        setError("Birthday must indicate an age between 23 and 45.");
+        return;
+      } else {
+        setError("");
+      }
+    }
+
     setValues({ ...values, [name]: value });
   };
 
@@ -125,6 +143,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       mobileNumber: "",
       companyName: "",
       civil_status: "single",
+      birthday: "",
     });
     setFiles({
       validId: null,
@@ -232,7 +251,16 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
                   </p>
                 )}
               </div>
-
+              <div className="form-group-App">
+                <label>Birthday:</label>
+                <input
+                  type="date"
+                  name="birthday"
+                  value={values.birthday}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
               {/* Common Fields */}
               {["lastName", "firstName", "middleName", "province", "municipality", "barangay", "zipCode", "mobileNumber"].map((field) => (
                 <div className="form-group-App" key={field}>
