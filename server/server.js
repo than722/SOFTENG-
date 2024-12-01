@@ -484,7 +484,7 @@ app.get('/api/users/:userId', (req, res) => {
   const { userId } = req.params;
   const { userType } = req.query; // Get userType from the query parameter
 
-  console.log('Received userType:', userType); // Debugging: Log the received userType
+
   
   // Validate the userType
   if (!userType || (userType !== 'employee' && userType !== 'employer')) {
