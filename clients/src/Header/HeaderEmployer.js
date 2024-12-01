@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './HeaderEmployer.css'; // Scoped CSS for header
-import logo from '../assets/images/logo4.png';
+import logo from '../assets/images/MMMLCropped.png';
 import SignOut from '../Sign in/SignOut'; // Import SignOut component
 
 const HeaderEmployer = ({ userId, auth, onSignOut }) => {

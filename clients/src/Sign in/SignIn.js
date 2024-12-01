@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './SignIn.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,14 @@ const SignIn = ({ isOpen, onClose, setAuth }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Reset form values when the modal is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setValues({ email: '', password: '' });
+      setErrors({});
+    }
+  }, [isOpen]);
 
   const Validation = (values) => {
     let errors = {};
@@ -62,6 +70,7 @@ const SignIn = ({ isOpen, onClose, setAuth }) => {
         }
 
         setAuth(true);
+        onClose(); // Close the modal after successful login
 
         if (userType === 'employee') {
           navigate(`/employee/${userId}`);
