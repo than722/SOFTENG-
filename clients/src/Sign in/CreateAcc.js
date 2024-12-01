@@ -84,33 +84,44 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+  
     if (!accountType) {
       setError("Please select an account type.");
       return;
     }
-
+  
+    // Ensure all required fields are filled, or handle validation
+    if (!values.email || !values.password || !values.firstName || !values.lastName) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+  
+    // Ensure password match
+    if (values.password !== values.reEnterPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+  
     const formData = new FormData();
-
+  
     // Append common fields
-    formData.append("accountType", accountType); // Include accountType explicitly
+    formData.append("accountType", accountType); // Explicitly adding accountType
     Object.keys(values).forEach((key) => {
-      // Append each field to formData
       if (values[key]) {
         formData.append(key, values[key]);
       }
     });
-
+  
     // Append files
     Object.keys(files).forEach((key) => {
       if (files[key]) {
         formData.append(key, files[key]);
       }
     });
-
+  
     setLoading(true);
-    setError("");
-
+    setError(""); // Clear previous error
+  
     try {
       const response = await axios.post("http://localhost:8081/signup", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -125,6 +136,7 @@ const CreateAcc = ({ isSelectionOpen, onCloseSelection, onFormSubmit }) => {
       setLoading(false);
     }
   };
+  
 
   const closeForm = () => {
     setIsFormOpen(false);

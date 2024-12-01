@@ -141,7 +141,7 @@ const Profile = () => {
           fetchProfile(); // Refresh profile data after withdrawal
         })
         .catch(error => {
-          console.error('Error withdrawing application:', error);
+          console.error('Error withdrawing application:', error); 
           setError('Error withdrawing application. Please try again.');
         });
     }
