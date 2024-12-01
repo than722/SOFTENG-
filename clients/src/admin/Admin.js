@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ProgressBar from '../Progress/ProgressBar';
 import './Admin.css';
+import AdminWithdrawalRequests from './AdminWithdrawalRequests';
 
 const Admin = () => {
   const [employees, setEmployees] = useState([]);
@@ -159,6 +160,13 @@ const Admin = () => {
             >
               Employers
             </button>
+            <button
+              className={activeTab === 'withdrawalRequests' ? 'active' : ''}
+              onClick={() => setActiveTab('withdrawalRequests')}
+            >
+              Withdrawal Requests
+            </button>
+
           </div>
 
           {activeTab === 'employees' && (
@@ -377,6 +385,13 @@ const Admin = () => {
     </div>
   </div>
 )}
+
+    {activeTab === 'withdrawalRequests' && (
+                <div>
+                  <h2>Withdrawal Requests</h2>
+                  <AdminWithdrawalRequests />
+                </div>
+              )}
 
         </>
       )}

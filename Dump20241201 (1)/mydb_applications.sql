@@ -30,7 +30,7 @@ CREATE TABLE `applications` (
   `email` varchar(45) DEFAULT NULL,
   `lastName` varchar(45) DEFAULT NULL,
   `firstName` varchar(45) DEFAULT NULL,
-  `status_id` int DEFAULT NULL,
+  `status_id` int DEFAULT '3',
   `employer_id` int DEFAULT NULL,
   PRIMARY KEY (`applications_id`),
   KEY `job_id` (`job_id`),
@@ -38,16 +38,14 @@ CREATE TABLE `applications` (
   KEY `applications_ibfk_3_idx` (`email`),
   KEY `applications_ibfk_4_idx` (`lastName`),
   KEY `applications_ibfk_5_idx` (`firstName`),
-  KEY `applications_ibfk_6_idx` (`status_id`),
   KEY `applications_ibfk_7_idx` (`employer_id`),
   CONSTRAINT `applications_ibfk_1` FOREIGN KEY (`job_id`) REFERENCES `job_postings` (`job_id`) ON DELETE CASCADE,
   CONSTRAINT `applications_ibfk_2` FOREIGN KEY (`employee_id`) REFERENCES `employee` (`employee_id`) ON DELETE CASCADE,
   CONSTRAINT `applications_ibfk_3` FOREIGN KEY (`email`) REFERENCES `employee` (`email`),
   CONSTRAINT `applications_ibfk_4` FOREIGN KEY (`lastName`) REFERENCES `employee` (`lastName`),
   CONSTRAINT `applications_ibfk_5` FOREIGN KEY (`firstName`) REFERENCES `employee` (`firstName`),
-  CONSTRAINT `applications_ibfk_6` FOREIGN KEY (`status_id`) REFERENCES `employee` (`status_id`),
   CONSTRAINT `applications_ibfk_7` FOREIGN KEY (`employer_id`) REFERENCES `job_postings` (`employer_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -56,7 +54,7 @@ CREATE TABLE `applications` (
 
 LOCK TABLES `applications` WRITE;
 /*!40000 ALTER TABLE `applications` DISABLE KEYS */;
-INSERT INTO `applications` VALUES (1,1,61,'2024-11-16 05:51:11',NULL,NULL,NULL,NULL,NULL),(2,1,60,'2024-11-16 05:52:01',NULL,NULL,NULL,NULL,NULL),(3,1,59,'2024-11-16 07:09:01',NULL,NULL,NULL,NULL,NULL),(4,1,63,'2024-11-16 07:57:05','gilethan7203221@gmail.com','García Flores','John',3,NULL),(5,7,63,'2024-11-16 10:10:13','gilethan7203221@gmail.com','García Flores','John',3,24),(6,7,61,'2024-11-18 06:17:00','gilethan72332@gmail.com','García Flores','Ethan',2,24);
+INSERT INTO `applications` VALUES (1,1,61,'2024-11-16 05:51:11',NULL,NULL,NULL,4,NULL),(2,1,60,'2024-11-16 05:52:01',NULL,NULL,NULL,4,NULL),(3,1,59,'2024-11-16 07:09:01',NULL,NULL,NULL,NULL,NULL),(4,1,63,'2024-11-16 07:57:05','gilethan7203221@gmail.com','García Flores','John',5,NULL),(5,7,63,'2024-11-16 10:10:13','gilethan7203221@gmail.com','García Flores','John',5,24),(6,7,61,'2024-11-18 06:17:00','gilethan72332@gmail.com','García Flores','Ethan',4,24),(7,7,64,'2024-11-24 04:38:08','theemployee324@gmail.com','Parable','Stanley',5,24),(8,7,65,'2024-11-30 06:42:16','theemployeeoftheday@gmail.com','Sanchez','Rick',4,24),(9,7,60,'2024-11-30 07:30:12','eagil322@adu.edu.ph','García Flores','Jon',4,24);
 /*!40000 ALTER TABLE `applications` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -69,4 +67,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-11-24 15:05:45
+-- Dump completed on 2024-12-01 17:54:28

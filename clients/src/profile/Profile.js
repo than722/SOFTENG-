@@ -5,6 +5,7 @@ import axios from 'axios';
 import HeaderEmployer from '../Header/HeaderEmployer';
 import HeaderEmployee from '../Header/HeaderEmployee';
 import SignOut from '../Sign in/SignOut';
+import WithdrawnApplicants from '../admin/WithdrawnApplicants';
 
 const Profile = () => {
   const { id, accountType } = useParams(); // Extract both id and accountType from route params
@@ -131,6 +132,7 @@ const Profile = () => {
     }
   };
 
+<<<<<<< HEAD
   const handleWithdrawApplication = () => {
     if (window.confirm("Are you sure you want to withdraw your application? This will delete all submitted files.")) {
       const url = `http://localhost:8081/api/users/${id}/withdraw`;
@@ -146,7 +148,11 @@ const Profile = () => {
         });
     }
   };
+=======
+>>>>>>> 65bbce80bc469426b18f97c0e4f61106bbe8e67d
 
+  
+  
   if (error) {
     return <div>{error}</div>;
   }
@@ -157,6 +163,9 @@ const Profile = () => {
 
   return (
     <>
+
+
+
       {/* Dynamically render the header */}
       {accountType === 'employer' ? (
         <HeaderEmployer 
@@ -294,6 +303,8 @@ const Profile = () => {
               <button onClick={handleSave}>Save</button>
               <button onClick={handleEditToggle}>Cancel</button>
             </div>
+
+
           </>
         ) : (
           <>
@@ -310,11 +321,13 @@ const Profile = () => {
               <p><strong>Company Name:</strong> {profileData.companyName}</p>
             )}
             <div className="button-group">
+            <WithdrawnApplicants
+        userId={id}
+        accountType={accountType}
+        onWithdrawComplete={fetchProfile} // Refresh the profile data after withdrawal
+      />
               <button onClick={handleEditToggle}>Edit</button>
               <button onClick={handleDelete}>Delete Profile</button>
-              <button onClick={handleWithdrawApplication} className="withdraw-button">
-                  Withdraw Application
-                </button>
             </div>
           </>
         )}
