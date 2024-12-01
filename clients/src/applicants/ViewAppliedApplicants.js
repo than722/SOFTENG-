@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ViewAppliedApplicants.css';
+import HeaderEmployer from '../Header/HeaderEmployer';
 
 function ViewAppliedApplicants() {
     const [applicants, setApplicants] = useState([]);
@@ -139,6 +140,16 @@ function ViewAppliedApplicants() {
     if (error) return <div>{error}</div>;
 
     return (
+        <>
+                    <HeaderEmployer 
+                userId={localStorage.getItem('userId')} 
+                auth={true} 
+                onSignOut={() => {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }} 
+            />
+        
         <div className="view-applied-applicants">
             <h2>Applicants for Your Job Postings</h2>
 
@@ -229,6 +240,7 @@ function ViewAppliedApplicants() {
                 </>
             )}
         </div>
+        </>
     );
 }
 

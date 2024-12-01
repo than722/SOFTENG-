@@ -15,9 +15,11 @@ const HeaderEmployee = ({ userId, auth, onSignOut }) => {
           <li><a href="#mission">MISSION</a></li>
           <li><Link to="/view-job">View Job Posting</Link></li>
           <li><Link to="/employee/:id/applied-jobs">View Applied Jobs</Link></li>
-            {auth && userId && (
-              <li><Link to={`/profile/${userId}/employee`}>Profile</Link></li> // Added /employee as accountType
-            )}
+          {/* Always show Profile button if userId is available */}
+          {userId && (
+            <li><Link to={`/profile/${userId}/employee`}>Profile</Link></li>
+          )}
+          <li><Link to="/notifications">Notifications</Link></li>
           </ul>
       </nav>
       <div className="header-employee-button">

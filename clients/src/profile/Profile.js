@@ -6,6 +6,7 @@ import HeaderEmployer from '../Header/HeaderEmployer';
 import HeaderEmployee from '../Header/HeaderEmployee';
 import SignOut from '../Sign in/SignOut';
 import WithdrawnApplicants from '../admin/WithdrawnApplicants';
+import ProfileDeficiencies from './ProfileDeficiencies';
 
 const Profile = () => {
   const { id, accountType } = useParams(); // Extract both id and accountType from route params
@@ -13,6 +14,7 @@ const Profile = () => {
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [age, setAge] = useState(null); // To store calculated age
   const [updatedData, setUpdatedData] = useState({
     firstName: '',
     lastName: '',
@@ -27,33 +29,65 @@ const Profile = () => {
     companyName: '', // Field for company name if profile is an employer
   });
 
-  // Fetch profile data based on account type (employee or employer)
-  const fetchProfile = useCallback(() => {
+      // Calculate age based on birthday
+      const calculateAge = (birthday) => {
+        if (!birthday) {
+          setAge(null);
+          return;
+        }
+        const birthDate = new Date(birthday);
+        const today = new Date();
+        const calculatedAge = today.getFullYear() - birthDate.getFullYear();
+        const monthDifference = today.getMonth() - birthDate.getMonth();
+    
+        if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+          setAge(calculatedAge - 1);
+        } else {
+          setAge(calculatedAge);
+        }
+      };
+
+// Fetch profile data based on account type (employee or employer)
+const fetchProfile = useCallback(() => {
   const url = `http://localhost:8081/api/users/${id}?userType=${accountType}`; // Add userType as a query parameter
 
   axios.get(url)
     .then(response => {
-      setProfileData(response.data);
+      const data = response.data;
+
+      // Set profile data and updated form data
+      setProfileData(data);
       setUpdatedData({
-        firstName: response.data.firstName,
-        lastName: response.data.lastName,
-        middleName: response.data.middleName,
-        province: response.data.province,
-        municipality: response.data.municipality,
-        barangay: response.data.barangay,
-        zipCode: response.data.zipCode,
-        mobileNumber: response.data.mobileNumber,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        middleName: data.middleName,
+        birthday: data.birthday || '', // Handle birthday field
+        province: data.province,
+        municipality: data.municipality,
+        barangay: data.barangay,
+        zipCode: data.zipCode,
+        mobileNumber: data.mobileNumber,
         picture: null,
         resume: null,
-        companyName: response.data.companyName || '', // For employer
+        companyName: data.companyName || '', // For employer
       });
-      setError(null);
+
+      // Calculate age if birthday is present
+      if (data.birthday) {
+        calculateAge(data.birthday); // Correctly calculate age
+      } else {
+        setAge(null);
+      }
+
+      setError(null); // Clear any errors
     })
     .catch(error => {
       console.error('Error fetching profile data:', error);
       setError('Error fetching profile data');
     });
 }, [id, accountType]);
+
+
 
 
   useEffect(() => {
@@ -194,7 +228,19 @@ const Profile = () => {
                 value={updatedData.middleName} 
                 onChange={handleChange} 
               />
+               </div>
+               <div className="form-group">
+              <label htmlFor="birthday">Birthday:</label>
+              <input
+                id="birthday"
+                type="date"
+                name="birthday"
+                value={updatedData.birthday}
+                onChange={handleChange}
+              />
             </div>
+
+
             <div className="form-group">
               <label htmlFor="province">Province:</label>
               <input 
@@ -292,6 +338,7 @@ const Profile = () => {
             <p><strong>First Name:</strong> {profileData.firstName}</p>
             <p><strong>Last Name:</strong> {profileData.lastName}</p>
             <p><strong>Middle Name:</strong> {profileData.middleName}</p>
+            <p><strong>Age:</strong> {age !== null ? `${age} years old` : 'Not specified'}</p>
             <p><strong>Province:</strong> {profileData.province}</p>
             <p><strong>Municipality:</strong> {profileData.municipality}</p>
             <p><strong>Barangay:</strong> {profileData.barangay}</p>
@@ -308,7 +355,10 @@ const Profile = () => {
       />
               <button onClick={handleEditToggle}>Edit</button>
               <button onClick={handleDelete}>Delete Profile</button>
-            </div>
+
+        {/* Show ProfileDeficiencies only for employees */}
+        {accountType === 'employee' && <ProfileDeficiencies employeeId={id} />}
+      </div>
           </>
         )}
       </div>
