@@ -131,6 +131,22 @@ const Profile = () => {
     }
   };
 
+  const handleWithdrawApplication = () => {
+    if (window.confirm("Are you sure you want to withdraw your application? This will delete all submitted files.")) {
+      const url = `http://localhost:8081/api/users/${id}/withdraw`;
+
+      axios.delete(url)
+        .then(() => {
+          alert('Application withdrawn successfully. All files have been deleted.');
+          fetchProfile(); // Refresh profile data after withdrawal
+        })
+        .catch(error => {
+          console.error('Error withdrawing application:', error);
+          setError('Error withdrawing application. Please try again.');
+        });
+    }
+  };
+
   if (error) {
     return <div>{error}</div>;
   }
@@ -296,6 +312,9 @@ const Profile = () => {
             <div className="button-group">
               <button onClick={handleEditToggle}>Edit</button>
               <button onClick={handleDelete}>Delete Profile</button>
+              <button onClick={handleWithdrawApplication} className="withdraw-button">
+                  Withdraw Application
+                </button>
             </div>
           </>
         )}

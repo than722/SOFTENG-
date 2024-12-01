@@ -305,6 +305,61 @@ const Admin = () => {
                       View Resume
                     </a>
                   </p>
+                  <p>
+                    <strong>Valid ID:</strong>{' '}
+                    <a
+                      href={`http://localhost:8081/uploads/${selectedUser.validIDUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View Valid ID
+                    </a>
+                  </p>
+                  <p>
+                    <strong>Birth Certificate:</strong>{' '}
+                    <a
+                      href={`http://localhost:8081/uploads/${selectedUser.birthcertificateUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View Birth Certificate
+                    </a>
+                  </p>
+                  {selectedUser.passportUrl ? (
+                      <p>
+                        <strong>Passport:</strong>{' '}
+                        <a
+                          href={`http://localhost:8081/uploads/${selectedUser.passportUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View Passport
+                        </a>
+                      </p>
+                    ) : null}
+                  <p>
+                    <strong>Picture:</strong>{' '}
+                    <a
+                      href={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View Picture
+                    </a>
+                  </p>
+                  {selectedUser.marriagecontractUrl ? (
+                      <p>
+                        <strong>Marriage Contract:</strong>{' '}
+                        <a
+                          href={`http://localhost:8081/uploads/${selectedUser.marriagecontractUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View Marriage Contract
+                        </a>
+                      </p>
+                    ) : null}
+
                 </div>
                 <div className="modal-buttons">
                   <button onClick={acceptUser}>Accept</button>

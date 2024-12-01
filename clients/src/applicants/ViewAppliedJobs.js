@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./ViewAppliedJobs.css"; // Ensure you have a CSS file for styling
 import HeaderEmployee from "../Header/HeaderEmployee";
-import SignOut from "../Sign in/SignOut"; // Import your SignOut component
 
 const ViewAppliedJobs = () => {
   const [appliedJobs, setAppliedJobs] = useState([]);
@@ -33,6 +32,31 @@ const ViewAppliedJobs = () => {
     fetchAppliedJobs();
   }, [userId]);
 
+  const handleCancelApplication = async (jobId) => {
+    const reason = prompt("Please enter the reason for cancellation:");
+    if (!reason) {
+      alert("Cancellation reason is required.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://localhost:8081/api/cancel-application`,
+        { jobId, userId, reason },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        }
+      );
+      alert("Job application cancelled successfully.");
+      setAppliedJobs((prevJobs) => prevJobs.filter((job) => job.job_id !== jobId));
+    } catch (err) {
+      console.error("Error cancelling application:", err);
+      alert("Failed to cancel the application. Please try again.");
+    }
+  };
+
   if (loading) {
     return <p>Loading applied jobs...</p>;
   }
@@ -44,18 +68,12 @@ const ViewAppliedJobs = () => {
   return (
     <>
       {/* Use the HeaderEmployee component */}
-      <HeaderEmployee 
-        userId={userId} 
-        auth={auth} 
-        onSignOut={() => {
-          SignOut(); // Call the SignOut function from your component
-        }}
-      />
+      <HeaderEmployee userId={userId} auth={auth} onSignOut={() => localStorage.clear()} />
 
       <div className="applied-jobs-container">
         <h2>Jobs You've Applied For</h2>
         {appliedJobs.length === 0 ? (
-          <p>No jobs applied yet.</p> 
+          <p>No jobs applied yet.</p>
         ) : (
           <table className="applied-jobs-table">
             <thead>
@@ -66,6 +84,7 @@ const ViewAppliedJobs = () => {
                 <th>Salary</th>
                 <th>Country</th>
                 <th>Company Name</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -77,6 +96,14 @@ const ViewAppliedJobs = () => {
                   <td>{job.salary}</td>
                   <td>{job.country}</td>
                   <td>{job.companyName}</td>
+                  <td>
+                    <button
+                      className="cancel-button"
+                      onClick={() => handleCancelApplication(job.job_id)}
+                    >
+                      Cancel Application
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -8,12 +8,14 @@ import HeaderEmployee from '../Header/HeaderEmployee';
 
 function ViewJobPosting() {
     const [jobs, setJobs] = useState([]);
+    const [filteredJobs, setFilteredJobs] = useState([]); // Filtered jobs to display after search
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedJob, setSelectedJob] = useState(null);
     const [jobDetails, setJobDetails] = useState(null);
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [detailsError, setDetailsError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState(""); // State for search term
 
     // Get user role and ID
     const userType = localStorage.getItem('userType'); // e.g., "employer" or "employee"
@@ -30,6 +32,7 @@ function ViewJobPosting() {
         axios.get('http://localhost:8081/api/job_postings')
             .then(response => {
                 setJobs(response.data);
+                setFilteredJobs(response.data); // Initially, show all jobs
                 setLoading(false);
             })
             .catch(error => {
@@ -62,6 +65,22 @@ function ViewJobPosting() {
         setSelectedJob(null);
         setJobDetails(null);
         setDetailsError(null);
+    };
+
+    // Handle Search
+    const handleSearch = () => {
+        const filtered = jobs.filter(job =>
+            job.jobName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            job.country.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredJobs(filtered);
+    };
+
+    // Handle Enter key press for search
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            handleSearch();
+        }
     };
 
     if (loading) return <div>Loading job postings...</div>;
@@ -109,19 +128,43 @@ function ViewJobPosting() {
 
             <div className="view-job-posting">
                 <h2>Job Postings</h2>
-                <ul>
-                    {jobs.map(job => (
-                        <li key={job.job_id} onClick={() => handleJobClick(job)} className="job-card">
-                            <div className="job-metadata">
-                                <h3>{job.jobName || "Job Title Not Available"}</h3>
-                                <span>{job.typeOfWork || 'Full Time'}</span>
+
+                {/* Search Bar */}
+                <div className="search-container">
+                    <input
+                        type="text"
+                        className="search-bar"
+                        placeholder="Search for a job or country..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyPress={handleKeyPress} // Listen for "Enter" key press
+                    />
+                    <button className="search-button" onClick={handleSearch}>Search</button>
+                </div>
+
+                {/* Job Listings (Filtered or All) */}
+                <div className="job-listing">
+                    {filteredJobs.length > 0 ? (
+                        filteredJobs.map((job, index) => (
+                            <div
+                                key={job.job_id}
+                                onClick={() => handleJobClick(job)}
+                                className="job-card"
+                                style={{ width: 'calc(50% - 10px)' }} // 2 cards per row
+                            >
+                                <div className="job-metadata">
+                                    <h3>{job.jobName || "Job Title Not Available"}</h3>
+                                    <span>{job.typeOfWork || 'Full Time'}</span>
+                                </div>
+                                <p className="job-description">{job.description}</p>
+                                <p className="job-salary">Salary: ${job.salary}</p>
+                                <p className="job-country">Country: {job.country}</p>
                             </div>
-                            <p className="job-description">{job.description}</p>
-                            <p className="job-salary">Salary: ${job.salary}</p>
-                            <p className="job-country">Country: {job.country}</p>
-                        </li>
-                    ))}
-                </ul>
+                        ))
+                    ) : (
+                        <p>No matching job postings found</p>
+                    )}
+                </div>
             </div>
         </>
     );

@@ -1,19 +1,17 @@
 @font-face {
     font-family: 'Mulish';
     src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
-  }
+}
 
 @font-face {
     font-family: 'Roboto';
     src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
-  }
+}
 
-  .view-job-posting {
+.view-job-posting {
     display: flex;
-    justify-content: space-evenly; /* Equal spacing between cards */
-    align-items: center; /* Align vertically (if needed) */
-    flex-wrap: wrap; /* Allow wrapping if cards exceed container width */
-    gap: 20px; /* Add consistent spacing between cards */
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center align content */
     background-color: #f5f7fa;
     border-radius: 8px;
     padding: 20px;
@@ -21,95 +19,95 @@
     margin: 40px auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
-   
 }
 
 .view-job-posting h2 {
-    text-align: center;
     font-family: 'Roboto';
-    text-align: left;
     color: #333;
     margin-bottom: 20px;
-    padding-left: 10px;
 }
 
-.view-job-posting h3 {
-    font-family: 'Roboto';
-    margin: 0;
-    color: #007bff;
-    font-weight: bold;
-    font-size: 1.2em;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis; /* Adds ellipsis if text overflows */
-}
-
-
-.view-job-posting ul {
-    list-style: none;
-    padding: 0;
+.search-container {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping of items */
-    gap: 20px; /* Space between each card */
-    justify-content: center; /* Center the cards */
-    align-items: center; /* Align cards vertically if needed */
+    justify-content: center;
+    margin-bottom: 20px;
+    width: 100%;
 }
 
+.search-bar {
+    font-family: 'Mulish-Regular';
+    padding: 10px;
+    width: 70%;
+    font-size: 1em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+}
 
-.view-job-posting li {
+.search-button {
+    font-family: 'Mulish-Regular';
+    padding: 10px;
+    font-size: 1em;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    background-color: #0056b3;
+}
+
+.job-listing {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Space between job cards */
+    justify-content: center; /* Ensure cards are centered */
+    width: 100%;
+}
+
+.job-card {
     background-color: #ffffff;
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 500px; /* Adjusted for larger cards */
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth hover effect */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    width: calc(50% - 10px); /* Make each card take 50% of the row width */
+    min-width: 250px; /* Prevent shrinking below this width */
+    max-width: 600px; /* Optional: Prevent cards from getting too wide */
+    box-sizing: border-box; /* Ensure padding and width are accounted for */
 }
 
-.view-job-posting li:hover {
+.job-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.view-job-posting h3 {
-    margin: 0;
-    color: #007bff;
-    font-weight: bold;
-    font-size: 1.2em;
-}
 
-.view-job-posting p {
-    margin: 8px 0;
-    color: #555;
-    line-height: 1.4;
-}
-
-.view-job-posting .job-metadata {
+.job-metadata {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
 }
 
-.view-job-posting .job-metadata span {
+.job-metadata span {
     font-family: 'Mulish-Regular';
-    background-color: #e0f7fa;
-    color: #00796b;
-    border-radius: 12px;
-    padding: 5px 10px;
-    font-size: 0.85em;
-    font-weight: bold;
-}
-
-.view-job-posting .job-description {
-    margin-top: 10px;
-    color: #666;
+    color: #777;
     font-size: 0.9em;
 }
 
-.view-job-posting .job-salary,
-.view-job-posting .job-country {
-    font-family: 'Mulish-Regular';
-    font-size: 0.95em;
-    font-weight: bold;
+.job-description {
+    font-family: 'Roboto';
     color: #333;
+    margin-bottom: 10px;
+    font-size: 1em;
+}
+
+.job-salary,
+.job-country {
+    font-family: 'Roboto';
+    color: #333;
+    font-size: 1em;
+    margin-bottom: 5px;
 }
