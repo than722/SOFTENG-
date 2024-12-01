@@ -12,6 +12,8 @@ const Profile = () => {
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawReason, setWithdrawReason] = useState('');
   const [updatedData, setUpdatedData] = useState({
     firstName: '',
     lastName: '',
@@ -132,21 +134,48 @@ const Profile = () => {
   };
 
   const handleWithdrawApplication = () => {
-    if (window.confirm("Are you sure you want to withdraw your application? This will delete all submitted files.")) {
-      const url = `http://localhost:8081/api/users/${id}/withdraw`;
-
-      axios.delete(url)
-        .then(() => {
-          alert('Application withdrawn successfully. All files have been deleted.');
-          fetchProfile(); // Refresh profile data after withdrawal
-        })
-        .catch(error => {
-          console.error('Error withdrawing application:', error);
-          setError('Error withdrawing application. Please try again.');
-        });
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      alert('You are not authorized to perform this action. Please log in.');
+      navigate('/login'); // Redirect to login page if not authenticated
+      return;
     }
+    setIsWithdrawModalOpen(true); // Open the modal
+  };
+  
+
+  const handleWithdrawConfirm = () => {
+    if (!withdrawReason) {
+      alert("Please provide a reason for withdrawing the application.");
+      return;
+    }
+  
+    const authToken = localStorage.getItem('authToken');
+    const url = `http://localhost:8081/api/users/${id}/withdraw`;
+  
+    axios.post(url, { reason: withdrawReason }, {
+      headers: {
+        Authorization: `Bearer ${authToken}` // Include auth token
+      }
+    })
+      .then(() => {
+        alert('Application withdrawn successfully. All files have been deleted.');
+        fetchProfile();
+        setIsWithdrawModalOpen(false); // Close the modal
+        setWithdrawReason(''); // Reset the reason
+      })
+      .catch(error => {
+        console.error('Error withdrawing application:', error);
+        setError('Error withdrawing application. Please try again.');
+      });
   };
 
+  const handleWithdrawCancel = () => {
+    setIsWithdrawModalOpen(false); // Close the modal
+    setWithdrawReason(''); // Reset the reason
+  };
+  
+  
   if (error) {
     return <div>{error}</div>;
   }
@@ -294,6 +323,38 @@ const Profile = () => {
               <button onClick={handleSave}>Save</button>
               <button onClick={handleEditToggle}>Cancel</button>
             </div>
+                        {isWithdrawModalOpen && (
+              <div className="withdrawal-modal">
+                <div className="withdrawal-modal-content">
+                  <h2>Withdraw Application</h2>
+                  <label htmlFor="withdrawReason">Reason for Withdrawal:</label>
+                  <textarea
+                    id="withdrawReason"
+                    name="withdrawReason"
+                    value={withdrawReason}
+                    onChange={(e) => setWithdrawReason(e.target.value)}
+                    rows="5"
+                    cols="50"
+                    placeholder="Enter your reason here..."
+                  />
+                  <div className="withdrawal-modal-buttons">
+                    <button
+                      onClick={handleWithdrawConfirm}
+                      className="withdrawal-modal-confirm-button"
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      onClick={handleWithdrawCancel}
+                      className="withdrawal-modal-cancel-button"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </>
         ) : (
           <>
