@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -65,24 +65,30 @@ db.connect((err) => {
 
 // Middleware to verify user token
 const verifyUser = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.startsWith('Bearer ')
-      ? authHeader.split(' ')[1]
-      : req.cookies.token;
+  // Access the token from the cookies
+  const token = req.cookies.token;
 
   if (!token) {
-      return res.status(401).json({ message: "No token provided. Unauthorized access." });
+    return res.status(403).json({ error: 'Authentication token is missing. Please log in.' });
   }
 
-  jwt.verify(token, "our-jsonwebtoken-secret-key", (err, decoded) => {
-      if (err) {
-          return res.status(403).json({ message: "Invalid token. Forbidden access." });
-      }
-      req.userId = decoded.userId;
-      req.userType = decoded.userType;
-      next();
+  // Verify the token
+  jwt.verify(token, 'our-jsonwebtoken-secret-key', (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+
+    // Attach user information to the request object
+    req.userId = decoded.userId;  // Assuming decoded contains the userId
+    req.userType = decoded.userType;  // You can also store userType if needed
+    next();
   });
 };
+
+module.exports = verifyUser;
+
+
+
 
 app.use('/uploads', express.static('uploads'));
 
@@ -1118,8 +1124,99 @@ app.get("/api/applied-jobs/:employeeID", (req, res) => {
   });
 });
 
+app.post('/api/users/:userId/withdraw', verifyUser, (req, res) => {
+  const { userId } = req.params; // userId from URL (should be employee_id)
+  const { reason } = req.body;   // Withdrawal reason
 
+  // Step 1: Check if the userId matches the employee_id in the token
+  if (parseInt(userId) !== req.userId) {
+    return res.status(403).json({ error: "You are not authorized to withdraw this application." });
+  }
 
+  // Step 2: Fetch the applications_id for the employee using employee_id
+  db.query(
+    'SELECT applications_id FROM applications WHERE employee_id = ? LIMIT 1',
+    [req.userId], // Use employee_id from the token (req.userId)
+    (err, results) => {
+      if (err) {
+        console.error('Error fetching applications ID:', err);
+        return res.status(500).json({ error: "Error retrieving application information." });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "No application found for this employee." });
+      }
+
+      const applicationId = results[0].applications_id;
+
+      // Step 3: Insert the withdrawal request into the withdrawals table using employee_id
+      db.query(
+        'INSERT INTO withdrawals (employee_id, application_id, reason) VALUES (?, ?, ?)', // Using employee_id as foreign key
+        [req.userId, applicationId, reason],  // Insert the withdrawal request
+        (err, results) => {
+          if (err) {
+            console.error('Error inserting withdrawal request:', err);
+            return res.status(500).json({ error: "Error processing your withdrawal request." });
+          }
+
+          res.status(200).json({ message: "Withdrawal request submitted successfully." });
+        }
+      );
+    }
+  );
+});
+
+  // Fetch all withdrawal requests
+app.get('/api/admin/withdrawal-requests', (req, res) => {
+  // Fetch all withdrawal requests and join with the employee table to get the full name
+  db.query(
+    `
+    SELECT withdrawals.withdrawal_id, withdrawals.reason, withdrawals.withdrawn_at, withdrawals.employee_id, 
+           CONCAT(employee.firstName, ' ', employee.lastName) AS applicantName
+    FROM withdrawals
+    JOIN employee ON withdrawals.employee_id = employee.employee_id
+    ORDER BY withdrawals.withdrawn_at DESC
+    `,
+    (err, results) => {
+      if (err) {
+        console.error('Error fetching withdrawal requests:', err);
+        return res.status(500).json({ error: 'Error fetching withdrawal requests.' });
+      }
+
+      // Respond with the withdrawal requests
+      res.status(200).json(results);
+    }
+  );
+});
+  
+  // Approve or reject a withdrawal request
+  app.post('/api/admin/withdrawal-requests/:id', (req, res) => {
+    const { id } = req.params;
+    const { action } = req.body; // 'approve' or 'reject'
+  
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ error: 'Invalid action. Must be "approve" or "reject".' });
+    }
+  
+    // Update the status of the withdrawal request
+    db.query(
+      'UPDATE withdrawals SET status = ? WHERE withdrawal_id = ?',
+      [action === 'approve' ? 'Approved' : 'Rejected', id],
+      (err, result) => {
+        if (err) {
+          console.error('Error updating withdrawal request:', err);
+          return res.status(500).json({ error: 'Failed to process the withdrawal request.' });
+        }
+  
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ error: 'Withdrawal request not found.' });
+        }
+  
+        // Send success response
+        res.status(200).json({ message: `Withdrawal request ${action}ed successfully.` });
+      }
+    );
+  });
 
 
 

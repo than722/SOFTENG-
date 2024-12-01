@@ -1,99 +1,92 @@
-import React, { useState } from 'react';
-import './WithdrawnApplicants.css';
+import React, { useState, useEffect } from 'react';
+import './AdminWithdrawalRequests.css';
 import axios from 'axios';
 
-const WithdrawnApplicants = ({ userId, accountType, onWithdrawComplete }) => {
-  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const [withdrawReason, setWithdrawReason] = useState('');
+const AdminWithdrawalRequests = () => {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
-  const handleOpenModal = () => {
-    const authToken = localStorage.getItem('authToken');
-    if (!authToken) {
-      alert('You are not authorized to perform this action. Please log in.');
-      return;
-    }
-    setIsWithdrawModalOpen(true); // Open the modal
-  };
+  // Fetch withdrawal requests
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const response = await axios.get('http://localhost:8081/api/admin/withdrawal-requests');
+        setRequests(response.data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching withdrawal requests:', err);
+        setError('Failed to load withdrawal requests.');
+        setLoading(false);
+      }
+    };
 
-  const handleWithdrawConfirm = () => {
-    if (!withdrawReason) {
-      alert('Please provide a reason for withdrawing the application.');
-      return;
-    }
+    fetchRequests();
+  }, []);
 
-    const authToken = localStorage.getItem('authToken');
-    const url = `http://localhost:8081/api/users/${userId}/withdraw`;
-
-    axios
-      .post(
-        url,
-        { reason: withdrawReason, accountType },
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`, // Include auth token
-          },
-        }
-      )
-      .then(() => {
-        alert('Withdrawal request submitted successfully.');
-        setIsWithdrawModalOpen(false); // Close the modal
-        setWithdrawReason(''); // Reset the reason
-        if (onWithdrawComplete) onWithdrawComplete(); // Notify parent component
-      })
-      .catch((error) => {
-        console.error('Error submitting withdrawal request:', error);
-        setError('Error submitting withdrawal request. Please try again.');
+  // Approve or reject a request
+  const handleAction = async (id, action) => {
+    try {
+      const response = await axios.post(`http://localhost:8081/api/admin/withdrawal-requests/${id}`, {
+        action,
       });
+      setRequests((prevRequests) =>
+        prevRequests.map((req) =>
+          req.withdrawal_id === id ? { ...req, status: action === 'approve' ? 'Approved' : 'Rejected' } : req
+        )
+      );
+      alert(`Request ${action}ed successfully.`);
+    } catch (err) {
+      console.error('Error processing request:', err);
+      alert('Failed to process the request. Please try again.');
+    }
   };
 
-  const handleWithdrawCancel = () => {
-    setIsWithdrawModalOpen(false); // Close the modal
-    setWithdrawReason(''); // Reset the reason
-  };
+  if (loading) return <div>Loading withdrawal requests...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div>
-      <button onClick={handleOpenModal} className="withdraw-button">
-        Withdraw Application
-      </button>
-
-      {isWithdrawModalOpen && (
-        <div className="withdrawal-modal">
-          <div className="withdrawal-modal-content">
-            <h2>Withdraw Application</h2>
-            <label htmlFor="withdrawReason">Reason for Withdrawal:</label>
-            <textarea
-              id="withdrawReason"
-              name="withdrawReason"
-              value={withdrawReason}
-              onChange={(e) => setWithdrawReason(e.target.value)}
-              rows="5"
-              cols="50"
-              placeholder="Enter your reason here..."
-            />
-            {error && <p className="withdraw-error">{error}</p>}
-            {success && <p className="withdraw-success">{success}</p>}
-            <div className="withdrawal-modal-buttons">
-              <button
-                onClick={handleWithdrawConfirm}
-                className="withdrawal-modal-confirm-button"
-              >
-                Confirm
-              </button>
-              <button
-                onClick={handleWithdrawCancel}
-                className="withdrawal-modal-cancel-button"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+    <div className="admin-withdrawal-requests">
+      <h1>Withdrawal Requests</h1>
+      {requests.length === 0 ? (
+        <p>No withdrawal requests found.</p>
+      ) : (
+        <table className="withdrawal-requests-table">
+          <thead>
+            <tr>
+              <th>Applicant Name</th>
+              <th>Reason</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {requests.map((request) => (
+              <tr key={request.withdrawal_id}>
+                <td>{request.applicantName}</td>
+                <td>{request.reason}</td>
+                <td>{new Date(request.withdrawn_at).toLocaleDateString()}</td>
+                <td>{request.status}</td>
+                <td>
+                  {request.status === 'Pending' && (
+                    <>
+                      <button onClick={() => handleAction(request.withdrawal_id, 'approve')} className="approve-button">
+                        Approve
+                      </button>
+                      <button onClick={() => handleAction(request.withdrawal_id, 'reject')} className="reject-button">
+                        Reject
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
 };
 
-export default WithdrawnApplicants;
+export default AdminWithdrawalRequests;
