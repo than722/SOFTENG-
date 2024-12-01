@@ -42,7 +42,17 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('Invalid file type'), false);
+    }
+    cb(null, true);
+  },
+});
+
 
 // Connect to MySQL database
 db.connect((err) => {
@@ -76,10 +86,6 @@ const verifyUser = (req, res, next) => {
 
 
 // Protected route example that uses verifyUser middleware
-app.get('/', verifyUser, (req, res) => {
-  return res.json({ Status: "Success", name: req.name });
-});
-
 app.post(
   '/signup',
   upload.fields([
@@ -105,6 +111,7 @@ app.post(
       email,
       password,
       civilStatus,
+      birthday, // Added birthday field
     } = req.body;
 
     // Log received data and files
@@ -127,11 +134,13 @@ app.post(
       if (err) return res.status(500).json({ error: 'Internal server error', details: err.message });
 
       let sql, values;
+      const userBirthday = birthday || null; // If birthday is not provided, default to null
+
       if (accountType === 'employee') {
         sql = `
           INSERT INTO employee 
-          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, birthday) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         values = [
           lastName,
           firstName,
@@ -141,7 +150,7 @@ app.post(
           barangay,
           zipCode,
           mobileNumber,
-          civilStatus, // Corrected position
+          civilStatus,
           pictureUrl,
           resumeUrl,
           birthCertificateUrl,
@@ -150,12 +159,13 @@ app.post(
           marriageContractUrl,
           email,
           hashedPassword,
+          userBirthday, // Handle missing birthday
         ];
       } else if (accountType === 'employer') {
         sql = `
           INSERT INTO employer 
-          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, validId, email, password) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, validId, email, password, birthday) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         values = [
           lastName,
           firstName,
@@ -169,6 +179,7 @@ app.post(
           validIdUrl,
           email,
           hashedPassword,
+          userBirthday, // Handle missing birthday
         ];
       } else {
         return res.status(400).json({ error: 'Invalid account type' });
@@ -195,6 +206,7 @@ app.post(
     });
   }
 );
+
 
 
 
@@ -472,13 +484,16 @@ app.get('/api/users/:userId', (req, res) => {
   const { userId } = req.params;
   const { userType } = req.query; // Get userType from the query parameter
 
+  console.log('Received userType:', userType); // Debugging: Log the received userType
+  
+  // Validate the userType
   if (!userType || (userType !== 'employee' && userType !== 'employer')) {
     return res.status(400).json({ error: 'Invalid user type' });
   }
 
   const employeeQuery = `
     SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, picture, resume, 'employee' AS userType 
+           zipCode, mobileNumber, picture, resume, validId, birth_certificate, passport, marriage_contract, 'employee' AS userType 
     FROM employee 
     WHERE employee_id = ?`;
 
@@ -488,21 +503,38 @@ app.get('/api/users/:userId', (req, res) => {
     FROM employer 
     WHERE employer_id = ?`;
 
+  // Choose the query based on the userType
   const query = userType === 'employee' ? employeeQuery : employerQuery;
 
+  // Query the database
   db.query(query, [userId], (err, results) => {
     if (err) {
+      console.error('Database error:', err); // Log any database errors
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
+    // If a user was found
     if (results.length > 0) {
-      return res.json(results[0]);
+      const user = results[0];
+
+      // Append the correct uploads directory path for each file, only if the file exists
+      user.pictureUrl = user.picture ? `${user.picture}` : null;
+      user.resumeUrl = user.resume ? `${user.resume}` : null;
+      user.validIDUrl = user.validId ? `${user.validId}` : null;
+      user.birthcertificateUrl = user.birth_certificate ? `${user.birth_certificate}` : null;
+      user.passportUrl = user.passport ? `${user.passport}` : null;
+      user.marriagecontractUrl = user.marriage_contract ? `/uploads/${user.marriage_contract}` : null;
+
+      return res.json(user); // Return the user data as a response
     }
 
+    // If no user was found, return a 404 error
     res.status(404).json({ error: 'User not found' });
   });
 });
 
+
+// Route to serve uploaded files (e.g., picture, resume)
 app.get('/uploads/:fileName', (req, res) => {
   const { fileName } = req.params;
 
@@ -510,12 +542,31 @@ app.get('/uploads/:fileName', (req, res) => {
     return res.status(400).send('File name is required.');
   }
 
-  const filePath = path.join(__dirname, 'uploads', fileName);
+  // Sanitize the file name to prevent directory traversal attacks
+  const sanitizedFileName = path.basename(fileName);
+
+  // Use only the 'uploads' directory path
+  const filePath = path.join(__dirname, 'uploads', sanitizedFileName);
+
+  // Validate file existence
   if (!fs.existsSync(filePath)) {
     return res.status(404).send('File not found.');
   }
 
-  res.sendFile(filePath);
+  // Optional: Validate file extension
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
+  const fileExtension = path.extname(sanitizedFileName).toLowerCase();
+  if (!allowedExtensions.includes(fileExtension)) {
+    return res.status(400).send('Invalid file type.');
+  }
+
+  // Serve the file
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('Error while sending file:', err);
+      res.status(500).send('Could not send the file.');
+    }
+  });
 });
 
 

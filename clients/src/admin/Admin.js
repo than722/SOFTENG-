@@ -247,128 +247,137 @@ const Admin = () => {
             </div>
           )}
 
-          {showModal && selectedUser && (
-            <div className="modal-admin">
-              <div className="modal-content-admin">
-                <div className="profile-header">
-                  <h2>
-                    {selectedUser.firstName} {selectedUser.lastName}'s Profile
-                  </h2>
-                  {selectedUser.pictureUrl && (
-                    <div className="profile-picture">
-                      <img
-                        src={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`}
-                        alt="Profile"
-                      />
-                    </div>
-                  )}
-                </div>
-                <div className="profile-info">
-                  <p>
-                    <strong>ID:</strong> {selectedUser.id}
-                  </p>
-                  <p>
-                    <strong>First Name:</strong> {selectedUser.firstName}
-                  </p>
-                  <p>
-                    <strong>Last Name:</strong> {selectedUser.lastName}
-                  </p>
-                  <p>
-                    <strong>Province:</strong> {selectedUser.province}
-                  </p>
-                  <p>
-                    <strong>Municipality:</strong> {selectedUser.municipality}
-                  </p>
-                  <p>
-                    <strong>Barangay:</strong> {selectedUser.barangay}
-                  </p>
-                  <p>
-                    <strong>Zip Code:</strong> {selectedUser.zipCode}
-                  </p>
-                  <p>
-                    <strong>Mobile Number:</strong> {selectedUser.mobileNumber}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {selectedUser.email}
-                  </p>
-                  <p>
-                    <strong>Status:</strong>{' '}
-                    {selectedUser.progressId === 1 ? 'Active' : selectedUser.progressId === 2 ? 'Inactive' : 'Pending'}
-                  </p>
-                  <p>
-                    <strong>Resume:</strong>{' '}
-                    <a
-                      href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View Resume
-                    </a>
-                  </p>
-                  <p>
-                    <strong>Valid ID:</strong>{' '}
-                    <a
-                      href={`http://localhost:8081/uploads/${selectedUser.validIDUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View Valid ID
-                    </a>
-                  </p>
-                  <p>
-                    <strong>Birth Certificate:</strong>{' '}
-                    <a
-                      href={`http://localhost:8081/uploads/${selectedUser.birthcertificateUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View Birth Certificate
-                    </a>
-                  </p>
-                  {selectedUser.passportUrl ? (
-                      <p>
-                        <strong>Passport:</strong>{' '}
-                        <a
-                          href={`http://localhost:8081/uploads/${selectedUser.passportUrl}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          View Passport
-                        </a>
-                      </p>
-                    ) : null}
-                  <p>
-                    <strong>Picture:</strong>{' '}
-                    <a
-                      href={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View Picture
-                    </a>
-                  </p>
-                  {selectedUser.marriagecontractUrl ? (
-                      <p>
-                        <strong>Marriage Contract:</strong>{' '}
-                        <a
-                          href={`http://localhost:8081/uploads/${selectedUser.marriagecontractUrl}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          View Marriage Contract
-                        </a>
-                      </p>
-                    ) : null}
+{showModal && selectedUser && (
+  <div className="modal-admin">
+    <div className="modal-content-admin">
+      <div className="profile-header">
+        <h2>
+          {selectedUser.firstName} {selectedUser.lastName}'s Profile
+        </h2>
+        {selectedUser.pictureUrl && (
+          <div className="profile-picture">
+            <img
+              src={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`}
+              alt="Profile"
+            />
+          </div>
+        )}
+      </div>
+      <div className="profile-info">
+        <p>
+          <strong>ID:</strong> {selectedUser.id}
+        </p>
+        <p>
+          <strong>First Name:</strong> {selectedUser.firstName}
+        </p>
+        <p>
+          <strong>Last Name:</strong> {selectedUser.lastName}
+        </p>
+        <p>
+          <strong>Province:</strong> {selectedUser.province}
+        </p>
+        <p>
+          <strong>Municipality:</strong> {selectedUser.municipality}
+        </p>
+        <p>
+          <strong>Barangay:</strong> {selectedUser.barangay}
+        </p>
+        <p>
+          <strong>Zip Code:</strong> {selectedUser.zipCode}
+        </p>
+        <p>
+          <strong>Mobile Number:</strong> {selectedUser.mobileNumber}
+        </p>
+        <p>
+          <strong>Email:</strong> {selectedUser.email}
+        </p>
+        <p>
+          <strong>Status:</strong>{' '}
+          {selectedUser.progressId === 1
+            ? 'Active'
+            : selectedUser.progressId === 2
+            ? 'Inactive'
+            : 'Pending'}
+        </p>
+        <p>
+          <strong>Resume:</strong>{' '}
+          <a
+            href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Resume
+          </a>
+        </p>
+        <p>
+          <strong>Valid ID:</strong>{' '}
+          <a
+            href={`http://localhost:8081/uploads/${selectedUser.validIDUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Valid ID
+          </a>
+        </p>
+        <p>
+          <strong>Birth Certificate:</strong>{' '}
+          <a
+            href={`http://localhost:8081/uploads/${selectedUser.birthcertificateUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Birth Certificate
+          </a>
+        </p>
+        
+        {/* Optional Passport */}
+        {selectedUser.passportUrl && (
+          <p>
+            <strong>Passport:</strong>{' '}
+            <a
+              href={`http://localhost:8081/uploads/${selectedUser.passportUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View Passport
+            </a>
+          </p>
+        )}
 
-                </div>
-                <div className="modal-buttons">
-                  <button onClick={acceptUser}>Accept</button>
-                  <button onClick={rejectUser}>Reject</button>
-                  <button onClick={closeModal}>Close</button>
-                </div>
-              </div>
-            </div>
-          )}
+        <p>
+          <strong>Picture:</strong>{' '}
+          <a
+            href={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Picture
+          </a>
+        </p>
+
+        {/* Optional Marriage Contract */}
+        {selectedUser.marriagecontractUrl && (
+          <p>
+            <strong>Marriage Contract:</strong>{' '}
+            <a
+              href={`http://localhost:8081/uploads/${selectedUser.marriagecontractUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View Marriage Contract
+            </a>
+          </p>
+        )}
+      </div>
+      <div className="modal-buttons">
+        <button onClick={acceptUser}>Accept</button>
+        <button onClick={rejectUser}>Reject</button>
+        <button onClick={closeModal}>Close</button>
+      </div>
+    </div>
+  </div>
+)}
+
         </>
       )}
     </div>
