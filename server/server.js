@@ -84,8 +84,8 @@ const verifyUser = (req, res, next) => {
   });
 };
 
+app.use('/uploads', express.static('uploads'));
 
-// Protected route example that uses verifyUser middleware
 app.post(
   '/signup',
   upload.fields([
@@ -93,26 +93,25 @@ app.post(
     { name: 'resume', maxCount: 1 },
     { name: 'birth_certificate', maxCount: 1 },
     { name: 'validId', maxCount: 1 },
-    { name: 'passport', maxCount: 1 },
-    { name: 'marriage_contract', maxCount: 1 },
+    { name: 'passport', maxCount: 1 },  // Optional
+    { name: 'marriage_contract', maxCount: 1 },  // Optional
   ]),
   (req, res) => {
-    const {
-      accountType,
-      lastName,
-      firstName,
-      middleName,
-      province,
-      municipality,
-      barangay,
-      zipCode,
-      mobileNumber,
-      companyName,
-      email,
-      password,
-      civilStatus,
-      birthday, // Added birthday field
-    } = req.body;
+    // Ensure accountType is present in the body
+    const { accountType, lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, email, password, civilStatus, birthday } = req.body;
+
+    if (!accountType) {
+      return res.status(400).json({ error: 'Account type is required.' });
+    }
+
+    if (!['employee', 'employer'].includes(accountType)) {
+      return res.status(400).json({ error: 'Invalid account type.' });
+    }
+
+    // Validate other required fields
+    if (!lastName || !firstName || !email || !password) {
+      return res.status(400).json({ error: 'Required fields missing' });
+    }
 
     // Log received data and files
     console.log('Received signup data:', req.body);
@@ -125,22 +124,37 @@ app.post(
     const pictureUrl = req.files['picture']?.[0]?.filename || null;
     const resumeUrl = req.files['resume']?.[0]?.filename || null;
 
-    // Validate required fields
-    if (civilStatus === 'Married' && !marriageContractUrl) {
+    // Validate required fields for married users (only if married)
+    if (civilStatus === 'married' && !marriageContractUrl) {
       return res.status(400).json({ error: 'Marriage contract is required for married users.' });
     }
 
+    // Validate birthday between 23 and 45 years ago
+    const today = new Date();
+    const minDate = new Date(today.getFullYear() - 45, today.getMonth(), today.getDate());
+    const maxDate = new Date(today.getFullYear() - 23, today.getMonth(), today.getDate());
+    const selectedBirthday = new Date(birthday);
+    if (selectedBirthday < minDate || selectedBirthday > maxDate) {
+      return res.status(400).json({ error: 'Birthday must indicate an age between 23 and 45.' });
+    }
+
+    // Hash the password
     bcrypt.hash(password, 10, (err, hashedPassword) => {
-      if (err) return res.status(500).json({ error: 'Internal server error', details: err.message });
+      if (err) {
+        console.error("Error during password hashing:", err);
+        return res.status(500).json({ error: 'Internal server error', details: err.message });
+      }
 
       let sql, values;
-      const userBirthday = birthday || null; // If birthday is not provided, default to null
+      const userBirthday = birthday || null; // Handle missing birthday
 
+      // Insert data based on account type
       if (accountType === 'employee') {
         sql = `
           INSERT INTO employee 
           (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, birthday) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
         values = [
           lastName,
           firstName,
@@ -155,17 +169,18 @@ app.post(
           resumeUrl,
           birthCertificateUrl,
           validIdUrl,
-          passportUrl,
-          marriageContractUrl,
+          passportUrl,  // Optional passport
+          marriageContractUrl, // Optional marriage contract
           email,
           hashedPassword,
-          userBirthday, // Handle missing birthday
+          userBirthday,
         ];
       } else if (accountType === 'employer') {
         sql = `
           INSERT INTO employer 
           (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, companyName, validId, email, password, birthday) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
         values = [
           lastName,
           firstName,
@@ -179,21 +194,23 @@ app.post(
           validIdUrl,
           email,
           hashedPassword,
-          userBirthday, // Handle missing birthday
+          userBirthday,
         ];
       } else {
         return res.status(400).json({ error: 'Invalid account type' });
       }
 
+      // Insert into the employee/employer table
       db.query(sql, values, (err, results) => {
         if (err) {
-          console.error('Database error:', err);
+          console.error('Database error during insert:', err);
           return res.status(500).json({ error: 'Database error', details: err.message });
         }
 
         const userId = results.insertId;
         const userType = accountType === 'employee' ? 'employee' : 'employer';
 
+        // Insert into the user table
         const userSql = 'INSERT INTO user (user_type, employee_id, employer_id) VALUES (?, ?, ?)';
         db.query(userSql, [userType, userType === 'employee' ? userId : null, userType === 'employer' ? userId : null], (err) => {
           if (err) {
@@ -523,7 +540,7 @@ app.get('/api/users/:userId', (req, res) => {
       user.validIDUrl = user.validId ? `${user.validId}` : null;
       user.birthcertificateUrl = user.birth_certificate ? `${user.birth_certificate}` : null;
       user.passportUrl = user.passport ? `${user.passport}` : null;
-      user.marriagecontractUrl = user.marriage_contract ? `/uploads/${user.marriage_contract}` : null;
+      user.marriagecontractUrl = user.marriage_contract ? `${user.marriage_contract}` : null;
 
       return res.json(user); // Return the user data as a response
     }
@@ -801,7 +818,6 @@ app.get('/api/applicants/:applicationId', (req, res) => {
       return res.status(400).send("Missing applicationId.");
   }
 
-  // Step 1: Get the employee_id corresponding to the application_id
   const getEmployeeIdQuery = `
       SELECT employee_id
       FROM applications
@@ -818,9 +834,8 @@ app.get('/api/applicants/:applicationId', (req, res) => {
           return res.status(404).send("Application not found.");
       }
 
-      const employeeId = results[0].employee_id; // Get the employee_id from the applications table
+      const employeeId = results[0].employee_id;
 
-      // Step 2: Use the employee_id to fetch the corresponding details from the employees table
       const getEmployeeDetailsQuery = `
           SELECT 
               e.employee_id, 
@@ -849,14 +864,19 @@ app.get('/api/applicants/:applicationId', (req, res) => {
               return res.status(404).send("Employee details not found.");
           }
 
+          // Log employee data and file URLs
           const employee = employeeResults[0];
+          console.log("Employee details:", employee);
+          
+          const pictureUrl = employee.picture ? `/uploads/${employee.picture}` : null;
+          const resumeUrl = employee.resume ? `/uploads/${employee.resume}` : null;
+          const valid_id_Url = employee.validId ? `/uploads/${employee.validId}` : null;
 
-          // Convert BLOB data to Base64
-          const pictureBase64 = employee.picture ? Buffer.from(employee.picture).toString('base64') : null;
-          const resumeBase64 = employee.resume ? Buffer.from(employee.resume).toString('base64') : null;
-          const validIdBase64 = employee.validId ? Buffer.from(employee.validId).toString('base64') : null;
+          // Log the file URLs for debugging
+          console.log("Picture URL:", pictureUrl);
+          console.log("Resume URL:", resumeUrl);
+          console.log("Valid ID URL:", valid_id_Url);
 
-          // Map the status_id to human-readable status
           let status = '';
           switch (employee.status_id) {
               case 1:
@@ -873,17 +893,27 @@ app.get('/api/applicants/:applicationId', (req, res) => {
                   break;
           }
 
-          // Return the employee details with the Base64 data and mapped status
+          // Log the response data
+          console.log("Sending response with employee details:", {
+              ...employee,
+              status: status,
+              picture_url: pictureUrl,
+              resume_url: resumeUrl,
+              valid_id_url: valid_id_Url,
+          });
+
           res.json({
               ...employee,
-              status: status,  // Add the status field
-              picture_base64: pictureBase64,
-              resume_base64: resumeBase64,
-              valid_id_base64: validIdBase64,
+              status: status,
+              picture_url: pictureUrl,
+              resume_url: resumeUrl,
+              valid_id_url: valid_id_Url,
           });
       });
   });
 });
+
+
 
 app.put('/api/employees/:employeeId/hire', (req, res) => {
   const { employeeId } = req.params;

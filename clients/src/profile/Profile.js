@@ -166,6 +166,24 @@ const fetchProfile = useCallback(() => {
     }
   };
 
+<<<<<<< HEAD
+  const handleWithdrawApplication = () => {
+    if (window.confirm("Are you sure you want to withdraw your application? This will delete all submitted files.")) {
+      const url = `http://localhost:8081/api/users/${id}/withdraw`;
+
+      axios.delete(url)
+        .then(() => {
+          alert('Application withdrawn successfully. All files have been deleted.');
+          fetchProfile(); // Refresh profile data after withdrawal
+        })
+        .catch(error => {
+          console.error('Error withdrawing application:', error); 
+          setError('Error withdrawing application. Please try again.');
+        });
+    }
+  };
+=======
+>>>>>>> 65bbce80bc469426b18f97c0e4f61106bbe8e67d
 
   
   

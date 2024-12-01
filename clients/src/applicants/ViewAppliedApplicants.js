@@ -136,7 +136,6 @@ function ViewAppliedApplicants() {
         }
     };
     
-    
     if (loading) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;
 
@@ -166,58 +165,39 @@ function ViewAppliedApplicants() {
                     <p><strong>Status:</strong> {getStatusLabel(selectedApplicant.status_id)}</p>
                     <h4>Uploaded Documents:</h4>
                     <ul>
-                        {selectedApplicant.picture_base64 && (
+                    {selectedApplicant.picture_url && (
                             <li>
                                 <h5>Picture:</h5>
                                 <img 
-                                    src={selectedApplicant.picture_base64} 
+                                    src={`http://localhost:8081${selectedApplicant.picture_url}`} 
                                     alt="Applicant Picture" 
                                     style={{ maxWidth: '300px', maxHeight: '300px' }} 
                                 />
-                                <br />
-                                <a 
-                                    href={selectedApplicant.picture_base64} 
-                                    download="applicant_picture.jpg"
-                                >
-                                    Download Picture
-                                </a>
                             </li>
                         )}
-                        {selectedApplicant.resume_base64 && (
+
+                        {selectedApplicant.resume_url && (
                             <li>
                                 <h5>Resume:</h5>
                                 <a 
-                                    href={selectedApplicant.resume_base64} 
+                                    href={`http://localhost:8081${selectedApplicant.resume_url}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                 >
                                     View Resume
                                 </a>
-                                <br />
-                                <a 
-                                    href={selectedApplicant.resume_base64} 
-                                    download="resume.pdf"
-                                >
-                                    Download Resume
-                                </a>
                             </li>
                         )}
-                        {selectedApplicant.validId_base64 && (
+
+                        {selectedApplicant.valid_id_url && (
                             <li>
                                 <h5>Valid ID:</h5>
                                 <a 
-                                    href={selectedApplicant.validId_base64} 
+                                    href={`http://localhost:8081${selectedApplicant.valid_id_url}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
                                 >
                                     View Valid ID
-                                </a>
-                                <br />
-                                <a 
-                                    href={selectedApplicant.validId_base64} 
-                                    download="valid_id.jpg"
-                                >
-                                    Download Valid ID
                                 </a>
                             </li>
                         )}
