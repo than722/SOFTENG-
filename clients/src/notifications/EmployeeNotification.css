@@ -1,0 +1,51 @@
+.notification-employee-container {
+    margin: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+  
+  .notification-employee-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .notification-employee-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .notification-message {
+    max-width: 80%;
+  }
+  
+  .notification-message p {
+    margin: 0;
+    font-size: 16px;
+  }
+  
+  .notification-type {
+    font-size: 12px;
+    color: #888;
+  }
+  
+  .mark-as-read-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .mark-as-read-button:hover {
+    background-color: #0056b3;
+  }
+  

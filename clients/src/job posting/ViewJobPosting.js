@@ -27,6 +27,30 @@ function ViewJobPosting() {
         window.location.href = '/login'; // Redirect to login page
     };
 
+    const ViewJobPosting = () => {
+        const [unreadCount, setUnreadCount] = useState(0);
+        const userId = localStorage.getItem('userId'); // Employer ID
+    
+        useEffect(() => {
+            // Fetch the unread notification count for the employer
+            axios
+                .get(`http://localhost:8081/api/employers/${userId}/notifications/unread-count`)
+                .then((response) => {
+                    setUnreadCount(response.data.unreadCount);
+                })
+                .catch((error) => {
+                    console.error('Error fetching unread notification count:', error);
+                });
+        }, [userId]);
+    
+        return (
+            <>
+                <HeaderEmployer userId={userId} unreadCount={unreadCount} />
+                {/* Other components */}
+            </>
+        );
+    };
+
     useEffect(() => {
         // Fetch all job postings
         axios.get('http://localhost:8081/api/job_postings')

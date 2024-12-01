@@ -19,6 +19,7 @@ const HeaderEmployee = ({ userId, auth, onSignOut }) => {
           {userId && (
             <li><Link to={`/profile/${userId}/employee`}>Profile</Link></li>
           )}
+          <li><Link to="/notifications">Notifications</Link></li>
           </ul>
       </nav>
       <div className="header-employee-button">

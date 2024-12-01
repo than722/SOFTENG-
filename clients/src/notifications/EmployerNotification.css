@@ -1,0 +1,30 @@
+.employer-notification-container {
+    padding: 20px;
+  }
+  
+  .notification-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .notification-item {
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    border-radius: 5px;
+  }
+  
+  .notification-item.unread {
+    background-color: #f9f9f9;
+  }
+  
+  .notification-item.read {
+    background-color: #e9e9e9;
+  }
+  
+  .notification-item button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
