@@ -16,7 +16,8 @@ const HeaderEmployer = ({ userId, auth, onSignOut }) => {
           <li><Link to="/add-job">Add Job Posting</Link></li>
           <li><Link to="/view-job">View Job Posting</Link></li>
           <li><Link to={`/view-applied-applicants/${userId}`}>View Applied Applicants</Link></li>
-          {auth && userId && (
+          {/* Always show Profile button if userId is available */}
+          {userId && (
             <li><Link to={`/profile/${userId}/employer`}>Profile</Link></li>
           )}
         </ul>

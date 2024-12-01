@@ -1,0 +1,44 @@
+.profile-deficiencies-container {
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+  }
+  
+  .deficiencies-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .deficiency-item {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+  }
+  
+  .deficiency-action {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+  
+  .file-upload-input {
+    margin-right: 10px;
+  }
+  
+  .submit-button {
+    padding: 5px 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .submit-button:hover {
+    background-color: #45a049;
+  }
+  

@@ -119,12 +119,11 @@ function ViewJobPosting() {
 
     return (
         <>
-            {/* Dynamically render the header */}
-            {userType === 'employer' ? (
-                <HeaderEmployer userId={userId} onSignOut={handleSignOut} />
-            ) : (
-                <HeaderEmployee userId={userId} onSignOut={handleSignOut} />
-            )}
+                {userType === 'employer' ? (
+                    <HeaderEmployer userId={userId} onSignOut={handleSignOut} />
+                ) : (
+                    <HeaderEmployee userId={userId} onSignOut={handleSignOut} />
+                )}
 
             <div className="view-job-posting">
                 <h2>Job Postings</h2>
