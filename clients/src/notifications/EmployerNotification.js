@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './EmployerNotification.css';
+import './EmployerNotification.css'; // Optional: Add CSS for styling
 
 const EmployerNotification = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const userId = localStorage.getItem('userId'); // Get employer ID from localStorage
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch notifications for the employer
     axios
       .get(`http://localhost:8081/api/employers/${userId}/notifications`)
       .then((response) => {
-        setNotifications(response.data);
+        // Format applyDate into a valid date string
+        const formattedNotifications = response.data.map((notification) => ({
+          ...notification,
+          applyDate: new Date(notification.applyDate).toLocaleString(),
+        }));
+        setNotifications(formattedNotifications);
         setLoading(false);
       })
       .catch((error) => {
@@ -25,7 +28,7 @@ const EmployerNotification = () => {
       });
   }, [userId]);
 
-  const markAsRead = (notificationId, applicationId) => {
+  const markAsRead = (notificationId) => {
     axios
       .post(`http://localhost:8081/api/notifications/${notificationId}/mark-as-read`)
       .then(() => {
@@ -36,8 +39,6 @@ const EmployerNotification = () => {
               : notification
           )
         );
-        // Redirect to applicant details using applicationId
-        navigate(`/employee-details/${applicationId}`);
       })
       .catch((error) => {
         console.error('Error marking notification as read:', error);
@@ -58,10 +59,14 @@ const EmployerNotification = () => {
             <li
               key={notification.id}
               className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-              onClick={() => markAsRead(notification.id, notification.id)} // Using notification.id as applicationId
             >
               <p>{notification.message}</p>
-              <p><small>{new Date(notification.createdAt).toLocaleString()}</small></p>
+              <p>
+                <small>Applied on: {notification.applyDate}</small>
+              </p>
+              {!notification.read && (
+                <button onClick={() => markAsRead(notification.id)}>Mark as Read</button>
+              )}
             </li>
           ))}
         </ul>
