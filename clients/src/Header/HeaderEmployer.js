@@ -14,7 +14,7 @@ const HeaderEmployer = ({ userId, unreadCount, onSignOut }) => {
                     <li><a href="#vision">VISION</a></li>
                     <li><a href="#mission">MISSION</a></li>
                     <li><Link to="/add-job">Add Job Posting</Link></li>
-                    <li><Link to="/view-job">View Job Posting</Link></li>
+                    <li><Link to="/employer-view-job-postings">View Job Posting</Link></li>
                     <li><Link to={`/view-applied-applicants/${userId}`}>View Applied Applicants</Link></li>
                     {/* Always show Profile button if userId is available */}
                     {userId && (

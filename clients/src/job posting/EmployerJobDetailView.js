@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './EmployerJobDetailView.css';
 import axios from 'axios';
 
 function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsError, onEdit, onDelete }) {
+    const [isCreator, setIsCreator] = useState(false); // Track if the logged-in employer is the creator
+    const userId = localStorage.getItem('userId'); // Get the logged-in employer's ID
+
+    useEffect(() => {
+        if (jobDetails && userId) {
+            // Check if the logged-in employer is the creator of the job
+            setIsCreator(jobDetails.employerId === parseInt(userId)); // Compare job's employer ID with logged-in user's ID
+        }
+    }, [jobDetails, userId]);
+
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
@@ -12,15 +22,14 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
     const handleDelete = async () => {
         try {
             const token = localStorage.getItem('authToken'); // Assuming the token is stored in localStorage
-            const employerId = localStorage.getItem('userId'); // Get employer ID from localStorage
-            if (!employerId) {
+            if (!userId) {
                 alert('User not logged in');
                 return;
             }
             const response = await axios.delete(`/api/jobs/${jobDetails.job_id}`, {
                 headers: {
-                    Authorization: `Bearer ${token}` // Send the token for authentication
-                }
+                    Authorization: `Bearer ${token}`, // Send the token for authentication
+                },
             });
 
             if (response.status === 200) {
@@ -60,10 +69,12 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
                 <h3>Job Overview</h3>
                 <p>{jobDetails.jobOverview}</p>
             </div>
-            <div className="job-actions">
-                <button onClick={() => onEdit(jobDetails.job_id)} className="edit-button">Edit</button>
-                <button onClick={handleDelete} className="delete-button">Delete</button>
-            </div>
+            {isCreator && ( // Show buttons only if the logged-in employer is the creator
+                <div className="job-actions">
+                    <button onClick={() => onEdit(jobDetails.job_id)} className="edit-button">Edit</button>
+                    <button onClick={handleDelete} className="delete-button">Delete</button>
+                </div>
+            )}
         </div>
     );
 }

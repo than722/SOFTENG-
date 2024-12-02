@@ -682,6 +682,20 @@ app.get('/api/job_postings', (req, res) => {
   });
 });
 
+// Route to get job postings created by the current employer
+app.get('/api/employers/:employerId/jobs', (req, res) => {
+  const employerId = req.params.employerId;
+  const sql = 'SELECT * FROM job_postings WHERE employer_id = ?';
+
+  db.query(sql, [employerId], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error', details: err.message });
+    }
+    res.json(results);
+  });
+});
+
+
 // Route to get a job posting by ID (continuation from where it was cut off)
 app.get('/api/job_postings/:id', (req, res) => {
   const { id } = req.params;
