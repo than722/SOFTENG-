@@ -2,10 +2,22 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './EmployeeNotification.css';
 
-const EmployeeNotification = ({ userId }) => {
+const EmployeeNotification = () => {
+  const [userId, setUserId] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Fetch userId from localStorage
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) {
+      setUserId(parseInt(storedUserId, 10));
+    } else {
+      setError('User ID not found. Please log in.');
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
