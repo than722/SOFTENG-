@@ -1246,7 +1246,7 @@ app.get('/api/admin/withdrawal-requests', (req, res) => {
     );
   });
 
-  // API to fetch notifications based on employee_id
+// API to fetch notifications based on employee_id
 app.get('/api/notifications/:employeeId', (req, res) => {
   const employeeId = parseInt(req.params.employeeId, 10);
 
@@ -1257,9 +1257,12 @@ app.get('/api/notifications/:employeeId', (req, res) => {
   const query = `
     SELECT 
       applications.status_id,
+      job_postings.jobName,
+      employer.firstName AS employer_first_name,  -- Corrected to firstName
+      employer.lastName AS employer_last_name,    -- Corrected to lastName
       CASE 
-        WHEN applications.status_id = 4 THEN 'You have been hired!'
-        WHEN applications.status_id = 5 THEN 'Your application has been rejected.'
+        WHEN applications.status_id = 4 THEN CONCAT('You have been hired by ', employer.firstName, ' ', employer.lastName, ' for the position of ', job_postings.jobName)
+        WHEN applications.status_id = 5 THEN CONCAT('Your application for the position of ', job_postings.jobName, ' has been rejected.')
         ELSE NULL
       END AS message,
       CASE 
@@ -1268,6 +1271,8 @@ app.get('/api/notifications/:employeeId', (req, res) => {
         ELSE 'general'
       END AS type
     FROM applications
+    INNER JOIN job_postings ON applications.job_id = job_postings.job_id
+    INNER JOIN employer ON job_postings.employer_id = employer.employer_id
     WHERE applications.employee_id = ? AND applications.status_id IN (4, 5)
   `;
 
@@ -1278,7 +1283,7 @@ app.get('/api/notifications/:employeeId', (req, res) => {
     }
 
     const notifications = results.map((row) => ({
-      id: row.status_id, // You can modify this based on your table structure
+      id: row.status_id, // Adjust the notification ID accordingly
       message: row.message,
       type: row.type,
     }));
@@ -1286,6 +1291,8 @@ app.get('/api/notifications/:employeeId', (req, res) => {
     res.json(notifications);
   });
 });
+
+  
 
 // API to mark a notification as read
 app.delete('/api/notifications/:notificationId', (req, res) => {

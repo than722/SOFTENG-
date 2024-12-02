@@ -37,7 +37,7 @@ const EmployeeNotification = () => {
   const handleMarkAsRead = (notificationId) => {
     axios
       .delete(`http://localhost:8081/api/notifications/${notificationId}`, {
-        params: { userType: 'employee' }, // Specify userType as 'employee'
+        params: { userType: 'employee' },
       })
       .then(() => {
         setNotifications((prev) =>
