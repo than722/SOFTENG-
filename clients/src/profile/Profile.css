@@ -16,6 +16,7 @@ body, html {
   align-items: center;
   min-height: 100vh; /* Allow content to expand beyond viewport */
   overflow-x: hidden; /* Prevent horizontal scrolling */
+
 }
 
 .profile-container {

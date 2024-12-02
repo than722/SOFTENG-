@@ -1,26 +1,25 @@
 /* Ensure the main content starts below the header */
 .main-content {
-    margin-top: 80px; /* Adjust to match the height of your header */
-    padding: 20px;
+    margin-top: 0px; /* Adjust to match the height of your header */
     box-sizing: border-box;
     background-color: #0047ab; /* Matches your blue background */
-    min-height: 100vh; /* Ensures the content fills the screen */
+    min-height: 90vh    ; /* Ensures the content fills the screen */
 }
 
 /* Existing styles for Add Job Posting */
 .add-job-posting {
     background-color: #ffffff;
     border-radius: 8px;
-    padding: 20px;
-    max-width: 500px;
+    padding: 10px;
+    min-width: 300px;
     margin: 0 auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .add-job-posting h2 {
     font-family: 'Roboto';
-    font-size: 24px;
-    margin-bottom: 20px;
+    font-size: 20px;
+    margin-bottom: 5px;
     color: #333;
     text-align: center;
 }
@@ -36,7 +35,7 @@
 
 .add-job-posting label {
     font-family: 'Mulish-Regular';
-    font-size: 14px;
+    font-size: 12px;
     margin-bottom: 5px;
     color: #555;
 }
@@ -46,7 +45,7 @@
     font-family: 'Mulish-Regular';
     width: 100%;
     padding: 10px;
-    font-size: 14px;
+    font-size: 12px;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
@@ -54,7 +53,7 @@
 
 .add-job-posting textarea {
     resize: vertical;
-    height: 100px;
+    height: 80px;
 }
 
 .add-job-posting button {

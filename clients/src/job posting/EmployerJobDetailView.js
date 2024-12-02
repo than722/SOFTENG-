@@ -3,6 +3,7 @@ import './EmployerJobDetailView.css';
 import axios from 'axios';
 
 function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsError, onEdit, onDelete }) {
+
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
@@ -11,15 +12,15 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
 
     const handleDelete = async () => {
         try {
-            const token = localStorage.getItem('authToken'); // Assuming the token is stored in localStorage
-            const employerId = localStorage.getItem('userId'); // Get employer ID from localStorage
+            const token = localStorage.getItem('authToken'); // Token from localStorage
+            const employerId = localStorage.getItem('userId'); // Employer ID from localStorage
             if (!employerId) {
                 alert('User not logged in');
                 return;
             }
             const response = await axios.delete(`/api/jobs/${jobDetails.job_id}`, {
                 headers: {
-                    Authorization: `Bearer ${token}` // Send the token for authentication
+                    Authorization: `Bearer ${token}` // Send token for authentication
                 }
             });
 
@@ -56,13 +57,15 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
                     <p>{formatDate(jobDetails.datePosted)}</p>
                 </div>
             </div>
-            <div className="job-overview">
-                <h3>Job Overview</h3>
-                <p>{jobDetails.jobOverview}</p>
-            </div>
-            <div className="job-actions">
-                <button onClick={() => onEdit(jobDetails.job_id)} className="edit-button">Edit</button>
-                <button onClick={handleDelete} className="delete-button">Delete</button>
+            <div className='space'>
+                <div className="job-overview">
+                    <h3>Job Overview</h3>
+                    <h6 className="overviewp">{jobDetails.jobOverview}</h6>
+                </div>
+                <div className="job-actions">
+                    <button onClick={() => onEdit(jobDetails.job_id)} className="edit-button">Edit</button>
+                    <button onClick={handleDelete} className="delete-button">Delete</button>
+                </div>
             </div>
         </div>
     );

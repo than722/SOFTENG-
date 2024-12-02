@@ -155,19 +155,22 @@ function ViewAppliedApplicants() {
 
             {selectedApplicant ? (
                 <div className="applicant-details-container">
-                    <button onClick={() => setSelectedApplicant(null)}>Back to List</button>
+                    <button className='backDetails' onClick={() => setSelectedApplicant(null)}>Back to List</button>
                     <h3>{selectedApplicant.firstName} {selectedApplicant.lastName}</h3>
-                    <p><strong>Email:</strong> {selectedApplicant.email}</p>
-                    <p><strong>Province:</strong> {selectedApplicant.province}</p>
-                    <p><strong>Municipality:</strong> {selectedApplicant.municipality}</p>
-                    <p><strong>Barangay:</strong> {selectedApplicant.barangay}</p>
-                    <p><strong>Zip Code:</strong> {selectedApplicant.zipCode}</p>
-                    <p><strong>Status:</strong> {getStatusLabel(selectedApplicant.status_id)}</p>
-                    <h4>Uploaded Documents:</h4>
+                    <div className='details'>
+                        <p><strong>Email:</strong> {selectedApplicant.email}</p>
+                        <p><strong>Province:</strong> {selectedApplicant.province}</p>
+                        <p><strong>Municipality:</strong> {selectedApplicant.municipality}</p>
+                        <p><strong>Barangay:</strong> {selectedApplicant.barangay}</p>
+                        <p><strong>Zip Code:</strong> {selectedApplicant.zipCode}</p>
+                        <p><strong>Status:</strong> {getStatusLabel(selectedApplicant.status_id)}</p>    
+                    </div>
+                    
+                    <h4 className='uploaded'>Uploaded Documents:</h4>
                     <ul>
                     {selectedApplicant.picture_url && (
                             <li>
-                                <h5>Picture:</h5>
+                                <h5 className='documents'>Picture:</h5>
                                 <img 
                                     src={`http://localhost:8081${selectedApplicant.picture_url}`} 
                                     alt="Applicant Picture" 
@@ -178,8 +181,8 @@ function ViewAppliedApplicants() {
 
                         {selectedApplicant.resume_url && (
                             <li>
-                                <h5>Resume:</h5>
-                                <a 
+                                <h5 className='documents'>Resume:</h5>
+                                <a className='download'
                                     href={`http://localhost:8081${selectedApplicant.resume_url}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
@@ -191,8 +194,8 @@ function ViewAppliedApplicants() {
 
                         {selectedApplicant.valid_id_url && (
                             <li>
-                                <h5>Valid ID:</h5>
-                                <a 
+                                <h5 className='documents'>Valid ID:</h5>
+                                <a className='download'
                                     href={`http://localhost:8081${selectedApplicant.valid_id_url}`} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
@@ -227,11 +230,11 @@ function ViewAppliedApplicants() {
                                 <li key={applicant.applications_id} className="applicant-card">
                                     <div className="applicant-overview">
                                         <h3>{applicant.firstName} {applicant.lastName}</h3>
-                                        <p><strong>Email:</strong> {applicant.email}</p>
-                                        <p><strong>Job:</strong> {applicant.jobName}</p>
-                                        <p><strong>Applied on:</strong> {new Date(applicant.apply_date).toLocaleDateString()}</p>
-                                        <p><strong>Status:</strong> {getStatusLabel(applicant.status_id)}</p>
-                                        <button onClick={() => viewDetails(applicant.applications_id)}>View Details</button>
+                                        <p className='details'><strong>Email:</strong> {applicant.email}</p>
+                                        <p className='details'><strong>Job:</strong> {applicant.jobName}</p>
+                                        <p className='details'><strong>Applied on:</strong> {new Date(applicant.apply_date).toLocaleDateString()}</p>
+                                        <p className='details'><strong>Status:</strong> {getStatusLabel(applicant.status_id)}</p>
+                                        <button className='viewDetails' onClick={() => viewDetails(applicant.applications_id)}>View Details</button>
                                     </div>
                                 </li>
                             ))}

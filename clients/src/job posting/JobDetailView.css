@@ -1,141 +1,126 @@
-/* src/JobDetailView.css */
 @font-face {
     font-family: 'Mulish';
     src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
-  }
+}
 
 @font-face {
     font-family: 'Roboto';
     src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
-  }
+}
+
 .job-detail-view {
     background-color: #ffffff;
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    max-width: 900px;
-    margin: 40px auto;
-}
-
-.job-detail-view .back-button {
-    background: none;
+    min-width: 500px;
+    min-height: 500px;
+    font-family: 'Mulish-Regular';
     border: none;
     color: #007bff;
     cursor: pointer;
     margin-bottom: 20px;
     font-size: 0.9em;
-    text-decoration: underline;
 }
 
-.job-detail-view h2 {
-    font-family: 'Roboto';
-    color: #003366;
-    font-size: 2em;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.job-detail-view .login-prompt {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #555;
-}
-
-.job-detail-view .login-prompt a {
+.back-button {
     color: #007bff;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
     text-decoration: underline;
-    margin: 0 5px;
+    margin-bottom: 20px;
 }
 
-.job-detail-view .job-metadata {
+h2 {
+    font-family: 'Roboto';
+    font-size: 24px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.job-metadata {
     display: flex;
     justify-content: space-between;
+    background-color: hwb(214 5% 27%);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.job-metadata div {
+    flex: 1;
+    text-align: center;
+}
+
+h4 {
+    margin: 0px;
+    font-size: 10px;
+}
+
+p {
+    color: rgb(0, 0, 0);
+    margin-top: 10px;
+    margin-bottom: 0px;
+    font-size: 15px;
+    font-weight: bolder;
+    text-decoration: underline;
+}
+
+.job-overview {
     background-color: #f7f9fc;
     padding: 15px;
     border-radius: 12px;
     margin-bottom: 20px;
 }
 
-.job-detail-view .job-metadata div {
-    text-align: center;
-    flex: 1;
-}
-
-.job-detail-view .job-metadata div:not(:last-child) {
-    border-right: 1px solid #e0e0e0;
-}
-
-.job-detail-view .job-metadata div h4 {
-    font-family: 'Mulish-Regular';
-    margin: 0;
-    font-size: 0.85em;
-    color: #333;
-    text-transform: uppercase;
-}
-
-.job-detail-view .job-metadata div p {
-    margin: 5px 0 0;
-    font-weight: bold;
-    color: #00796b;
-    font-size: 1.1em;
-    font-family: 'Mulish-Regular'
-}
-
-.job-overview {
-    background-color: #f7f9fc;
-    padding: 20px;
-    border-radius: 12px;
-}
-
 .job-overview h3 {
-    font-family: 'Roboto';
-    border-bottom: 2px solid #003366;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-    color: #003366;
     font-size: 1.25em;
-    display: flex;
-    align-items: center;
+    margin-bottom: 10px;
+    color: #003366;
+    font-family: 'Roboto';
+}
+.overviewp {
+    color: rgb(0, 0, 0);
+    margin-top: 5px;
+    margin-bottom: 0px;
+    padding-inline: 15px;
+    font-size: 12px;
+    line-height: 20px;
+    font-weight: lighter;
+    text-align: justify;
 }
 
-.job-overview p {
-    color: #555;
-    line-height: 1.6;
-    font-size: 0.95em;
-    font-family: 'Mulish-Regular'
-   
-}
 .apply-button {
-    background-color: #007bff; /* Blue color */
-    color: white; /* Text color */
-    font-family: 'Mulish-Regular', sans-serif; /* Font family */
-    border: none; /* No border */
-    padding: 10px 20px; /* Padding for the button */
-    border-radius: 5px; /* Rounded corners */
-    cursor: pointer; /* Pointer for clickability */
-    font-size: 16px; /* Font size */
-    font-weight: 600; /* Slightly bolder font */
-    transition: background-color 0.3s ease; /* Smooth hover transition */
+    width: 100px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #007bff;
+    color: #fff;
+    font-family: 'Mulish';
+    transition: background-color 0.3s;
 }
+
 .apply-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
+    background-color: #0056b3;
 }
-
-
 
 .applied-button {
-    background-color: #28a745; 
-    color: white; 
-    font-family: 'Mulish-Regular', sans-serif;
-    border: none; 
-    padding: 10px 20px; 
-    border-radius: 5px; 
-    cursor: not-allowed; 
-    font-size: 16px; 
-    font-weight: 600; 
-    transition: background-color 0.3s ease; 
+    background-color: #28a745;
+    cursor: not-allowed;
 }
 
 .applied-button:hover {
     background-color: #218838;
+}
+.space {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: left;
 }

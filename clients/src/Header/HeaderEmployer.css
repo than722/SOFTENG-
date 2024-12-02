@@ -1,61 +1,104 @@
+@font-face {
+    font-family: 'Mulish';
+    src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+}
+.right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
 .header-employer-navbar {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Spread items evenly */
-    padding: 0 20px; /* Add padding to prevent overflow */
+    justify-content: center;
     background-color: #ffffff;
+    padding-inline: 30px;
     border-bottom: 1px solid #ddd;
-    box-sizing: border-box;
+    width: 100vw;
+    
 }
 
 .header-employer-logo {
     height: 50px;
-    margin-right: 20px;
 }
 
 .header-employer-nav {
     display: flex;
-    align-items: center;
-    flex-grow: 1;
-    margin-left: 20px;
+    justify-content: start;
+    margin-left: 30px;
 }
 
 .header-employer-nav ul {
+    font-family: 'Mulish';
+    font-size: 12px;
     display: flex;
+    align-items: center;
     list-style: none;
     padding: 0;
     margin: 0;
-}
-
-.header-employer-nav ul li {
-    margin-right: 20px;
+    gap: 25px;
 }
 
 .header-employer-nav ul li a {
     text-decoration: none;
     color: #333;
     font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 5px;
 }
 
 .header-employer-nav ul li a:hover {
     text-decoration: underline;
+    background-color: #f0f0f0;
 }
 
-.header-employer-button {
-    margin-left: auto; /* Push the button to the right */
+.three {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-right: 2px solid black;
+    height: 30px;
+    padding-right: 20px;
 }
 
-.header-employer-button button {
-    background-color: #007bff;
-    color: white;
+.other {
+    display: flex;
+    gap: 20px;
+    margin-right: 20px;
+}
+
+.combine li {
+    display: flex;
+    align-items: center;
+}
+
+/* Bell button styles */
+.notification-button-link .button {
+    width: auto;
+    height: auto;
+    background: none;
     border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
 }
 
-.header-employer-button button:hover {
-    background-color: #0056b3;
+.notification-button-link .bell {
+    width: 24px;
+}
+
+.notification-button-link .bell path {
+    fill: #007bff;
+    transition: fill 0.3s ease;
+}
+
+.notification-button-link .button:hover .bell path {
+    fill: #0056b3;
+}
+
+.notification-button-link .button:active {
+    transform: scale(0.9);
 }
