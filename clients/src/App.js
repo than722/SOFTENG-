@@ -15,6 +15,8 @@ import Home from './Home';
 import ViewAppliedApplicants from './applicants/ViewAppliedApplicants';
 import ViewAppliedJobs from './applicants/ViewAppliedJobs';
 import EmployeeNotification from './notifications/EmployeeNotification';
+import EmployerNotification from './notifications/EmployerNotification';
+import EmployerViewJobPosting from './job posting/EmployerViewJobPosting';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -151,6 +153,8 @@ const AppContent = ({
         <Route path="/employer/:id" element={<EmployerP onSignOut={handleSignOut} auth={isAuthenticated} />} />
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="/notifications" element={<EmployeeNotification userId={userId} />} />
+        <Route path="/employer-notifications" element={<EmployerNotification userId={userId} />} />
+        <Route path="/employer-view-job-postings" element={<EmployerViewJobPosting />} />
       </Routes>
 
       <CreateAcc

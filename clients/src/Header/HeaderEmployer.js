@@ -9,21 +9,19 @@ const HeaderEmployer = ({ userId, unreadCount, onSignOut }) => {
         <header className="header-employer-navbar">
             <img src={logo} alt="Logo" className="header-employer-logo" />
             <nav className="header-employer-nav">
-                <ul className="combine">
-                    <div className="three">
-                        <li><a href="#about">ABOUT US</a></li>
-                        <li><a href="#vision">VISION</a></li>
-                        <li><a href="#mission">MISSION</a></li>
-                    </div>
-                    <div className="other">
-                        <li><Link to="/add-job">ADD JOB POSTING</Link></li>
-                        <li><Link to="/view-job">VIEW JOB POSTING</Link></li>
-                        <li><Link to={`/view-applied-applicants/${userId}`}>VIEW APPLIED APPLICANTS</Link></li>
-                        {userId && (
-                            <li><Link to={`/profile/${userId}/employer`}>PROFILE</Link></li>
-                        )}
-                        {/* Bell Notification Button */}
-                    </div>
+                <ul>
+                    <li><a href="#about">ABOUT US</a></li>
+                    <li><a href="#vision">VISION</a></li>
+                    <li><a href="#mission">MISSION</a></li>
+                    <li><Link to="/add-job">Add Job Posting</Link></li>
+                    <li><Link to="/employer-view-job-postings">View Job Posting</Link></li>
+                    <li><Link to={`/view-applied-applicants/${userId}`}>View Applied Applicants</Link></li>
+                    {/* Always show Profile button if userId is available */}
+                    {userId && (
+                        <li><Link to={`/profile/${userId}/employer`}>Profile</Link></li>
+                    )}
+                     <li><Link to="/employer-notifications">Notifications</Link></li>
+                    
                 </ul>
             </nav>
             <div className="right">

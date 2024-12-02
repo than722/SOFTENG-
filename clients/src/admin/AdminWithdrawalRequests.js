@@ -30,17 +30,25 @@ const AdminWithdrawalRequests = () => {
       const response = await axios.post(`http://localhost:8081/api/admin/withdrawal-requests/${id}`, {
         action,
       });
+  
+      if (action === 'approve') {
+        // Delete uploaded files after approval
+        await axios.delete(`http://localhost:8081/api/admin/delete-files/${id}`);
+      }
+  
       setRequests((prevRequests) =>
         prevRequests.map((req) =>
-          req._id === id ? { ...req, status: action === 'approve' ? 'Approved' : 'Rejected' } : req
+          req.withdrawal_id === id ? { ...req, status: action === 'approve' ? 'Approved' : 'Rejected' } : req
         )
       );
+  
       alert(`Request ${action}ed successfully.`);
     } catch (err) {
       console.error('Error processing request:', err);
       alert('Failed to process the request. Please try again.');
     }
   };
+  
 
   if (loading) return <div>Loading withdrawal requests...</div>;
   if (error) return <div>{error}</div>;

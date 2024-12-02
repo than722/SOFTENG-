@@ -1,16 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './EmployeeNotification.css';
+import HeaderEmployee from '../Header/HeaderEmployee';
 
-const EmployeeNotification = ({ userId }) => {
+const EmployeeNotification = () => {
+  const [userId, setUserId] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) {
+      setUserId(parseInt(storedUserId, 10));
+    } else {
+      setError('User ID not found. Please log in.');
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!userId) return;
 
-    // Fetch notifications for the employee
     axios
       .get(`http://localhost:8081/api/notifications/${userId}`)
       .then((response) => {
@@ -25,13 +36,11 @@ const EmployeeNotification = ({ userId }) => {
   }, [userId]);
 
   const handleMarkAsRead = (notificationId) => {
-    // Mark notification as read
     axios
-      .put(`http://localhost:8081/api/notifications/${notificationId}`, {
-        read: true,
+      .delete(`http://localhost:8081/api/notifications/${notificationId}`, {
+        params: { userType: 'employee' },
       })
       .then(() => {
-        // Remove the notification from the list after marking it as read
         setNotifications((prev) =>
           prev.filter((notification) => notification.id !== notificationId)
         );
@@ -45,6 +54,17 @@ const EmployeeNotification = ({ userId }) => {
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
+    <>
+            <HeaderEmployee
+        userId={userId}
+        auth={true}
+        onSignOut={() => {
+          localStorage.clear();
+          window.location.href = '/';
+        }}
+      />
+
+
     <div className="notification-employee-container">
       <h2>Your Notifications</h2>
       {notifications.length === 0 ? (
@@ -74,6 +94,7 @@ const EmployeeNotification = ({ userId }) => {
         </ul>
       )}
     </div>
+    </>
   );
 };
 

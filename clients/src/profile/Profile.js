@@ -5,7 +5,7 @@ import axios from 'axios';
 import HeaderEmployer from '../Header/HeaderEmployer';
 import HeaderEmployee from '../Header/HeaderEmployee';
 import SignOut from '../Sign in/SignOut';
-import WithdrawnApplicants from '../admin/WithdrawnApplicants';
+import WithdrawApplication from '../admin/WithdrawApplication';
 import ProfileDeficiencies from './ProfileDeficiencies';
 
 const Profile = () => {
@@ -348,13 +348,11 @@ const fetchProfile = useCallback(() => {
               <p><strong>Company Name:</strong> {profileData.companyName}</p>
             )}
             <div className="button-group">
-            <WithdrawnApplicants
-        userId={id}
-        accountType={accountType}
-        onWithdrawComplete={fetchProfile} // Refresh the profile data after withdrawal
-      />
+  
               <button onClick={handleEditToggle}>Edit</button>
               <button onClick={handleDelete}>Delete Profile</button>
+
+              {accountType === 'employee' && <WithdrawApplication employeeId={id} />}
 
         {/* Show ProfileDeficiencies only for employees */}
         {accountType === 'employee' && <ProfileDeficiencies employeeId={id} />}

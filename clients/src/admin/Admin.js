@@ -338,19 +338,22 @@ const Admin = () => {
           </a>
         </p>
         
+        
         {/* Optional Passport */}
-        {selectedUser.passportUrl && (
-          <p>
-            <strong>Passport:</strong>{' '}
-            <a
-              href={`http://localhost:8081/uploads/${selectedUser.passportUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View Passport
-            </a>
-          </p>
-        )}
+        {selectedUser.passportUrl ? (
+            <p>
+              <strong>Passport:</strong>{' '}
+              <a
+                href={`http://localhost:8081/uploads/${selectedUser.passportUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View Passport
+              </a>
+            </p>
+          ) : (
+            <p><strong>Passport:</strong> No passport uploaded</p>
+          )}
 
         <p>
           <strong>Picture:</strong>{' '}
@@ -364,7 +367,7 @@ const Admin = () => {
         </p>
 
         {/* Optional Marriage Contract */}
-        {selectedUser.marriagecontractUrl && (
+        {selectedUser.marriagecontractUrl ? (
           <p>
             <strong>Marriage Contract:</strong>{' '}
             <a
@@ -375,6 +378,24 @@ const Admin = () => {
               View Marriage Contract
             </a>
           </p>
+          ) : (
+            <p><strong>Marriage Contract:</strong> No marriage contract uploaded</p>
+        )}
+
+        {/* Optional Marriage Contract */}
+        {selectedUser.nbi_clearanceUrl ? (
+          <p>
+            <strong>Marriage Contract:</strong>{' '}
+            <a
+              href={`http://localhost:8081/uploads/${selectedUser.nbi_clearanceUrlUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View NBI Clearance
+            </a>
+          </p>
+          ) : (
+            <p><strong>NBI Clearance:</strong> No NBI Clearance uploaded</p>
         )}
       </div>
       <div className="modal-buttons">
