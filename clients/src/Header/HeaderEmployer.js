@@ -20,7 +20,7 @@ const HeaderEmployer = ({ userId, unreadCount, onSignOut }) => {
                     {userId && (
                         <li><Link to={`/profile/${userId}/employer`}>Profile</Link></li>
                     )}
-                     <li><Link to="/employee-notifications">Notifications</Link></li>
+                     <li><Link to="/employer-notifications">Notifications</Link></li>
                     
                 </ul>
             </nav>
