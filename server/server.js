@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -1280,47 +1280,49 @@ app.put('/api/notifications/:notificationId', (req, res) => {
   });
 });
 
-// Fetch applicant details using applicationId
-app.get('/api/applicants/:applicationId', (req, res) => {
-  const { applicationId } = req.params;
+// Route to get notifications for an employer
+app.get('/api/employers/:employerId/notifications', (req, res) => {
+  const { employerId } = req.params;
+
   const query = `
     SELECT 
-      applications.applications_id AS id,
-      CONCAT(employee.firstName, ' ', employee.lastName) AS employeeName,
-      employees.employee_id,
-      job_postings.title AS jobName
-    FROM applications
-    INNER JOIN employee ON applications.employee_id = employee.employee_id
-    INNER JOIN job_postings ON applications.job_id = job_postings.job_id
-    WHERE applications.applications_id = ?;
+      a.applications_id AS notificationId,
+      a.employee_id,
+      a.lastName,
+      a.firstName,
+      a.job_id,
+      j.jobName,
+      a.apply_date,
+      a.status_id AS \`status\`
+    FROM applications AS a
+    JOIN job_postings AS j ON a.job_id = j.job_id
+    WHERE a.employer_id = ?
+    ORDER BY a.apply_date DESC;
   `;
-  db.query(query, [applicationId], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database query failed' });
-    if (results.length === 0) return res.status(404).json({ error: 'Application not found' });
-    
-    const application = results[0];
-    res.json({
-      employeeId: application.employee_id,
-      employeeName: application.employeeName,
-      jobTitle: application.jobTitle,
-    });
+
+  db.query(query, [employerId], (err, results) => {
+    if (err) {
+      console.error('Error fetching notifications:', err);
+      res.status(500).json({ error: 'Failed to fetch notifications' });
+      return;
+    }
+
+    const notifications = results.map((row) => ({
+      id: row.notificationId,
+      employeeId: row.employee_id,
+      employeeName: `${row.firstName} ${row.lastName}`,
+      jobId: row.job_id,
+      jobName: row.jobName,
+      message: `${row.firstName} ${row.lastName} applied for the job: ${row.jobName}`,
+      applyDate: new Date(row.apply_date).toISOString(), // Ensure valid ISO format
+      status: row.status,
+    }));
+
+    res.json(notifications);
   });
 });
 
 
-// Mark a notification as read
-app.post('/api/notifications/:notificationId/mark-as-read', (req, res) => {
-  const { notificationId } = req.params;
-  const query = `
-    UPDATE applications
-    SET read = 1
-    WHERE applications_id = ?;
-  `;
-  db.query(query, [notificationId], (err) => {
-    if (err) return res.status(500).json({ error: 'Failed to update notification' });
-    res.json({ success: true });
-  });
-});
 
 // Start the server
 const PORT = process.env.PORT || 8081;

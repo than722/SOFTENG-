@@ -152,7 +152,7 @@ const AppContent = ({
         <Route path="/employer/:id" element={<EmployerP onSignOut={handleSignOut} auth={isAuthenticated} />} />
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="/notifications" element={<EmployeeNotification userId={userId} />} />
-        <Route path="/notifications" element={<EmployerNotification userId={userId} />} />
+        <Route path="/employer-notifications" element={<EmployerNotification userId={userId} />} />
       </Routes>
 
       <CreateAcc
