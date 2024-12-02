@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.34, for Win64 (x86_64)
 --
--- Host: localhost    Database: mydb
+-- Host: 127.0.0.1    Database: mydb
 -- ------------------------------------------------------
--- Server version	8.0.36
+-- Server version	8.0.35
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -34,8 +34,18 @@ CREATE TABLE `job_postings` (
   PRIMARY KEY (`job_id`),
   KEY `fk_employer_id_idx` (`employer_id`),
   CONSTRAINT `fk_employer_id` FOREIGN KEY (`employer_id`) REFERENCES `employer` (`employer_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `job_postings`
+--
+
+LOCK TABLES `job_postings` WRITE;
+/*!40000 ALTER TABLE `job_postings` DISABLE KEYS */;
+INSERT INTO `job_postings` VALUES (9,'Domestic Helper','The role involves maintaining cleanliness in the home, preparing meals as required, and assisting with daily household chores. Previous experience is an advantage but not mandatory.','We are looking for a reliable and hardworking domestic helper to assist with household tasks, including cleaning, laundry, and cooking. The ideal candidate must have a strong work ethic and good communication skills.',2000.00,'United Arab Emirates','2024-12-02 19:32:42',29);
+/*!40000 ALTER TABLE `job_postings` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -46,4 +56,4 @@ CREATE TABLE `job_postings` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-03  1:53:00
+-- Dump completed on 2024-12-03  4:49:15
