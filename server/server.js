@@ -525,8 +525,6 @@ app.get('/api/users/:userId', (req, res) => {
   const { userId } = req.params;
   const { userType } = req.query; // Get userType from the query parameter
 
-
-  
   // Validate the userType
   if (!userType || (userType !== 'employee' && userType !== 'employer')) {
     return res.status(400).json({ error: 'Invalid user type' });
@@ -534,13 +532,14 @@ app.get('/api/users/:userId', (req, res) => {
 
   const employeeQuery = `
     SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, picture, resume, validId, birth_certificate, passport, marriage_contract, 'employee' AS userType 
+           zipCode, mobileNumber, picture, resume, validId, birth_certificate, passport, marriage_contract, 
+           birthday, 'employee' AS userType 
     FROM employee 
     WHERE employee_id = ?`;
 
   const employerQuery = `
     SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, companyName, 'employer' AS userType 
+           zipCode, mobileNumber, companyName, birthday, 'employer' AS userType 
     FROM employer 
     WHERE employer_id = ?`;
 
@@ -573,6 +572,7 @@ app.get('/api/users/:userId', (req, res) => {
     res.status(404).json({ error: 'User not found' });
   });
 });
+
 
 
 // Route to serve uploaded files (e.g., picture, resume)
