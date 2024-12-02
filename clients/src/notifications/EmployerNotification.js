@@ -9,11 +9,9 @@ const EmployerNotification = () => {
   const userId = localStorage.getItem('userId'); // Get employer ID from localStorage
 
   useEffect(() => {
-    // Fetch notifications for the employer
     axios
       .get(`http://localhost:8081/api/employers/${userId}/notifications`)
       .then((response) => {
-        // Format applyDate into a valid date string
         const formattedNotifications = response.data.map((notification) => ({
           ...notification,
           applyDate: new Date(notification.applyDate).toLocaleString(),
@@ -30,14 +28,12 @@ const EmployerNotification = () => {
 
   const markAsRead = (notificationId) => {
     axios
-      .post(`http://localhost:8081/api/notifications/${notificationId}/mark-as-read`)
+      .delete(`http://localhost:8081/api/notifications/${notificationId}`, {
+        params: { userType: 'employer' }, // Specify userType as 'employer'
+      })
       .then(() => {
         setNotifications((prev) =>
-          prev.map((notification) =>
-            notification.id === notificationId
-              ? { ...notification, read: true }
-              : notification
-          )
+          prev.filter((notification) => notification.id !== notificationId)
         );
       })
       .catch((error) => {

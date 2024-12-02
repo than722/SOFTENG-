@@ -101,6 +101,7 @@ app.post(
     { name: 'validId', maxCount: 1 },
     { name: 'passport', maxCount: 1 },  // Optional
     { name: 'marriage_contract', maxCount: 1 },  // Optional
+    { name: 'nbi_clearance', maxCount: 1 },  // Optional
   ]),
   (req, res) => {
     // Ensure accountType is present in the body
@@ -129,6 +130,7 @@ app.post(
     const marriageContractUrl = req.files['marriage_contract']?.[0]?.filename || null;
     const pictureUrl = req.files['picture']?.[0]?.filename || null;
     const resumeUrl = req.files['resume']?.[0]?.filename || null;
+    const nbi_clearanceUrl = req.files['nbi_clearance']?.[0]?.filename || null;
 
     // Validate required fields for married users (only if married)
     if (civilStatus === 'married' && !marriageContractUrl) {
@@ -158,8 +160,8 @@ app.post(
       if (accountType === 'employee') {
         sql = `
           INSERT INTO employee 
-          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, birthday) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, birthday, nbi_clearance) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         values = [
           lastName,
@@ -180,6 +182,7 @@ app.post(
           email,
           hashedPassword,
           userBirthday,
+          nbi_clearanceUrl, // Optional nbi_clearance
         ];
       } else if (accountType === 'employer') {
         sql = `
@@ -428,6 +431,7 @@ app.put('/api/users/:id/status', (req, res) => {
 
   const queryEmployee = `UPDATE employee SET progress_id = ? WHERE employee_id = ?`;
   const queryEmployer = `UPDATE employer SET progress_id = ? WHERE employer_id = ?`;
+  const updateEmployeeStatus = `UPDATE employee SET status_id = 1 WHERE employee_id = ?`;  // Update status_id to 1 when accepted
 
   // Check if the user is an employee by querying the employee table
   db.query('SELECT * FROM employee WHERE employee_id = ?', [userId], (err, employeeResults) => {
@@ -445,7 +449,23 @@ app.put('/api/users/:id/status', (req, res) => {
         }
 
         if (updateResults.affectedRows > 0) {
-          return res.json({ message: 'Employee progress updated successfully' });
+          // If the progress is accepted (progressId = 1), update the employee's status_id to 1
+          if (progressId === 1) {
+            db.query(updateEmployeeStatus, [userId], (err, statusUpdateResults) => {
+              if (err) {
+                console.error(err);
+                return res.status(500).json({ error: 'Failed to update employee status' });
+              }
+
+              if (statusUpdateResults.affectedRows > 0) {
+                return res.json({ message: 'Employee progress and status updated successfully' });
+              } else {
+                return res.status(404).json({ error: 'Employee status not updated' });
+              }
+            });
+          } else {
+            return res.json({ message: 'Employee progress updated successfully' });
+          }
         } else {
           return res.status(404).json({ error: 'Employee not found or progress not updated' });
         }
@@ -482,6 +502,7 @@ app.put('/api/users/:id/status', (req, res) => {
 
 
 
+
 // Delete rejected users
 app.delete('/api/users/rejected', (req, res) => {
   const queryEmployee = `DELETE FROM employees WHERE progress_id = 2`;
@@ -507,8 +528,6 @@ app.get('/api/users/:userId', (req, res) => {
   const { userId } = req.params;
   const { userType } = req.query; // Get userType from the query parameter
 
-
-  
   // Validate the userType
   if (!userType || (userType !== 'employee' && userType !== 'employer')) {
     return res.status(400).json({ error: 'Invalid user type' });
@@ -516,13 +535,14 @@ app.get('/api/users/:userId', (req, res) => {
 
   const employeeQuery = `
     SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, picture, resume, validId, birth_certificate, passport, marriage_contract, 'employee' AS userType 
+           zipCode, mobileNumber, picture, resume, validId, birth_certificate, passport, marriage_contract, 
+           birthday, nbi_clearance, 'employee' AS userType 
     FROM employee 
     WHERE employee_id = ?`;
 
   const employerQuery = `
     SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, companyName, 'employer' AS userType 
+           zipCode, mobileNumber, companyName, birthday, 'employer' AS userType 
     FROM employer 
     WHERE employer_id = ?`;
 
@@ -547,6 +567,7 @@ app.get('/api/users/:userId', (req, res) => {
       user.birthcertificateUrl = user.birth_certificate ? `${user.birth_certificate}` : null;
       user.passportUrl = user.passport ? `${user.passport}` : null;
       user.marriagecontractUrl = user.marriage_contract ? `${user.marriage_contract}` : null;
+      user.nbi_clearanceUrl = user.nbi_clearance ? `${user.nbi_clearance}` : null;
 
       return res.json(user); // Return the user data as a response
     }
@@ -555,6 +576,7 @@ app.get('/api/users/:userId', (req, res) => {
     res.status(404).json({ error: 'User not found' });
   });
 });
+
 
 
 // Route to serve uploaded files (e.g., picture, resume)
@@ -715,7 +737,7 @@ app.post('/api/applications/apply', verifyUser, (req, res) => {
   const employee_id = req.userId;  // Retrieved from the decoded token
 
   // Fetch employee details from the employee table
-  const getEmployeeDetailsQuery = 'SELECT email, lastName, firstName, status_id FROM employee WHERE employee_id = ?';
+  const getEmployeeDetailsQuery = 'SELECT email, lastName, firstName, status_id, progress_id FROM employee WHERE employee_id = ?';
   db.query(getEmployeeDetailsQuery, [employee_id], (err, employeeResults) => {
     if (err) {
       console.error('Error fetching employee details:', err);
@@ -726,33 +748,42 @@ app.post('/api/applications/apply', verifyUser, (req, res) => {
       return res.status(404).json({ message: 'Employee not found' });
     }
 
-    const { email, lastName, firstName, status_id } = employeeResults[0];
+    const { email, lastName, firstName, status_id, progress_id } = employeeResults[0];
 
-    // Check if the employee already applied for the same job
-    const checkIfAppliedQuery = 'SELECT * FROM applications WHERE job_id = ? AND employee_id = ?';
-    db.query(checkIfAppliedQuery, [job_id, employee_id], (err, applicationResults) => {
+    // Check if the employee's progress_id and status_id allow them to apply
+    if (progress_id === 2 || progress_id === 3) {
+      return res.status(403).json({ message: 'You are not allowed to apply for jobs due to your current status.' });
+    }
+
+    if (status_id === 2 || status_id === 3) {
+      return res.status(403).json({ message: 'You are not allowed to apply for jobs due to your current status.' });
+    }
+
+    // Check if the job exists and get the employer_id
+    const checkJobQuery = 'SELECT employer_id FROM job_postings WHERE job_id = ?';
+    db.query(checkJobQuery, [job_id], (err, jobResults) => {
       if (err) {
-        console.error('Error checking existing applications:', err);
+        console.error('Error checking job:', err);
         return res.status(500).json({ error: 'Database error', details: err.message });
       }
 
-      if (applicationResults.length > 0) {
-        return res.status(409).json({ message: 'You have already applied for this job.' });
+      if (jobResults.length === 0) {
+        return res.status(404).json({ message: 'Job posting not found' });
       }
 
-      // Check if the job exists and get the employer_id
-      const checkJobQuery = 'SELECT employer_id FROM job_postings WHERE job_id = ?';
-      db.query(checkJobQuery, [job_id], (err, jobResults) => {
+      const employer_id = jobResults[0].employer_id;
+
+      // Check if the employee already applied for the same job
+      const checkIfAppliedQuery = 'SELECT * FROM applications WHERE job_id = ? AND employee_id = ?';
+      db.query(checkIfAppliedQuery, [job_id, employee_id], (err, applicationResults) => {
         if (err) {
-          console.error('Error checking job:', err);
+          console.error('Error checking existing applications:', err);
           return res.status(500).json({ error: 'Database error', details: err.message });
         }
 
-        if (jobResults.length === 0) {
-          return res.status(404).json({ message: 'Job posting not found' });
+        if (applicationResults.length > 0) {
+          return res.status(409).json({ message: 'You have already applied for this job.' });
         }
-
-        const employer_id = jobResults[0].employer_id;
 
         // Insert the job application
         const applyQuery = 'INSERT INTO applications (job_id, employee_id, apply_date, email, lastName, firstName, status_id, employer_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
@@ -770,6 +801,7 @@ app.post('/api/applications/apply', verifyUser, (req, res) => {
     });
   });
 });
+
 
 // Get applicants for all jobs posted by an employer
 app.get('/api/applications/employer/:employerId', (req, res) => {
@@ -1218,7 +1250,7 @@ app.get('/api/admin/withdrawal-requests', (req, res) => {
     );
   });
 
-  // API to fetch notifications based on employee_id
+// API to fetch notifications based on employee_id
 app.get('/api/notifications/:employeeId', (req, res) => {
   const employeeId = parseInt(req.params.employeeId, 10);
 
@@ -1229,9 +1261,12 @@ app.get('/api/notifications/:employeeId', (req, res) => {
   const query = `
     SELECT 
       applications.status_id,
+      job_postings.jobName,
+      employer.firstName AS employer_first_name,  -- Corrected to firstName
+      employer.lastName AS employer_last_name,    -- Corrected to lastName
       CASE 
-        WHEN applications.status_id = 4 THEN 'You have been hired!'
-        WHEN applications.status_id = 5 THEN 'Your application has been rejected.'
+        WHEN applications.status_id = 4 THEN CONCAT('You have been hired by ', employer.firstName, ' ', employer.lastName, ' for the position of ', job_postings.jobName)
+        WHEN applications.status_id = 5 THEN CONCAT('Your application for the position of ', job_postings.jobName, ' has been rejected.')
         ELSE NULL
       END AS message,
       CASE 
@@ -1240,6 +1275,8 @@ app.get('/api/notifications/:employeeId', (req, res) => {
         ELSE 'general'
       END AS type
     FROM applications
+    INNER JOIN job_postings ON applications.job_id = job_postings.job_id
+    INNER JOIN employer ON job_postings.employer_id = employer.employer_id
     WHERE applications.employee_id = ? AND applications.status_id IN (4, 5)
   `;
 
@@ -1250,7 +1287,7 @@ app.get('/api/notifications/:employeeId', (req, res) => {
     }
 
     const notifications = results.map((row) => ({
-      id: row.status_id, // You can modify this based on your table structure
+      id: row.status_id, // Adjust the notification ID accordingly
       message: row.message,
       type: row.type,
     }));
@@ -1259,26 +1296,38 @@ app.get('/api/notifications/:employeeId', (req, res) => {
   });
 });
 
-// API to mark a notification as read (optional)
-app.put('/api/notifications/:notificationId', (req, res) => {
-  const notificationId = parseInt(req.params.notificationId, 10);
+  
 
-  if (!notificationId) {
-    return res.status(400).json({ error: 'Invalid notification ID' });
+// API to mark a notification as read
+app.delete('/api/notifications/:notificationId', (req, res) => {
+  const notificationId = parseInt(req.params.notificationId, 10);
+  const { userType } = req.query; // Distinguish between employee and employer
+
+  if (!notificationId || !userType) {
+    return res.status(400).json({ error: 'Invalid request parameters' });
   }
 
-  // Assuming you have a `read` column in the `applications` table to mark notifications as read
-  const query = 'UPDATE applications SET read = 1 WHERE status_id = ?';
+  let query;
+
+  // Clear notifications based on userType
+  if (userType === 'employee') {
+    query = 'DELETE FROM applications WHERE status_id = ?';
+  } else if (userType === 'employer') {
+    query = 'DELETE FROM applications WHERE applications_id = ?';
+  } else {
+    return res.status(400).json({ error: 'Invalid user type' });
+  }
 
   db.query(query, [notificationId], (err, results) => {
     if (err) {
-      console.error('Error updating notification:', err);
-      return res.status(500).json({ error: 'Failed to mark notification as read' });
+      console.error('Error clearing notification:', err);
+      return res.status(500).json({ error: 'Failed to clear notification' });
     }
 
-    res.json({ message: 'Notification marked as read' });
+    res.json({ message: 'Notification cleared successfully' });
   });
 });
+
 
 // Route to get notifications for an employer
 app.get('/api/employers/:employerId/notifications', (req, res) => {
