@@ -101,6 +101,7 @@ app.post(
     { name: 'validId', maxCount: 1 },
     { name: 'passport', maxCount: 1 },  // Optional
     { name: 'marriage_contract', maxCount: 1 },  // Optional
+    { name: 'nbi_clearance', maxCount: 1 },  // Optional
   ]),
   (req, res) => {
     // Ensure accountType is present in the body
@@ -129,6 +130,7 @@ app.post(
     const marriageContractUrl = req.files['marriage_contract']?.[0]?.filename || null;
     const pictureUrl = req.files['picture']?.[0]?.filename || null;
     const resumeUrl = req.files['resume']?.[0]?.filename || null;
+    const nbi_clearanceUrl = req.files['nbi_clearance']?.[0]?.filename || null;
 
     // Validate required fields for married users (only if married)
     if (civilStatus === 'married' && !marriageContractUrl) {
@@ -158,8 +160,8 @@ app.post(
       if (accountType === 'employee') {
         sql = `
           INSERT INTO employee 
-          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, birthday) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, birthday, nbi_clearance) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         values = [
           lastName,
@@ -180,6 +182,7 @@ app.post(
           email,
           hashedPassword,
           userBirthday,
+          nbi_clearanceUrl, // Optional nbi_clearance
         ];
       } else if (accountType === 'employer') {
         sql = `
@@ -533,7 +536,7 @@ app.get('/api/users/:userId', (req, res) => {
   const employeeQuery = `
     SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
            zipCode, mobileNumber, picture, resume, validId, birth_certificate, passport, marriage_contract, 
-           birthday, 'employee' AS userType 
+           birthday, nbi_clearance, 'employee' AS userType 
     FROM employee 
     WHERE employee_id = ?`;
 
@@ -564,6 +567,7 @@ app.get('/api/users/:userId', (req, res) => {
       user.birthcertificateUrl = user.birth_certificate ? `${user.birth_certificate}` : null;
       user.passportUrl = user.passport ? `${user.passport}` : null;
       user.marriagecontractUrl = user.marriage_contract ? `${user.marriage_contract}` : null;
+      user.nbi_clearanceUrl = user.nbi_clearance ? `${user.nbi_clearance}` : null;
 
       return res.json(user); // Return the user data as a response
     }

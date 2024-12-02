@@ -381,6 +381,22 @@ const Admin = () => {
           ) : (
             <p><strong>Marriage Contract:</strong> No marriage contract uploaded</p>
         )}
+
+        {/* Optional Marriage Contract */}
+        {selectedUser.nbi_clearanceUrl ? (
+          <p>
+            <strong>Marriage Contract:</strong>{' '}
+            <a
+              href={`http://localhost:8081/uploads/${selectedUser.nbi_clearanceUrlUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View NBI Clearance
+            </a>
+          </p>
+          ) : (
+            <p><strong>NBI Clearance:</strong> No NBI Clearance uploaded</p>
+        )}
       </div>
       <div className="modal-buttons">
         <button onClick={acceptUser}>Accept</button>
