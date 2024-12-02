@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './EmployerNotification.css'; // Optional: Add CSS for styling
+import './EmployerNotification.css';
 
 const EmployerNotification = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const userId = localStorage.getItem('userId'); // Get employer ID from localStorage
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch notifications for the employer
@@ -23,7 +25,7 @@ const EmployerNotification = () => {
       });
   }, [userId]);
 
-  const markAsRead = (notificationId) => {
+  const markAsRead = (notificationId, applicationId) => {
     axios
       .post(`http://localhost:8081/api/notifications/${notificationId}/mark-as-read`)
       .then(() => {
@@ -34,6 +36,8 @@ const EmployerNotification = () => {
               : notification
           )
         );
+        // Redirect to applicant details using applicationId
+        navigate(`/employee-details/${applicationId}`);
       })
       .catch((error) => {
         console.error('Error marking notification as read:', error);
@@ -54,12 +58,10 @@ const EmployerNotification = () => {
             <li
               key={notification.id}
               className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+              onClick={() => markAsRead(notification.id, notification.id)} // Using notification.id as applicationId
             >
               <p>{notification.message}</p>
               <p><small>{new Date(notification.createdAt).toLocaleString()}</small></p>
-              {!notification.read && (
-                <button onClick={() => markAsRead(notification.id)}>Mark as Read</button>
-              )}
             </li>
           ))}
         </ul>

@@ -1218,7 +1218,109 @@ app.get('/api/admin/withdrawal-requests', (req, res) => {
     );
   });
 
+  // API to fetch notifications based on employee_id
+app.get('/api/notifications/:employeeId', (req, res) => {
+  const employeeId = parseInt(req.params.employeeId, 10);
 
+  if (!employeeId) {
+    return res.status(400).json({ error: 'Invalid employee ID' });
+  }
+
+  const query = `
+    SELECT 
+      applications.status_id,
+      CASE 
+        WHEN applications.status_id = 4 THEN 'You have been hired!'
+        WHEN applications.status_id = 5 THEN 'Your application has been rejected.'
+        ELSE NULL
+      END AS message,
+      CASE 
+        WHEN applications.status_id = 4 THEN 'hire'
+        WHEN applications.status_id = 5 THEN 'application'
+        ELSE 'general'
+      END AS type
+    FROM applications
+    WHERE applications.employee_id = ? AND applications.status_id IN (4, 5)
+  `;
+
+  db.query(query, [employeeId], (err, results) => {
+    if (err) {
+      console.error('Error fetching notifications:', err);
+      return res.status(500).json({ error: 'Failed to fetch notifications' });
+    }
+
+    const notifications = results.map((row) => ({
+      id: row.status_id, // You can modify this based on your table structure
+      message: row.message,
+      type: row.type,
+    }));
+
+    res.json(notifications);
+  });
+});
+
+// API to mark a notification as read (optional)
+app.put('/api/notifications/:notificationId', (req, res) => {
+  const notificationId = parseInt(req.params.notificationId, 10);
+
+  if (!notificationId) {
+    return res.status(400).json({ error: 'Invalid notification ID' });
+  }
+
+  // Assuming you have a `read` column in the `applications` table to mark notifications as read
+  const query = 'UPDATE applications SET read = 1 WHERE status_id = ?';
+
+  db.query(query, [notificationId], (err, results) => {
+    if (err) {
+      console.error('Error updating notification:', err);
+      return res.status(500).json({ error: 'Failed to mark notification as read' });
+    }
+
+    res.json({ message: 'Notification marked as read' });
+  });
+});
+
+// Fetch applicant details using applicationId
+app.get('/api/applicants/:applicationId', (req, res) => {
+  const { applicationId } = req.params;
+  const query = `
+    SELECT 
+      applications.applications_id AS id,
+      CONCAT(employee.firstName, ' ', employee.lastName) AS employeeName,
+      employees.employee_id,
+      job_postings.title AS jobName
+    FROM applications
+    INNER JOIN employee ON applications.employee_id = employee.employee_id
+    INNER JOIN job_postings ON applications.job_id = job_postings.job_id
+    WHERE applications.applications_id = ?;
+  `;
+  db.query(query, [applicationId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database query failed' });
+    if (results.length === 0) return res.status(404).json({ error: 'Application not found' });
+    
+    const application = results[0];
+    res.json({
+      employeeId: application.employee_id,
+      employeeName: application.employeeName,
+      jobTitle: application.jobTitle,
+    });
+  });
+});
+
+
+// Mark a notification as read
+app.post('/api/notifications/:notificationId/mark-as-read', (req, res) => {
+  const { notificationId } = req.params;
+  const query = `
+    UPDATE applications
+    SET read = 1
+    WHERE applications_id = ?;
+  `;
+  db.query(query, [notificationId], (err) => {
+    if (err) return res.status(500).json({ error: 'Failed to update notification' });
+    res.json({ success: true });
+  });
+});
 
 // Start the server
 const PORT = process.env.PORT || 8081;
