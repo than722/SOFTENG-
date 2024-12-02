@@ -7,10 +7,7 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
-<<<<<<< HEAD
-=======
     const [isAccepted, setIsAccepted] = useState(false); // Track if the employee is accepted
->>>>>>> 3bfea0618025cbd89d0388459f0f8b52e5a86247
 
     useEffect(() => {
         axios
@@ -54,21 +51,14 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
         try {
             const response = await axios.post(
                 'http://localhost:8081/api/applications/apply',
-<<<<<<< HEAD
                 { job_id: jobDetails?.job_id },
-=======
                 { job_id: jobDetails?.job_id }, // Only send job_id
->>>>>>> 3bfea0618025cbd89d0388459f0f8b52e5a86247
                 { withCredentials: true }
             );
 
             if (response.status === 201) {
                 alert('Application successfully sent!');
-<<<<<<< HEAD
-                setHasApplied(true);
-=======
                 setHasApplied(true); // Mark as applied
->>>>>>> 3bfea0618025cbd89d0388459f0f8b52e5a86247
             } else {
                 alert('There was an issue with your application.');
             }
@@ -105,30 +95,16 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                     <p>{formatDate(jobDetails?.datePosted)}</p>
                 </div>
             </div>
-            <div className='space'>
-                <div className="job-overview">
-                    <h3>Job Overview</h3>
-                    <h6 className="overviewp">{jobDetails.jobOverview}</h6>
-                </div>
-                <button
-                    onClick={handleApply}
-                    className={`apply-button ${hasApplied ? 'applied-button' : ''}`}
-                    disabled={isSubmitting || hasApplied}>
-                    {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
-                </button>
+            <div className="job-overview">
+                <h3>Job Overview</h3>
+                <p>{jobDetails?.jobOverview || 'No overview available.'}</p>
             </div>
-            {/* Render the apply button only if the user is accepted */}
-            {isAccepted && !hasApplied && (
-                <button 
-                    onClick={handleApply} 
-                    className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
-                    disabled={isSubmitting || hasApplied}>
-                    {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
-                </button>
-            )}
-            {!isAccepted && (
-                <p className="not-accepted-message">Your account is pending approval by the admin.</p>
-            )}
+            <button 
+                onClick={handleApply} 
+                className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
+                disabled={isSubmitting || hasApplied}>
+                {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
+            </button>
         </div>
     );
 }
