@@ -1,61 +1,133 @@
+/* General layout styles */
+@font-face {
+    font-family: 'Mulish';
+    src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+}
+
+.right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
 .header-employee-navbar {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Spread items evenly */
-    padding: 0 20px; /* Add padding to prevent overflow */
+    justify-content: center;
+    padding-inline: 30px;
     background-color: #ffffff;
     border-bottom: 1px solid #ddd;
     box-sizing: border-box;
+    width: 100vw;
 }
 
 .header-employee-logo {
     height: 50px;
-    margin-right: 20px;
 }
 
 .header-employee-nav {
     display: flex;
-    align-items: center;
+    justify-content: start;
+    margin-left: 30px;
     flex-grow: 1;
-    margin-left: 20px;
 }
 
 .header-employee-nav ul {
+    font-family: 'Mulish-Regular';
+    font-size: 12px;
     display: flex;
+    align-items: center;
+    text-align: center;
     list-style: none;
     padding: 0;
     margin: 0;
-}
-
-.header-employee-nav ul li {
-    margin-right: 20px;
+    gap: 25px;
 }
 
 .header-employee-nav ul li a {
     text-decoration: none;
-    color: #333;
+    color: black; /* Changed to black */
     font-weight: bold;
 }
 
 .header-employee-nav ul li a:hover {
     text-decoration: underline;
+    background-color: #f0f0f0;
+    color: black; /* Ensuring hover text remains black */
 }
 
-.header-employee-button {
-    margin-left: auto; /* Push the button to the right */
+.three {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-right: 2px solid black;
+    height: 30px;
+    padding-right: 20px;
 }
 
-.header-employee-button button {
-    background-color: #007bff;
-    color: white;
+.other {
+    display: flex;
+    gap: 20px;
+}
+
+.combine li {
+    display: flex;
+    align-items: center;
+}
+
+.notification-button-link .button {
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
     border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
+    padding: 0;
+    box-shadow: none;
 }
 
-.header-employee-button button:hover {
-    background-color: #0056b3;
+.notification-button-link .bell {
+    width: 24px;
+}
+
+.notification-button-link .bell path {
+    fill: black; /* Changed bell color to black */
+    transition: fill 0.3s ease;
+}
+
+.notification-button-link .button:hover .bell path {
+    fill: black; /* Ensuring hover color remains black */
+}
+
+.notification-button-link .button:active {
+    transform: scale(0.9);
+}
+
+/* Bell ringing animation */
+@keyframes bellRing {
+    0%, 100% {
+        transform-origin: top;
+    }
+    15% {
+        transform: rotateZ(10deg);
+    }
+    30% {
+        transform: rotateZ(-10deg);
+    }
+    45% {
+        transform: rotateZ(5deg);
+    }
+    60% {
+        transform: rotateZ(-5deg);
+    }
+    75% {
+        transform: rotateZ(2deg);
+    }
 }

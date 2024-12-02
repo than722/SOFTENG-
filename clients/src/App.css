@@ -21,12 +21,19 @@
   color: black;
   background-color: #0047ab;
   height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   overflow-y: auto; 
   overflow-x: hidden; 
-
+  align-items: center;
+  gap: 10px;
+  background-color: #ffffff;
+  background-image: url('./assets/images/texture1.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 1; /* Adjusts the transparency of the entire container */
 }
 
 .button2 {
@@ -42,15 +49,16 @@
 /* Navbar */
 .navbar-App {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: start;
   padding: 10px;
   border: 1px solid black;
   background-color: white;
+  justify-content: space-between;
+  width: 100vw;
 }
 
 .navbar-App .logo-App {
-  max-height: 90px; /* Limit the logo's maximum height */
+  height: 50px;
   width: auto;      /* Maintain aspect ratio */
   display: block;   /* Remove inline spacing issues */
 }
@@ -102,13 +110,13 @@
   font-family: 'Roboto';
   font-size: 100px;
   font-weight: bold;
-  color: #ffffff;
+  color: hwb(0 8% 92%);
 }
 
 .tagline-App {
   font-family: 'Roboto';
   font-size: 24px;
-  color: hwb(60 12% 4%);
+  color: hsl(0, 89%, 51%);
   margin-bottom: 20px;
   margin-top: 0px;
 }
@@ -118,7 +126,7 @@
   font-size: 16px;
   line-height: 1.5;
   margin-bottom: 20px;
-  color: #fffefe;
+  color: hwb(0 8% 92%);
 }
 
 .create-account-App {

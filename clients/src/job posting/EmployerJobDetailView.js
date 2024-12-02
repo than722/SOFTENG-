@@ -3,6 +3,7 @@ import './EmployerJobDetailView.css';
 import axios from 'axios';
 
 function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsError, onEdit, onDelete }) {
+<<<<<<< Updated upstream
     const [isCreator, setIsCreator] = useState(false); // Track if the logged-in employer is the creator
     const userId = localStorage.getItem('userId'); // Get the logged-in employer's ID
 
@@ -12,6 +13,8 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
             setIsCreator(jobDetails.employerId === parseInt(userId)); // Compare job's employer ID with logged-in user's ID
         }
     }, [jobDetails, userId]);
+=======
+>>>>>>> Stashed changes
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -21,15 +24,26 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
 
     const handleDelete = async () => {
         try {
+<<<<<<< Updated upstream
             const token = localStorage.getItem('authToken'); // Assuming the token is stored in localStorage
             if (!userId) {
+=======
+            const token = localStorage.getItem('authToken'); // Token from localStorage
+            const employerId = localStorage.getItem('userId'); // Employer ID from localStorage
+            if (!employerId) {
+>>>>>>> Stashed changes
                 alert('User not logged in');
                 return;
             }
             const response = await axios.delete(`/api/jobs/${jobDetails.job_id}`, {
                 headers: {
+<<<<<<< Updated upstream
                     Authorization: `Bearer ${token}`, // Send the token for authentication
                 },
+=======
+                    Authorization: `Bearer ${token}` // Send token for authentication
+                }
+>>>>>>> Stashed changes
             });
 
             if (response.status === 200) {
@@ -65,16 +79,28 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
                     <p>{formatDate(jobDetails.datePosted)}</p>
                 </div>
             </div>
+<<<<<<< Updated upstream
             <div className="job-overview">
                 <h3>Job Overview</h3>
                 <p>{jobDetails.jobOverview}</p>
             </div>
             {isCreator && ( // Show buttons only if the logged-in employer is the creator
+=======
+            <div className='space'>
+                <div className="job-overview">
+                    <h3>Job Overview</h3>
+                    <h6 className="overviewp">{jobDetails.jobOverview}</h6>
+                </div>
+>>>>>>> Stashed changes
                 <div className="job-actions">
                     <button onClick={() => onEdit(jobDetails.job_id)} className="edit-button">Edit</button>
                     <button onClick={handleDelete} className="delete-button">Delete</button>
                 </div>
+<<<<<<< Updated upstream
             )}
+=======
+            </div>
+>>>>>>> Stashed changes
         </div>
     );
 }

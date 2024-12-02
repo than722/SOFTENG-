@@ -76,7 +76,7 @@ const ViewAppliedJobs = () => {
           <p>No jobs applied yet.</p>
         ) : (
           <table className="applied-jobs-table">
-            <thead>
+            <thead className="table-head">
               <tr>
                 <th>Job Title</th>
                 <th>Job Overview</th>

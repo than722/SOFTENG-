@@ -7,27 +7,27 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
+<<<<<<< Updated upstream
     const [isAccepted, setIsAccepted] = useState(false); // Track if the employee is accepted
+=======
+>>>>>>> Stashed changes
 
     useEffect(() => {
-        // Verify session by calling the backend
         axios
             .get('http://localhost:8081/verify-session', { withCredentials: true })
             .then((res) => {
                 if (res.status !== 200 || res.data.userType !== 'employee') {
                     alert('Access denied: This page is only accessible to employees.');
-                    navigate('/'); // Redirect unauthorized users
+                    navigate('/');
                 }
                 // Check if the employee is approved by the admin
                 setIsAccepted(res.data.isAccepted); // Backend should return `isAccepted`
             })
-            .catch((err) => {
-                console.error('Session verification failed:', err);
+            .catch(() => {
                 alert('You must be logged in to view this page.');
-                navigate('/login'); // Redirect to login if verification fails
+                navigate('/login');
             });
 
-        // Check if the user has already applied for the job
         if (jobDetails?.job_id) {
             axios
                 .get(`http://localhost:8081/api/applications/check/${jobDetails.job_id}`, { withCredentials: true })
@@ -54,13 +54,21 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
         try {
             const response = await axios.post(
                 'http://localhost:8081/api/applications/apply',
+<<<<<<< Updated upstream
                 { job_id: jobDetails?.job_id }, // Only send job_id
+=======
+                { job_id: jobDetails?.job_id },
+>>>>>>> Stashed changes
                 { withCredentials: true }
             );
 
             if (response.status === 201) {
                 alert('Application successfully sent!');
+<<<<<<< Updated upstream
                 setHasApplied(true); // Mark as applied
+=======
+                setHasApplied(true);
+>>>>>>> Stashed changes
             } else {
                 alert('There was an issue with your application.');
             }
@@ -69,7 +77,6 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                 alert('Session expired. Please log in again.');
                 navigate('/login');
             } else {
-                console.error('Failed to apply to the job:', error);
                 alert('There was an error while trying to apply. Please try again later.');
             }
         } finally {
@@ -82,7 +89,7 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
 
     return (
         <div className="job-detail-view">
-            <button onClick={onBack} className="back-button">&lt; Back to search results</button>
+            <button onClick={onBack} className="back-button">&lt; Back to job list</button>
             <h2>{jobDetails?.jobName || 'Job Name Not Available'}</h2>
             <div className="job-metadata">
                 <div>
@@ -98,10 +105,19 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                     <p>{formatDate(jobDetails?.datePosted)}</p>
                 </div>
             </div>
-            <div className="job-overview">
-                <h3>Job Overview</h3>
-                <p>{jobDetails?.jobOverview || 'No overview available.'}</p>
+            <div className='space'>
+                <div className="job-overview">
+                    <h3>Job Overview</h3>
+                    <h6 className="overviewp">{jobDetails.jobOverview}</h6>
+                </div>
+                <button
+                    onClick={handleApply}
+                    className={`apply-button ${hasApplied ? 'applied-button' : ''}`}
+                    disabled={isSubmitting || hasApplied}>
+                    {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
+                </button>
             </div>
+<<<<<<< Updated upstream
             {/* Render the apply button only if the user is accepted */}
             {isAccepted && !hasApplied && (
                 <button 
@@ -114,6 +130,8 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             {!isAccepted && (
                 <p className="not-accepted-message">Your account is pending approval by the admin.</p>
             )}
+=======
+>>>>>>> Stashed changes
         </div>
     );
 }
