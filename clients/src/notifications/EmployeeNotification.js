@@ -9,7 +9,6 @@ const EmployeeNotification = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch userId from localStorage
     const storedUserId = localStorage.getItem('userId');
     if (storedUserId) {
       setUserId(parseInt(storedUserId, 10));
@@ -22,7 +21,6 @@ const EmployeeNotification = () => {
   useEffect(() => {
     if (!userId) return;
 
-    // Fetch notifications for the employee
     axios
       .get(`http://localhost:8081/api/notifications/${userId}`)
       .then((response) => {
@@ -37,13 +35,11 @@ const EmployeeNotification = () => {
   }, [userId]);
 
   const handleMarkAsRead = (notificationId) => {
-    // Mark notification as read
     axios
-      .put(`http://localhost:8081/api/notifications/${notificationId}`, {
-        read: true,
+      .delete(`http://localhost:8081/api/notifications/${notificationId}`, {
+        params: { userType: 'employee' }, // Specify userType as 'employee'
       })
       .then(() => {
-        // Remove the notification from the list after marking it as read
         setNotifications((prev) =>
           prev.filter((notification) => notification.id !== notificationId)
         );
