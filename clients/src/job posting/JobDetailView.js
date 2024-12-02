@@ -99,12 +99,18 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                 <h3>Job Overview</h3>
                 <p>{jobDetails?.jobOverview || 'No overview available.'}</p>
             </div>
-            <button 
-                onClick={handleApply} 
-                className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
-                disabled={isSubmitting || hasApplied}>
-                {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
-            </button>
+            {/* Render the apply button only if the user is accepted */}
+            {isAccepted && !hasApplied && (
+                <button 
+                    onClick={handleApply} 
+                    className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
+                    disabled={isSubmitting || hasApplied}>
+                    {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
+                </button>
+            )}
+            {!isAccepted && (
+                <p className="not-accepted-message">Your account is pending approval by the admin.</p>
+            )}
         </div>
     );
 }
