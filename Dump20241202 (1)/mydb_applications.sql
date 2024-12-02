@@ -45,7 +45,7 @@ CREATE TABLE `applications` (
   CONSTRAINT `applications_ibfk_4` FOREIGN KEY (`lastName`) REFERENCES `employee` (`lastName`),
   CONSTRAINT `applications_ibfk_5` FOREIGN KEY (`firstName`) REFERENCES `employee` (`firstName`),
   CONSTRAINT `applications_ibfk_7` FOREIGN KEY (`employer_id`) REFERENCES `job_postings` (`employer_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -54,7 +54,7 @@ CREATE TABLE `applications` (
 
 LOCK TABLES `applications` WRITE;
 /*!40000 ALTER TABLE `applications` DISABLE KEYS */;
-INSERT INTO `applications` VALUES (1,1,61,'2024-11-16 05:51:11',NULL,NULL,NULL,4,NULL),(2,1,60,'2024-11-16 05:52:01',NULL,NULL,NULL,4,NULL),(3,1,59,'2024-11-16 07:09:01',NULL,NULL,NULL,NULL,NULL),(4,1,63,'2024-11-16 07:57:05','gilethan7203221@gmail.com','García Flores','John',5,NULL),(5,7,63,'2024-11-16 10:10:13','gilethan7203221@gmail.com','García Flores','John',5,24),(6,7,61,'2024-11-18 06:17:00','gilethan72332@gmail.com','García Flores','Ethan',4,24),(7,7,64,'2024-11-24 04:38:08','theemployee324@gmail.com','Parable','Stanley',5,24),(8,7,65,'2024-11-30 06:42:16','theemployeeoftheday@gmail.com','Sanchez','Rick',4,24),(9,7,60,'2024-11-30 07:30:12','eagil322@adu.edu.ph','García Flores','Jon',4,24),(10,7,66,'2024-12-01 02:05:28','theemployee999@gmail.com','Lenny','Kael',3,24),(11,7,68,'2024-12-01 06:28:46','johnjohnson@gmail.com','Johnson','John',3,24),(12,7,70,'2024-12-01 06:49:16','gilethan2121@ymail.com','Codein','Mark',3,24),(13,1,66,'2024-12-01 09:37:09','theemployee999@gmail.com','Lenny','Kael',3,NULL);
+INSERT INTO `applications` VALUES (1,1,61,'2024-11-16 05:51:11',NULL,NULL,NULL,4,NULL),(2,1,60,'2024-11-16 05:52:01',NULL,NULL,NULL,4,NULL),(3,1,59,'2024-11-16 07:09:01',NULL,NULL,NULL,NULL,NULL),(4,1,63,'2024-11-16 07:57:05','gilethan7203221@gmail.com','García Flores','John',5,NULL),(5,7,63,'2024-11-16 10:10:13','gilethan7203221@gmail.com','García Flores','John',5,24),(6,7,61,'2024-11-18 06:17:00','gilethan72332@gmail.com','García Flores','Ethan',4,24),(7,7,64,'2024-11-24 04:38:08','theemployee324@gmail.com','Parable','Stanley',5,24),(8,7,65,'2024-11-30 06:42:16','theemployeeoftheday@gmail.com','Sanchez','Rick',4,24),(9,7,60,'2024-11-30 07:30:12','eagil322@adu.edu.ph','García Flores','Jon',4,24),(10,7,66,'2024-12-01 02:05:28','theemployee999@gmail.com','Lenny','Kael',4,24),(11,7,68,'2024-12-01 06:28:46','johnjohnson@gmail.com','Johnson','John',3,24),(12,7,70,'2024-12-01 06:49:16','gilethan2121@ymail.com','Codein','Mark',3,24),(13,1,66,'2024-12-01 09:37:09','theemployee999@gmail.com','Lenny','Kael',4,NULL),(14,7,69,'2024-12-01 23:38:01','mrwhosetheboss@gmail.com','Gil','Tom',3,24),(15,8,70,'2024-12-02 06:45:42','gilethan2121@ymail.com','Codein','Mark',3,28);
 /*!40000 ALTER TABLE `applications` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -67,4 +67,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-02  3:08:30
+-- Dump completed on 2024-12-02 22:47:07

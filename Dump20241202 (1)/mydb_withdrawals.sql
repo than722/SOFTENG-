@@ -16,27 +16,34 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `progress`
+-- Table structure for table `withdrawals`
 --
 
-DROP TABLE IF EXISTS `progress`;
+DROP TABLE IF EXISTS `withdrawals`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `progress` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `status` enum('accepted','rejected','pending') NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `withdrawals` (
+  `withdrawal_id` int NOT NULL AUTO_INCREMENT,
+  `application_id` int NOT NULL,
+  `reason` text NOT NULL,
+  `withdrawn_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `employee_id` int DEFAULT NULL,
+  PRIMARY KEY (`withdrawal_id`),
+  KEY `application_id` (`application_id`),
+  KEY `fk_withdrawals_employee_id` (`employee_id`),
+  CONSTRAINT `fk_withdrawals_employee_id` FOREIGN KEY (`employee_id`) REFERENCES `user` (`employee_id`),
+  CONSTRAINT `withdrawals_ibfk_2` FOREIGN KEY (`application_id`) REFERENCES `applications` (`applications_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `progress`
+-- Dumping data for table `withdrawals`
 --
 
-LOCK TABLES `progress` WRITE;
-/*!40000 ALTER TABLE `progress` DISABLE KEYS */;
-INSERT INTO `progress` VALUES (1,'accepted'),(2,'rejected'),(3,'pending');
-/*!40000 ALTER TABLE `progress` ENABLE KEYS */;
+LOCK TABLES `withdrawals` WRITE;
+/*!40000 ALTER TABLE `withdrawals` DISABLE KEYS */;
+INSERT INTO `withdrawals` VALUES (1,10,'PLease help me','2024-12-01 18:44:08',66);
+/*!40000 ALTER TABLE `withdrawals` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -48,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-02  3:08:30
+-- Dump completed on 2024-12-02 22:47:07

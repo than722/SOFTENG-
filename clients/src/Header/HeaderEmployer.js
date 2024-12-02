@@ -20,12 +20,8 @@ const HeaderEmployer = ({ userId, unreadCount, onSignOut }) => {
                     {userId && (
                         <li><Link to={`/profile/${userId}/employer`}>Profile</Link></li>
                     )}
-                    {/* Add Notifications Link */}
-                    <li>
-                        <Link to="/employer-notifications">
-                            Notifications {unreadCount > 0 && `(${unreadCount})`}
-                        </Link>
-                    </li>
+                     <li><Link to="/employee-notifications">Notifications</Link></li>
+                    
                 </ul>
             </nav>
             <div className="header-employer-button">

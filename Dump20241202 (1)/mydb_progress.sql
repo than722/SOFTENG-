@@ -16,28 +16,27 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `status_lookup`
+-- Table structure for table `progress`
 --
 
-DROP TABLE IF EXISTS `status_lookup`;
+DROP TABLE IF EXISTS `progress`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `status_lookup` (
+CREATE TABLE `progress` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `status_name` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `status_name` (`status_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `status` enum('accepted','rejected','pending') NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `status_lookup`
+-- Dumping data for table `progress`
 --
 
-LOCK TABLES `status_lookup` WRITE;
-/*!40000 ALTER TABLE `status_lookup` DISABLE KEYS */;
-INSERT INTO `status_lookup` VALUES (1,'Active'),(4,'Hired'),(2,'Inactive'),(3,'Pending'),(5,'Rejected');
-/*!40000 ALTER TABLE `status_lookup` ENABLE KEYS */;
+LOCK TABLES `progress` WRITE;
+/*!40000 ALTER TABLE `progress` DISABLE KEYS */;
+INSERT INTO `progress` VALUES (1,'accepted'),(2,'rejected'),(3,'pending');
+/*!40000 ALTER TABLE `progress` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -49,4 +48,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-02  3:08:30
+-- Dump completed on 2024-12-02 22:47:06

@@ -34,7 +34,7 @@ CREATE TABLE `job_postings` (
   PRIMARY KEY (`job_id`),
   KEY `fk_employer_id_idx` (`employer_id`),
   CONSTRAINT `fk_employer_id` FOREIGN KEY (`employer_id`) REFERENCES `employer` (`employer_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,7 +43,7 @@ CREATE TABLE `job_postings` (
 
 LOCK TABLES `job_postings` WRITE;
 /*!40000 ALTER TABLE `job_postings` DISABLE KEYS */;
-INSERT INTO `job_postings` VALUES (1,'Domestic Helper','The chief information security officer‘s job description comprises an experienced and skilled professional responsible for developing and implementing security strategies that protect the company’s data and systems from cyber threats. They ensure the company’s IT security system adheres to regulatory requirements and analyze security threats to the computer system in real time.\n\nThe ideal candidate must have a strong background in information security, a deep understanding of relevant regulations and industry standards, and the ability to lead a team of security professionals.','Caretaker',400.00,'Malaysia','2024-10-09 14:46:13',NULL),(2,'Driver','qweqweqweqwe','WQeqweqe',100.00,'Malaysia','2024-11-04 14:15:50',NULL),(4,'Simple Gardener','Simple Gardener','Simpler Gardener',200.00,'Malaysia','2024-11-16 17:54:05',25),(5,'Housekeeper','Simple Housekeeper','Simple Housekeeper',300.00,'Thailand','2024-11-16 17:56:04',25),(6,'Dishwasher','simple dishwaser','SImple dishwasher',150.00,'Japan','2024-11-16 17:56:40',25),(7,'Guard','Simple Guard','Simple Guard',200.00,'Malaysia','2024-11-16 18:09:34',24);
+INSERT INTO `job_postings` VALUES (1,'Domestic Helper','The chief information security officer‘s job description comprises an experienced and skilled professional responsible for developing and implementing security strategies that protect the company’s data and systems from cyber threats. They ensure the company’s IT security system adheres to regulatory requirements and analyze security threats to the computer system in real time.\n\nThe ideal candidate must have a strong background in information security, a deep understanding of relevant regulations and industry standards, and the ability to lead a team of security professionals.','Caretaker',400.00,'Malaysia','2024-10-09 14:46:13',NULL),(2,'Driver','qweqweqweqwe','WQeqweqe',100.00,'Malaysia','2024-11-04 14:15:50',NULL),(4,'Simple Gardener','Simple Gardener','Simpler Gardener',200.00,'Malaysia','2024-11-16 17:54:05',25),(5,'Housekeeper','Simple Housekeeper','Simple Housekeeper',300.00,'Thailand','2024-11-16 17:56:04',25),(6,'Dishwasher','simple dishwaser','SImple dishwasher',150.00,'Japan','2024-11-16 17:56:40',25),(7,'Guard','Simple Guard','Simple Guard',200.00,'Malaysia','2024-11-16 18:09:34',24),(8,'Gardener','Simple gardener','Simple gardener',300.00,'Malaysia','2024-12-02 14:45:17',28);
 /*!40000 ALTER TABLE `job_postings` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -56,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-02  3:08:30
+-- Dump completed on 2024-12-02 22:47:07
