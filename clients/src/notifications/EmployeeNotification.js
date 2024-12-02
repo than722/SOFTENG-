@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './EmployeeNotification.css';
+import HeaderEmployee from '../Header/HeaderEmployee';
 
 const EmployeeNotification = () => {
   const [userId, setUserId] = useState(null);
@@ -53,6 +54,17 @@ const EmployeeNotification = () => {
   if (error) return <div style={{ color: 'red' }}>{error}</div>;
 
   return (
+    <>
+            <HeaderEmployee
+        userId={userId}
+        auth={true}
+        onSignOut={() => {
+          localStorage.clear();
+          window.location.href = '/';
+        }}
+      />
+
+
     <div className="notification-employee-container">
       <h2>Your Notifications</h2>
       {notifications.length === 0 ? (
@@ -82,6 +94,7 @@ const EmployeeNotification = () => {
         </ul>
       )}
     </div>
+    </>
   );
 };
 

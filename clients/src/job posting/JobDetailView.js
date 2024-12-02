@@ -2,22 +2,24 @@ import React, { useEffect, useState } from 'react';
 import './JobDetailView.css';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-//trial
-//test 
+
 function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const navigate = useNavigate();
-    const [isSubmitting, setIsSubmitting] = useState(false); // Fix the error by defining state
-    const [hasApplied, setHasApplied] = useState(false); // Track if the user has already applied
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [hasApplied, setHasApplied] = useState(false);
+    const [isAccepted, setIsAccepted] = useState(false); // Track if the employee is accepted
 
     useEffect(() => {
         // Verify session by calling the backend
         axios
-            .get('http://localhost:8081/verify-session', { withCredentials: true }) // Include cookies in the request
+            .get('http://localhost:8081/verify-session', { withCredentials: true })
             .then((res) => {
                 if (res.status !== 200 || res.data.userType !== 'employee') {
                     alert('Access denied: This page is only accessible to employees.');
                     navigate('/'); // Redirect unauthorized users
                 }
+                // Check if the employee is approved by the admin
+                setIsAccepted(res.data.isAccepted); // Backend should return `isAccepted`
             })
             .catch((err) => {
                 console.error('Session verification failed:', err);
@@ -50,17 +52,14 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
         if (isSubmitting || hasApplied) return;
         setIsSubmitting(true);
         try {
-            // Make an API request to apply for a job
             const response = await axios.post(
                 'http://localhost:8081/api/applications/apply',
                 { job_id: jobDetails?.job_id }, // Only send job_id
-                { withCredentials: true } // Include credentials (cookies)
+                { withCredentials: true }
             );
 
             if (response.status === 201) {
                 alert('Application successfully sent!');
-                const employerId = response.data.employer_id; // Access the employer_id from the response
-                console.log('Employer ID:', employerId);
                 setHasApplied(true); // Mark as applied
             } else {
                 alert('There was an issue with your application.');
@@ -103,12 +102,18 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                 <h3>Job Overview</h3>
                 <p>{jobDetails?.jobOverview || 'No overview available.'}</p>
             </div>
-            <button 
-                onClick={handleApply} 
-                className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
-                disabled={isSubmitting || hasApplied}>
-                {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
-            </button>
+            {/* Render the apply button only if the user is accepted */}
+            {isAccepted && !hasApplied && (
+                <button 
+                    onClick={handleApply} 
+                    className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
+                    disabled={isSubmitting || hasApplied}>
+                    {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
+                </button>
+            )}
+            {!isAccepted && (
+                <p className="not-accepted-message">Your account is pending approval by the admin.</p>
+            )}
         </div>
     );
 }

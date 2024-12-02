@@ -2,67 +2,79 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ViewAppliedApplicants.css';
 import HeaderEmployer from '../Header/HeaderEmployer';
+import { useLocation } from 'react-router-dom';
 
 function ViewAppliedApplicants() {
-    const [applicants, setApplicants] = useState([]);
-    const [selectedApplicant, setSelectedApplicant] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const [applicants, setApplicants] = useState([]);
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const location = useLocation(); // Get state passed during navigation
+  const applicationId = location.state?.applicationId; // Get applicationId if passed
 
-    const getStatusLabel = (statusId) => {
-        switch (statusId) {
-            case 1: return "Active";
-            case 2: return "Inactive";
-            case 3: return "Pending";
-            case 4: return "Hired";
-            case 5: return "Rejected";
-            default: return "Unknown";
+  const getStatusLabel = (statusId) => {
+    switch (statusId) {
+      case 1: return "Active";
+      case 2: return "Inactive";
+      case 3: return "Pending";
+      case 4: return "Hired";
+      case 5: return "Rejected";
+      default: return "Unknown";
+    }
+  };
+
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      console.error("Employer ID is missing.");
+      setError("Invalid employer ID.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchApplicants = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8081/api/applications/employer/${userId}`, {
+          withCredentials: true,
+        });
+        console.log("Fetched applicants:", response.data);
+        setApplicants(response.data);
+
+        // If applicationId is passed, fetch the applicant details immediately
+        if (applicationId) {
+          const applicantResponse = await axios.get(
+            `http://localhost:8081/api/applicants/${applicationId}`,
+            { withCredentials: true }
+          );
+          setSelectedApplicant(applicantResponse.data);
         }
+      } catch (err) {
+        console.error("Error fetching applicants:", err);
+        setError("Failed to fetch applicants.");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    useEffect(() => {
-        const userId = localStorage.getItem('userId');
-        if (!userId) {
-            console.error("Employer ID is missing.");
-            setError("Invalid employer ID.");
-            setLoading(false);
-            return;
-        }
+    fetchApplicants();
+  }, [applicationId]);
 
-        const fetchApplicants = async () => {
-            try {
-                const response = await axios.get(`http://localhost:8081/api/applications/employer/${userId}`, {
-                    withCredentials: true,
-                });
-                console.log("Fetched applicants:", response.data);
-                setApplicants(response.data);
-            } catch (err) {
-                console.error("Error fetching applicants:", err);
-                setError("Failed to fetch applicants.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchApplicants();
-    }, []);
-
-    const viewDetails = async (applicationId) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await axios.get(`http://localhost:8081/api/applicants/${applicationId}`, {
-                withCredentials: true,
-            });
-            console.log("Applicant details:", response.data);
-            setSelectedApplicant(response.data);
-        } catch (err) {
-            console.error("Error fetching applicant details:", err);
-            setError("Failed to fetch applicant details.");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const viewDetails = async (applicationId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`http://localhost:8081/api/applicants/${applicationId}`, {
+        withCredentials: true,
+      });
+      console.log("Applicant details:", response.data);
+      setSelectedApplicant(response.data);
+    } catch (err) {
+      console.error("Error fetching applicant details:", err);
+      setError("Failed to fetch applicant details.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
     const hireApplicant = async (employeeId) => {
         if (!employeeId) {
