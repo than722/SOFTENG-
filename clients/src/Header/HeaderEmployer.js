@@ -21,6 +21,7 @@ const HeaderEmployer = ({ userId, unreadCount, onSignOut }) => {
                         <li><Link to={`/profile/${userId}/employer`}>Profile</Link></li>
                     )}
                     
+   
                 </ul>
             </nav>
             <div className="right">

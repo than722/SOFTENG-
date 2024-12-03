@@ -172,7 +172,7 @@ function ViewAppliedApplicants() {
                     <div className='details'>
                         <p><strong>Email:</strong> {selectedApplicant.email}</p>
                         <p><strong>Province:</strong> {selectedApplicant.province}</p>
-                        <p><strong>Municipality:</strong> {selectedApplicant.municipality}</p>
+                        <p><strong>City / Municipality:</strong> {selectedApplicant.municipality}</p>
                         <p><strong>Barangay:</strong> {selectedApplicant.barangay}</p>
                         <p><strong>Zip Code:</strong> {selectedApplicant.zipCode}</p>
                         <p><strong>Status:</strong> {getStatusLabel(selectedApplicant.status_id)}</p>    
@@ -186,7 +186,7 @@ function ViewAppliedApplicants() {
                                 <img 
                                     src={`http://localhost:8081${selectedApplicant.picture_url}`} 
                                     alt="Applicant Picture" 
-                                    style={{ maxWidth: '300px', maxHeight: '300px' }} 
+                                    style={{ maxWidth: '150px', maxHeight: '150px' }} 
                                 />
                             </li>
                         )}

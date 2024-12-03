@@ -52,8 +52,8 @@
    font-family: 'Mulish-Regular';
   width: 100%;
   padding: 10px;
-  background-color: #0077C8;
-  color: rgb(10, 10, 10);
+  background-color: #ffffff;
+  color: hsl(0, 0%, 0%);
   border: 2px solid #0a0a0a;
   border-radius: 4px;
   cursor: pointer;
@@ -61,6 +61,3 @@
   margin-top: 15px; 
 }
 
-.sign-out-App {
-  background-color: #0056b3;
-}

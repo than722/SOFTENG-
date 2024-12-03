@@ -81,7 +81,7 @@ const ViewAppliedJobs = () => {
                 <th>Job Title</th>
                 <th>Job Overview</th>
                 <th>Job Description</th>
-                <th>Salary</th>
+                <th>Salary($)</th>
                 <th>Country</th>
                 <th>Company Name</th>
                 <th>Actions</th>

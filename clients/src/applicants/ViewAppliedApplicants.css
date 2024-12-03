@@ -53,7 +53,7 @@ h3{
     font-size: 24px;
     border-color:black ;
     font-family: 'Mulish-Regular';
-    margin-top: 10px;
+    margin-top: 20px;    
 }
 
 .applicant-card, .note {
@@ -68,20 +68,20 @@ h3{
     text-decoration: none;
 }
 .viewDetails{
-    font-size: 10px;
+    font-size: 12px;
     font-family:'Mulish-Regular';
     font-weight: bold;
-    border-radius: 50%;
+    border-radius: 10%;
     border: 2px solid #007bff;
     background-color: hsl(0, 0%, 96%);
     color: #007bff;  
 }
 .viewDetails:hover{
-    font-size: 10px;
+    font-size: 12px;
     font-family:'Mulish-Regular';
     font-weight: bold;
     color: #007bff;
-    border-radius: 50%;
+    border-radius: 10%;
     background-color: #007bff;
     border: 2px white solid;  
     color: white; 
@@ -123,6 +123,7 @@ h3{
     margin: 20px;
     border-radius: 3px;
     padding: 10px;
+    min-width: 126px;
 }
 
 .reject-button{

@@ -122,6 +122,7 @@ button:hover {
 
 .profile-info {
     padding-right: 140px; /* Add some padding to avoid overlap with the image */
+    overflow-y: auto;
 }
 
 .profile-info p {

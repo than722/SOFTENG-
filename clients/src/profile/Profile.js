@@ -340,7 +340,7 @@ const fetchProfile = useCallback(() => {
             <p><strong>Middle Name:</strong> {profileData.middleName}</p>
             <p><strong>Age:</strong> {age !== null ? `${age} years old` : 'Not specified'}</p>
             <p><strong>Province:</strong> {profileData.province}</p>
-            <p><strong>Municipality:</strong> {profileData.municipality}</p>
+            <p><strong>City/Municipality:</strong> {profileData.municipality}</p>
             <p><strong>Barangay:</strong> {profileData.barangay}</p>
             <p><strong>Zip Code:</strong> {profileData.zipCode}</p>
             <p><strong>Mobile Number:</strong> {profileData.mobileNumber}</p>

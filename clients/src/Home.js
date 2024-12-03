@@ -35,9 +35,6 @@ const Home = ({ openSelectionModal, openSignInModal }) => {
           </p>
           <button className="sign-up-App" onClick={openSelectionModal}>SIGN UP</button>
         </div>
-        <div className="image-section-App">
-          <img src="woman-smiling.png" alt="Smiling Woman" className="main-image-App" />
-        </div>
       </main>
     </div>
   );
