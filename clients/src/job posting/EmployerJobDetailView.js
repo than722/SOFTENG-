@@ -87,8 +87,8 @@ function EmployerJobDetailView({ jobDetails, onBack, detailsLoading, detailsErro
             
             <div className="job-metadata">
                 <div>
-                    <h4>Type of Work</h4>
-                    <p>{jobDetails.typeOfWork || 'Full Time'}</p>
+                    <h4>Contract Years</h4>
+                    <p>{jobDetails.typeOfWork || '2 Years'}</p>
                 </div>
                 <div>
                     <h4>Salary</h4>

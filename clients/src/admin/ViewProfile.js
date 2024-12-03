@@ -7,60 +7,48 @@ const ViewProfile = ({
   acceptUser,
   rejectUser,
   handleDeficiencyRequest,
-  updateProgressStep, // Function to update the progress step
+  updateProgressStep,
 }) => {
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false); // State for reupload modal
     const [currentFileType, setCurrentFileType] = useState(''); // Track the current file type
     const [medicalCertificate, setMedicalCertificate] = useState(null); // State for the uploaded file
     const [nbiCirtificate, setNbiCertificate] = useState(null);
     const [requestReason, setRequestReason] = useState(''); // Reason for reupload
-    const [fileChecks, setFileChecks] = useState({
-        medicalCertificate: false,
-        resume: false,
-        validID: false,
-        birthCertificate: false,
-        passport: false,
+    const [fileApprovals, setFileApprovals] = useState({
+      resume: false,
+      validID: false,
+      birthCertificate: false,
+      passport: false,
       });
 
       useEffect(() => {
-        // Ensure all checkboxes are initially unchecked
-        setFileChecks({
-          medicalCertificate: false,
+        // Ensure all approvals are reset when a new user is loaded
+        setFileApprovals({
           resume: false,
           validID: false,
           birthCertificate: false,
           passport: false,
         });
-      }, [user]); // Reset the state whenever a new user is loaded
+      }, [user]);
 
       useEffect(() => {
-        // If all checkboxes are checked, update the progress step to Step 2
-        const allChecked = Object.values(fileChecks).every((isChecked) => isChecked);
-        if (allChecked) {
-          // Call the backend to update progress to Step 2 and highlight the file
-          updateProgress(user.id, fileChecks);
+        // If all files are approved, update the progress step
+        const allApproved = Object.values(fileApprovals).every((isApproved) => isApproved);
+        if (allApproved && updateProgressStep) {
+          updateProgressStep(user.id, 2); // Updates to step 2 when all files are approved
         }
-      }, [fileChecks, user.id]);
-      
+      }, [fileApprovals, user, updateProgressStep]);
     
-      const updateProgress = async (userId, fileChecks) => {
-        try {
-          const response = await fetch(`http://localhost:8081/api/users/${userId}/update-progress`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileChecks }), // Send the file checks to the backend
-          });
-          const data = await response.json();
-          console.log(data.message); // Handle the response message
-          if (data.highlightFile) {
-            alert('All files are uploaded, and the file will be highlighted!');
-            // You can add logic here to visually highlight the file if needed
-          }
-        } catch (error) {
-          console.error('Error updating progress:', error);
-        }
+      if (!user) return null;
+    
+      const handleApprove = (fileType) => {
+        setFileApprovals((prev) => ({
+          ...prev,
+          [fileType]: true,
+        }));
+        alert(`${fileType.replace(/([A-Z])/g, ' $1')} approved.`);
       };
-      
+
 
 
   const handleFileUpload = (event, type) => {
@@ -99,6 +87,7 @@ const ViewProfile = ({
           } else if (type === 'tesdaCertificate') {
             updateProgressStep(user.id, 5); // Step 5: TESDA Certificate
           }
+          
         })
         .catch((err) => {
           console.error(`Error uploading ${type}:`, err);
@@ -126,18 +115,19 @@ const ViewProfile = ({
     setIsRequestModalOpen(false);
   };
 
-  const handleCheck = (fileType) => {
-    setFileChecks((prev) => ({
-      ...prev,
-      [fileType]: !prev[fileType],
-    }));
-  };
+
 
   const handleAcceptUser = () => {
-    // Update progress step to Step 6 when the user is accepted
-    updateProgressStep(user.id, 6);
-    alert('User progress updated to Step 6.');
-    closeModal(); // Close the modal after updating
+    if (updateProgressStep) {
+      // Assuming the admin_id is available, possibly from context or props
+      const adminId = 1; // Replace with actual admin ID logic
+  
+      updateProgressStep(user.id, 6, adminId); // Pass adminId for step 6
+      alert("User progress updated to Step 6.");
+      closeModal(); // Close the modal after updating
+    } else {
+      console.error("updateProgressStep function is not available.");
+    }
   };
 
   return (
@@ -190,7 +180,7 @@ const ViewProfile = ({
             <strong>Status:</strong>{' '}
             {user.status_id === 1
               ? 'Active'
-              : user.status_id === 2
+              : user.status_id=== 2
               ? 'Inactive'
               : 'Pending'}
           </p>
@@ -248,11 +238,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-            <input
-              type="checkbox"
-              checked={fileChecks.resume}
-              onChange={() => handleCheck('resume')}
-            />
+          <p>
+            <strong>Resume:</strong>{' '}
+            {fileApprovals.resume ? (
+              <span>Approved</span>
+            ) : (
+              <button onClick={() => handleApprove('resume')}>Approve</button>
+            )}
+          </p>
           </p>
 
           {/* Valid ID */}
@@ -277,11 +270,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-            <input
-              type="checkbox"
-              checked={fileChecks.validID}
-              onChange={() => handleCheck('validID')}
-            />
+          <p>
+            <strong>Valid ID:</strong>{' '}
+            {fileApprovals.validID ? (
+              <span>Approved</span>
+            ) : (
+              <button onClick={() => handleApprove('validID')}>Approve</button>
+            )}
+          </p>
           </p>
 
           {/* Birth Certificate */}
@@ -308,11 +304,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-            <input
-              type="checkbox"
-              checked={fileChecks.birthCertificate}
-              onChange={() => handleCheck('birthCertificate')}
-            />
+          <p>
+            <strong>Birth Certificate:</strong>{' '}
+            {fileApprovals.birthCertificate ? (
+              <span>Approved</span>
+            ) : (
+              <button onClick={() => handleApprove('birthCertificate')}>Approve</button>
+            )}
+          </p>
           </p>
 
           {/* Passport */}
@@ -337,11 +336,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-            <input
-              type="checkbox"
-              checked={fileChecks.passport}
-              onChange={() => handleCheck('passport')}
-            />
+          <p>
+            <strong>Passport:</strong>{' '}
+            {fileApprovals.passport ? (
+              <span>Approved</span>
+            ) : (
+              <button onClick={() => handleApprove('passport')}>Approve</button>
+            )}
+          </p>
           </p>
 
           {/* Marriage Contract */}

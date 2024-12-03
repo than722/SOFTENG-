@@ -8,6 +8,7 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
     const [employeeStatus, setEmployeeStatus] = useState({ status_id: null, progress_id: null });
+    const [enrichedJobDetails, setEnrichedJobDetails] = useState(null);
 
     useEffect(() => {
         // Check if the user is logged in and fetch employee status
@@ -34,17 +35,15 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                 navigate('/login');
             });
 
+        // Fetch enriched job details including employer name
         if (jobDetails?.job_id) {
             axios
-                .get(`http://localhost:8081/api/applications/check/${jobDetails.job_id}`, { withCredentials: true })
+                .get(`http://localhost:8081/api/applied-jobs/${jobDetails.job_id}`, { withCredentials: true })
                 .then((res) => {
-                    if (res.data.applied) {
-                        setHasApplied(true);
-                    }
+                    const enrichedDetails = res.data.find((job) => job.jobID === jobDetails.job_id);
+                    setEnrichedJobDetails(enrichedDetails || jobDetails);
                 })
-                .catch((err) => {
-                    console.error('Error checking application status:', err);
-                });
+                .catch((err) => console.error('Error fetching job details:', err));
         }
     }, [navigate, jobDetails]);
 
@@ -94,8 +93,8 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             <h2>{jobDetails?.jobName || 'Job Name Not Available'}</h2>
             <div className="job-metadata">
                 <div>
-                    <h4>Type of Work</h4>
-                    <p>{jobDetails?.typeOfWork || 'Full Time'}</p>
+                    <h4>Contract Years</h4>
+                    <p>{jobDetails?.typeOfWork || '2 Years'}</p>
                 </div>
                 <div>
                     <h4>Salary</h4>
@@ -109,6 +108,10 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             <div className="job-overview">
                 <h3>Job Overview</h3>
                 <p>{jobDetails?.jobOverview || 'No overview available.'}</p>
+            </div>
+            <div>
+                <h4>Employer</h4>
+                <p>{enrichedJobDetails?.employerName || 'Not Disclosed'}</p>
             </div>
             {/* Debugging Info */}
             <div className="debug-info">

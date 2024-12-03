@@ -17,6 +17,7 @@ import ViewAppliedJobs from './applicants/ViewAppliedJobs';
 import EmployeeNotification from './notifications/EmployeeNotification';
 import EmployerNotification from './notifications/EmployerNotification';
 import EmployerViewJobPosting from './job posting/EmployerViewJobPosting';
+import ParentComponent from './admin/ParentComponent';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -151,10 +152,11 @@ const AppContent = ({
         <Route path="/employee/:id/applied-jobs" element={<ViewAppliedJobs />} />
         <Route path="/employee/:id" element={<EmployeeP onSignOut={handleSignOut} auth={isAuthenticated} />} />
         <Route path="/employer/:id" element={<EmployerP onSignOut={handleSignOut} auth={isAuthenticated} />} />
-        <Route path="*" element={<Navigate to="/" />} />
         <Route path="/notifications" element={<EmployeeNotification userId={userId} />} />
         <Route path="/employer-notifications" element={<EmployerNotification userId={userId} />} />
         <Route path="/employer-view-job-postings" element={<EmployerViewJobPosting />} />
+        <Route path="/parent-component" element={<ParentComponent />} /> {/* Added ParentComponent */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
       <CreateAcc

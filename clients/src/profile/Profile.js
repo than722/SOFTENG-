@@ -7,6 +7,7 @@ import HeaderEmployee from '../Header/HeaderEmployee';
 import SignOut from '../Sign in/SignOut';
 import WithdrawApplication from '../admin/WithdrawApplication';
 import ProfileDeficiencies from './ProfileDeficiencies';
+import ProgressBar from '../Progress/ProgressBar'; // Import ProgressBar
 
 const Profile = () => {
   const { id, accountType } = useParams(); // Extract both id and accountType from route params
@@ -192,6 +193,14 @@ const fetchProfile = useCallback(() => {
           onSignOut={() => <SignOut />} // Call SignOut for employee
         />
       )}
+
+        {/* Add ProgressBar */}
+              {accountType === 'employee' && (
+          <div className="profile-progress-bar">
+            <h2>Progress</h2>
+            <ProgressBar currentStep={profileData.progressId || 1} />
+          </div>
+        )}
 
     <div className="profile-container">
       <h1>{profileData.firstName} {profileData.lastName}'s Profile</h1>

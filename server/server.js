@@ -389,14 +389,14 @@ app.delete('/api/:accountType/:id', (req, res) => {
 app.get('/api/users', (req, res) => {
   const employeeQuery = `
     SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, picture, resume, status_id AS statusId,
+           zipCode, mobileNumber, picture, resume, status_id AS statusId, progress_id,
            email, 'Employee' AS userType
     FROM employee
   `;
 
   const employerQuery = `
     SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id AS progressId, 
+           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id, 
            email, 'Employer' AS userType
     FROM employer
   `;
@@ -1200,13 +1200,13 @@ app.get("/api/applied-jobs/:employeeID", (req, res) => {
 
   db.query(queryApplications, [employeeID], (err, applicationResults) => {
     if (err) {
-      console.error(err);
+      console.error("Error fetching applications:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
 
     // If no applications found, return an empty array
     if (applicationResults.length === 0) {
-      return res.json([]);  // Send an empty array instead of a 404
+      return res.json([]); // Send an empty array instead of a 404
     }
 
     // Get all job_id values
@@ -1221,7 +1221,9 @@ app.get("/api/applied-jobs/:employeeID", (req, res) => {
         jp.jobDescription, 
         jp.salary, 
         jp.country, 
-        e.companyName AS companyName
+        jp.datePosted, 
+        e.companyName AS employerName,
+        e.employer_id AS employerID
       FROM job_postings jp
       JOIN employer e ON jp.employer_id = e.employer_id
       WHERE jp.job_id IN (?);
@@ -1229,14 +1231,28 @@ app.get("/api/applied-jobs/:employeeID", (req, res) => {
 
     db.query(queryJobDetails, [jobIds], (err, jobResults) => {
       if (err) {
-        console.error(err);
+        console.error("Error fetching job details:", err);
         return res.status(500).json({ message: "Internal server error" });
       }
 
-      res.json(jobResults); // Send the job results
+      // Include employer's name in the response
+      const enrichedResults = jobResults.map((job) => ({
+        jobID: job.job_id,
+        jobName: job.jobName,
+        jobOverview: job.jobOverview,
+        jobDescription: job.jobDescription,
+        salary: job.salary,
+        country: job.country,
+        datePosted: job.datePosted,
+        employerName: job.employerName,
+        employerID: job.employerID,
+      }));
+
+      res.json(enrichedResults); // Send enriched job results
     });
   });
 });
+
 
 app.post('/api/users/:userId/withdraw', verifyUser, (req, res) => {
   const { userId } = req.params; // userId from URL (should be employee_id)
@@ -1543,81 +1559,6 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
   }
 });
 
-// Endpoint to update progress step based on checkbox states
-app.post('/api/users/:userId/update-progress', (req, res) => {
-  const userId = req.params.userId;
-  const { fileChecks } = req.body;
-
-  // Logic to update progress based on fileChecks
-  let progressStep = 0;
-  if (fileChecks.medicalCertificate) progressStep = Math.max(progressStep, 3);
-  if (fileChecks.nbiCertificate) progressStep = Math.max(progressStep, 4);
-  if (fileChecks.tesdaCertificate) progressStep = Math.max(progressStep, 5);
-
-  const updateQuery = `UPDATE employees SET progressStep = ? WHERE id = ?`;
-  db.query(updateQuery, [progressStep, userId], (err, result) => {
-    if (err) return res.status(500).json({ message: 'Failed to update progress', error: err });
-    res.status(200).json({ message: 'Progress updated successfully' });
-  });
-});
-
-
-// Function to update progress in DB (this is just an example)
-const updateUserProgress = (userId, progressStep) => {
-  return new Promise((resolve, reject) => {
-    // Replace with your actual DB logic here
-    // Example: Update the progress step in the database for the user
-    const query = `UPDATE users SET progress_step = ? WHERE id = ?`;
-    db.query(query, [progressStep, userId], (err, results) => {
-      if (err) reject(err);
-      else resolve(results);
-    });
-  });
-};
-
-
-// 5. Fetch admin details for a specific employee
-app.get('/api/admin/:employee_id', (req, res) => {
-  const { employee_id } = req.params;
-
-  const query = `
-    SELECT * 
-    FROM admin 
-    WHERE employee_id = ?`;
-
-  db.query(query, [employee_id], (err, results) => {
-    if (err) return res.status(500).send(err);
-    if (results.length === 0)
-      return res.status(404).json({ message: 'Admin record not found' });
-
-    res.json(results[0]);
-  });
-});
-
-app.post('/api/users/:userId/:fileType', upload.single('file'), (req, res) => {
-  const userId = req.params.userId;
-  const fileType = req.params.fileType;
-  
-  if (!req.file) {
-    return res.status(400).json({ message: 'No file uploaded' });
-  }
-
-  // Get the file as a binary buffer
-  const fileData = req.file.buffer;
-
-  // SQL query to update the employee table with the uploaded file as BLOB
-  const updateQuery = `UPDATE employees SET ${fileType} = ? WHERE id = ?`;
-
-  db.query(updateQuery, [fileData, userId], (err, result) => {
-    if (err) {
-      console.error('Error executing update query:', err); // Log the error to console
-      return res.status(500).json({ message: 'Failed to upload file', error: err });
-    }
-
-    // After file upload, check and update the progress
-    checkAndUpdateProgress(userId, res);
-  });
-});
 
 
 
