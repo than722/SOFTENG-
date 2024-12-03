@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -692,6 +692,19 @@ app.get('/api/employers/:employerId/jobs', (req, res) => {
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
     res.json(results);
+  });
+});
+
+// Add this route to your Express server
+app.get('/api/applications/job/:jobId', (req, res) => {
+  const jobId = req.params.jobId;
+  const sql = 'SELECT * FROM applications WHERE job_id = ?';
+
+  db.query(sql, [jobId], (err, results) => {
+      if (err) {
+          return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+      res.json(results);
   });
 });
 
@@ -1486,7 +1499,7 @@ app.get('/api/employees/:employeeId/deficiencies', (req, res) => {
       file_name, 
       request_date,
       reason 
-    FROM deficiency_request
+    FROM deficiency_requests
     WHERE employee_id = ?;
   `;
 
