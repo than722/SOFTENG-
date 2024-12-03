@@ -421,7 +421,7 @@ app.put('/api/users/:id/status', (req, res) => {
   console.log(req.originalUrl); // Log the requested URL
   console.log(req.body); // Log the request body
 
-  const userId = req.params.id;  // This is now the employee_id, not user_id
+  const userId = req.params.id; // This is now the employee_id or employer_id
   const { progressId } = req.body;
 
   // Validate progressId is provided in the request body
@@ -431,9 +431,9 @@ app.put('/api/users/:id/status', (req, res) => {
 
   const queryEmployee = `UPDATE employee SET progress_id = ? WHERE employee_id = ?`;
   const queryEmployer = `UPDATE employer SET progress_id = ? WHERE employer_id = ?`;
-  const updateEmployeeStatus = `UPDATE employee SET status_id = 1 WHERE employee_id = ?`;  // Update status_id to 1 when accepted
+  const updateEmployeeStatus = `UPDATE employee SET status_id = 1 WHERE employee_id = ?`; // Update status_id to 1 when accepted
 
-  // Check if the user is an employee by querying the employee table
+  // First, check if the user is an employee by querying the employee table
   db.query('SELECT * FROM employee WHERE employee_id = ?', [userId], (err, employeeResults) => {
     if (err) {
       console.error(err);
@@ -441,7 +441,7 @@ app.put('/api/users/:id/status', (req, res) => {
     }
 
     if (employeeResults.length > 0) {
-      // If the employee exists, update their progress
+      // If the user is found in the employee table, update their progress
       db.query(queryEmployee, [progressId, userId], (err, updateResults) => {
         if (err) {
           console.error(err);
@@ -479,7 +479,7 @@ app.put('/api/users/:id/status', (req, res) => {
         }
 
         if (employerResults.length > 0) {
-          // If the employer exists, update their progress
+          // If the user is found in the employer table, update their progress
           db.query(queryEmployer, [progressId, userId], (err, updateResults) => {
             if (err) {
               console.error(err);
@@ -493,12 +493,14 @@ app.put('/api/users/:id/status', (req, res) => {
             }
           });
         } else {
+          // If the user is neither an employee nor an employer, return an error
           return res.status(404).json({ error: 'User not found in both employee and employer tables' });
         }
       });
     }
   });
 });
+
 
 
 
@@ -1459,24 +1461,24 @@ app.get('/api/employers/:employerId/notifications', (req, res) => {
 
 
 app.post('/api/deficiencies/request', (req, res) => {
-  const { applicantId, requiredFiles } = req.body;
+  const { applicantId, requiredFiles, reason } = req.body;
 
   if (!applicantId || !Array.isArray(requiredFiles) || requiredFiles.length === 0) {
-      return res.status(400).json({ message: 'Applicant ID and required files are required.' });
+    return res.status(400).json({ message: 'Applicant ID, required files, and reason are required.' });
   }
 
   const query = 'INSERT INTO deficiency_requests (employee_id, file_name, reason) VALUES ?';
-  const values = requiredFiles.map((file) => [applicantId, file]);
+  const values = requiredFiles.map((file) => [applicantId, file, reason]);
 
   db.query(query, [values], (err) => {
-      if (err) {
-          console.error('Error saving deficiency request:', err);
-          res.status(500).json({ message: 'Failed to save deficiency request.' });
-      } else {
-          res.json({ message: 'Deficiency request saved successfully.' });
-      }
+    if (err) {
+      console.error('Error saving deficiency request:', err);
+      return res.status(500).json({ message: 'Failed to save deficiency request.' });
+    }
+    res.json({ message: 'Deficiency request saved successfully.' });
   });
 });
+
 
 // Get deficiencies for a specific employee
 app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async (req, res) => {
@@ -1492,8 +1494,6 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
   }
 
   const filePath = req.file.path;
-  console.log('File Path:', filePath); // Log file path to verify
-
   const columnMap = {
     picture: 'picture',
     resume: 'resume',
@@ -1509,23 +1509,15 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
   }
 
   try {
-    // Ensure that employeeId is a valid number
+    // Ensure employeeId is valid
     if (isNaN(employeeId)) {
       return res.status(400).json({ error: 'Invalid employee ID.' });
     }
 
-    // Prepare the SQL query based on the file type
+    // Update the respective file column in the employee table
     const column = columnMap[type];
-    if (!column) {
-      return res.status(400).json({ error: 'Invalid file type' });
-    }
-
-    // Execute the SQL query
     const sql = `UPDATE employee SET ${column} = ? WHERE employee_id = ?`;
     const values = [filePath, employeeId];
-
-    console.log('Executing SQL Query:', sql);
-    console.log('With Values:', values);
 
     db.execute(sql, values, (err, result) => {
       if (err) {
@@ -1533,19 +1525,66 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
         return res.status(500).json({ error: 'Error updating employee data' });
       }
 
-      console.log('SQL Query Result:', result);
       if (result.affectedRows > 0) {
-        return res.status(200).json({ message: 'File uploaded successfully!' });
+        // Increment progress_step in the admin table
+        const progressQuery = `
+          UPDATE admin 
+          SET progress_step = progress_step + 1 
+          WHERE employee_id = ?`;
+        db.query(progressQuery, [employeeId], (progressErr) => {
+          if (progressErr) {
+            console.error('Error updating progress_step:', progressErr);
+            return res.status(500).json({ error: 'Error updating progress step.' });
+          }
+          res.status(200).json({ message: 'File uploaded successfully and progress updated!' });
+        });
       } else {
-        return res.status(400).json({ error: 'Failed to update employee record.' });
+        res.status(400).json({ error: 'Failed to update employee record.' });
       }
     });
   } catch (err) {
     console.error('Error uploading file:', err);
-    return res.status(500).json({ error: 'Failed to upload file.' });
+    res.status(500).json({ error: 'Failed to upload file.' });
   }
 });
 
+
+// 1. Update progress step
+app.put('/api/admin/:employee_id/progress', (req, res) => {
+  const { employee_id } = req.params;
+  const { progress_step } = req.body;
+
+  const query = `
+    UPDATE admin 
+    SET progress_step = ? 
+    WHERE employee_id = ?`;
+
+  db.query(query, [progress_step, employee_id], (err, result) => {
+    if (err) return res.status(500).send(err);
+    if (result.affectedRows === 0)
+      return res.status(404).json({ message: 'Employee not found' });
+
+    res.json({ message: 'Progress step updated successfully' });
+  });
+});
+
+// 5. Fetch admin details for a specific employee
+app.get('/api/admin/:employee_id', (req, res) => {
+  const { employee_id } = req.params;
+
+  const query = `
+    SELECT * 
+    FROM admin 
+    WHERE employee_id = ?`;
+
+  db.query(query, [employee_id], (err, results) => {
+    if (err) return res.status(500).send(err);
+    if (results.length === 0)
+      return res.status(404).json({ message: 'Admin record not found' });
+
+    res.json(results[0]);
+  });
+});
 
 
 

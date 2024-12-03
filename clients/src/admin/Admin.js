@@ -6,6 +6,7 @@ import EmployerTable from './EmployerTable';
 import Tabs from './Tabs';
 import LoginAdmin from './LoginAdmin';
 import ViewProfile from './ViewProfile';
+import ProgressBar from '../Progress/ProgressBar'; // Corrected import
 
 const Admin = () => {
   const [employees, setEmployees] = useState([]);
@@ -24,66 +25,17 @@ const Admin = () => {
           return response.json();
         })
         .then((data) => {
-          // Ensure Step 1 is marked for all users
           const updatedData = data.map((user) => ({
             ...user,
             currentStep: user.currentStep && user.currentStep >= 1 ? user.currentStep : 1,
           }));
 
-          const fetchUsers = () => {
-            fetch('http://localhost:8081/api/users')
-              .then((response) => {
-                if (!response.ok) throw new Error(`Error: ${response.status}`);
-                return response.json();
-              })
-              .then((data) => {
-                // Ensure Step 1 is marked for all users
-                const updatedData = data.map((user) => ({
-                  ...user,
-                  currentStep: user.currentStep && user.currentStep >= 1 ? user.currentStep : 1,
-                }));
-          
-                setEmployees(updatedData.filter((user) => user.userType === 'Employee'));
-                setEmployers(updatedData.filter((user) => user.userType === 'Employer'));
-              })
-              .catch((err) => setError(err.message));
-          };
-
-            // Function to update progress step 3
-            const updateProgressStep = (userId, step) => {
-              fetch(`http://localhost:8081/api/users/${userId}/status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ progressId: step }),
-              })
-                .then((response) => {
-                  if (!response.ok) throw new Error('Failed to update progress');
-                  fetchUsers(); // Refresh the user list after updating progress
-                })
-                .catch((err) => console.error('Error updating progress:', err));
-            };
-          
-  
           setEmployees(updatedData.filter((user) => user.userType === 'Employee'));
           setEmployers(updatedData.filter((user) => user.userType === 'Employer'));
         })
         .catch((err) => setError(err.message));
     }
-
   }, [isLoggedIn]);
-  
-
-
-
-  const deleteRejected = () => {
-    fetch('http://localhost:8081/api/users/rejected', { method: 'DELETE' })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Delete failed: ${response.status}`);
-        setEmployees((prev) => prev.filter((emp) => emp.progressId !== 2));
-        setEmployers((prev) => prev.filter((emp) => emp.progressId !== 2));
-      })
-      .catch((err) => setError(err.message));
-  };
 
   const viewProfile = (user) => {
     const userId = user.id;
@@ -111,27 +63,6 @@ const Admin = () => {
     setSelectedUser(null);
   };
 
-  
-
-  const handleDeficiencyRequest = (applicantId, fileType) => {
-    fetch('http://localhost:8081/api/deficiencies/request', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        applicantId,
-        requiredFiles: [fileType],
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error('Failed to send deficiency request');
-        alert(`Deficiency request for ${fileType} sent successfully.`);
-      })
-      .catch((err) => {
-        console.error('Failed to send deficiency request:', err);
-        alert('Failed to send deficiency request. Please try again.');
-      });
-  };
-
   return (
     <div className="admin-container">
       {!isLoggedIn ? (
@@ -141,7 +72,9 @@ const Admin = () => {
           <div className="admin-header">
             <h1>Admin Dashboard</h1>
           </div>
-          <button onClick={deleteRejected}>Delete All Rejected Applicants</button>
+          <button onClick={() => { /* Handle logic for deleting rejected users */ }}>
+            Delete All Rejected Applicants
+          </button>
           {error && <p className="error">Error: {error}</p>}
           <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
           {activeTab === 'employees' && (
@@ -161,15 +94,8 @@ const Admin = () => {
             <ViewProfile
               user={selectedUser}
               closeModal={closeModal}
-              acceptUser={() => {
-                closeModal();
-              }}
-              rejectUser={() => {
-                closeModal();
-              }}
-              handleDeficiencyRequest={(id, fileType) =>
-                handleDeficiencyRequest(id, fileType)
-              }
+              acceptUser={() => closeModal()}
+              rejectUser={() => closeModal()}
             />
           )}
         </>
