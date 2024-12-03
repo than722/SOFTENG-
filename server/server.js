@@ -1480,44 +1480,71 @@ app.post('/api/deficiencies/request', (req, res) => {
 });
 
 // Get deficiencies for a specific employee
-app.get('/api/employees/:employeeId/deficiencies', (req, res) => {
+app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async (req, res) => {
+  console.log('Received File:', req.file);
+  console.log('Employee ID:', req.params.employeeId);
+  console.log('File Type:', req.body.type);
+
   const { employeeId } = req.params;
+  const { type } = req.body;
 
-  // Log the request for debugging
-  console.log('Fetching deficiencies for employee ID:', employeeId);
-
-  // Validate that employeeId is a valid number
-  if (isNaN(employeeId)) {
-    return res.status(400).json({ error: 'Invalid employee ID' });
+  if (!req.file || !type) {
+    return res.status(400).json({ error: 'File or type not provided.' });
   }
 
-  // Define the query to fetch deficiencies
-  const query = `
-    SELECT 
-      id, 
-      employee_id, 
-      file_name, 
-      request_date,
-      reason 
-    FROM deficiency_requests
-    WHERE employee_id = ?;
-  `;
+  const filePath = req.file.path;
+  console.log('File Path:', filePath); // Log file path to verify
 
-  // Execute the query
-  db.query(query, [employeeId], (err, results) => {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ error: 'Internal server error' });
+  const columnMap = {
+    picture: 'picture',
+    resume: 'resume',
+    validId: 'validId',
+    birth_certificate: 'birth_certificate',
+    passport: 'passport',
+    marriage_contract: 'marriage_contract',
+    nbi_clearance: 'nbi_clearance',
+  };
+
+  if (!columnMap[type]) {
+    return res.status(400).json({ error: 'Invalid file type.' });
+  }
+
+  try {
+    // Ensure that employeeId is a valid number
+    if (isNaN(employeeId)) {
+      return res.status(400).json({ error: 'Invalid employee ID.' });
     }
 
-    // Handle case where no deficiencies are found
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'No deficiencies found for this employee.' });
+    // Prepare the SQL query based on the file type
+    const column = columnMap[type];
+    if (!column) {
+      return res.status(400).json({ error: 'Invalid file type' });
     }
 
-    // Respond with the list of deficiencies
-    res.status(200).json(results);
-  });
+    // Execute the SQL query
+    const sql = `UPDATE employee SET ${column} = ? WHERE employee_id = ?`;
+    const values = [filePath, employeeId];
+
+    console.log('Executing SQL Query:', sql);
+    console.log('With Values:', values);
+
+    db.execute(sql, values, (err, result) => {
+      if (err) {
+        console.error('Error executing SQL query:', err);
+        return res.status(500).json({ error: 'Error updating employee data' });
+      }
+
+      console.log('SQL Query Result:', result);
+      if (result.affectedRows > 0) {
+        return res.status(200).json({ message: 'File uploaded successfully!' });
+      } else {
+        return res.status(400).json({ error: 'Failed to update employee record.' });
+      }
+    });
+  } catch (err) {
+    console.error('Error uploading file:', err);
+    return res.status(500).json({ error: 'Failed to upload file.' });
+  }
 });
 
 
