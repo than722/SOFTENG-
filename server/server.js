@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'mydb'
 });
 
@@ -695,6 +695,19 @@ app.get('/api/employers/:employerId/jobs', (req, res) => {
   });
 });
 
+// Add this route to your Express server
+app.get('/api/applications/job/:jobId', (req, res) => {
+  const jobId = req.params.jobId;
+  const sql = 'SELECT * FROM applications WHERE job_id = ?';
+
+  db.query(sql, [jobId], (err, results) => {
+      if (err) {
+          return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+      res.json(results);
+  });
+});
+
 
 // Route to get a job posting by ID (continuation from where it was cut off)
 app.get('/api/job_postings/:id', (req, res) => {
@@ -731,13 +744,27 @@ app.put('/api/job_postings/:id', (req, res) => {
 // Route to delete a job posting by ID
 app.delete('/api/job_postings/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM job_postings WHERE job_id = ?';
-  db.query(sql, [id], (err, results) => {
+
+  // Check if the job has any applications in the 'applications' table
+  const checkApplicationSql = 'SELECT * FROM applications WHERE job_id = ?';
+  db.query(checkApplicationSql, [id], (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error', details: err.message });
-    if (results.affectedRows === 0) return res.status(404).json({ error: 'Job posting not found' });
-    res.json({ message: 'Job posting deleted successfully' });
+    
+    // If there are applications for this job, prevent deletion
+    if (results.length > 0) {
+      return res.status(400).json({ error: 'Cannot delete job posting: job has applicants' });
+    }
+
+    // Proceed with the deletion if no applications found
+    const deleteJobSql = 'DELETE FROM job_postings WHERE job_id = ?';
+    db.query(deleteJobSql, [id], (err, results) => {
+      if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+      if (results.affectedRows === 0) return res.status(404).json({ error: 'Job posting not found' });
+      res.json({ message: 'Job posting deleted successfully' });
+    });
   });
 });
+
 
 
 // Sign-out route to clear the JWT token
@@ -944,6 +971,32 @@ app.get('/api/applicants/:applicationId', (req, res) => {
           const resumeUrl = employee.resume ? `/uploads/${employee.resume}` : null;
           const valid_id_Url = employee.validId ? `/uploads/${employee.validId}` : null;
 
+          const getDeficienciesQuery = `
+                SELECT file_name 
+                FROM deficiency_requests
+                WHERE employee_id = ?;
+            `;
+
+            db.query(getDeficienciesQuery, [employeeId], (err, deficienciesResults) => {
+                if (err) {
+                    console.error("Error fetching deficiencies:", err);
+                    return res.status(500).send("Failed to fetch deficiencies.");
+                }
+
+                const deficiencies = deficienciesResults.map((row) => row.file_name);
+
+                // Include deficiencies in the response
+                res.json({
+                    ...employee,
+                    status: status,
+                    picture_url: pictureUrl,
+                    resume_url: resumeUrl,
+                    valid_id_url: valid_id_Url,
+                    deficiencies: deficiencies,
+                });
+            });
+
+
           // Log the file URLs for debugging
           console.log("Picture URL:", pictureUrl);
           console.log("Resume URL:", resumeUrl);
@@ -980,6 +1033,7 @@ app.get('/api/applicants/:applicationId', (req, res) => {
               picture_url: pictureUrl,
               resume_url: resumeUrl,
               valid_id_url: valid_id_Url,
+              
           });
       });
   });
@@ -1404,6 +1458,96 @@ app.get('/api/employers/:employerId/notifications', (req, res) => {
     res.json(notifications);
   });
 });
+
+app.post('/api/deficiencies/request', (req, res) => {
+  const { applicantId, requiredFiles } = req.body;
+
+  if (!applicantId || !Array.isArray(requiredFiles) || requiredFiles.length === 0) {
+      return res.status(400).json({ message: 'Applicant ID and required files are required.' });
+  }
+
+  const query = 'INSERT INTO deficiency_requests (employee_id, file_name, reason) VALUES ?';
+  const values = requiredFiles.map((file) => [applicantId, file]);
+
+  db.query(query, [values], (err) => {
+      if (err) {
+          console.error('Error saving deficiency request:', err);
+          res.status(500).json({ message: 'Failed to save deficiency request.' });
+      } else {
+          res.json({ message: 'Deficiency request saved successfully.' });
+      }
+  });
+});
+
+// Get deficiencies for a specific employee
+app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async (req, res) => {
+  console.log('Received File:', req.file);
+  console.log('Employee ID:', req.params.employeeId);
+  console.log('File Type:', req.body.type);
+
+  const { employeeId } = req.params;
+  const { type } = req.body;
+
+  if (!req.file || !type) {
+    return res.status(400).json({ error: 'File or type not provided.' });
+  }
+
+  const filePath = req.file.path;
+  console.log('File Path:', filePath); // Log file path to verify
+
+  const columnMap = {
+    picture: 'picture',
+    resume: 'resume',
+    validId: 'validId',
+    birth_certificate: 'birth_certificate',
+    passport: 'passport',
+    marriage_contract: 'marriage_contract',
+    nbi_clearance: 'nbi_clearance',
+  };
+
+  if (!columnMap[type]) {
+    return res.status(400).json({ error: 'Invalid file type.' });
+  }
+
+  try {
+    // Ensure that employeeId is a valid number
+    if (isNaN(employeeId)) {
+      return res.status(400).json({ error: 'Invalid employee ID.' });
+    }
+
+    // Prepare the SQL query based on the file type
+    const column = columnMap[type];
+    if (!column) {
+      return res.status(400).json({ error: 'Invalid file type' });
+    }
+
+    // Execute the SQL query
+    const sql = `UPDATE employee SET ${column} = ? WHERE employee_id = ?`;
+    const values = [filePath, employeeId];
+
+    console.log('Executing SQL Query:', sql);
+    console.log('With Values:', values);
+
+    db.execute(sql, values, (err, result) => {
+      if (err) {
+        console.error('Error executing SQL query:', err);
+        return res.status(500).json({ error: 'Error updating employee data' });
+      }
+
+      console.log('SQL Query Result:', result);
+      if (result.affectedRows > 0) {
+        return res.status(200).json({ message: 'File uploaded successfully!' });
+      } else {
+        return res.status(400).json({ error: 'Failed to update employee record.' });
+      }
+    });
+  } catch (err) {
+    console.error('Error uploading file:', err);
+    return res.status(500).json({ error: 'Failed to upload file.' });
+  }
+});
+
+
 
 
 

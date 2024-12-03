@@ -2,31 +2,45 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProfileDeficiencies.css';
 
-const ProfileDeficiencies = ({ employeeId }) => {
+const ProfileDeficiencies = ({ employeeId, civilStatus }) => {
   const [deficiencies, setDeficiencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const deficiencyTypeMapping = {
+    'picture': 'picture',
+    'resume': 'resume',
+    'birth_certificate': 'birth_certificate',
+    'passport': 'passport',
+    'marriage_contract': 'marriage_contract',
+  };
+  
+  // In your useEffect or when rendering deficiencies:
   useEffect(() => {
+    console.log('Employee ID:', employeeId); // Ensure employeeId is correct
     if (!employeeId) return;
-
-    // Fetch deficiencies for the specific employee
+  
     axios
       .get(`http://localhost:8081/api/employees/${employeeId}/deficiencies`)
       .then((response) => {
-        setDeficiencies(response.data); // Assuming the response contains a list of deficiencies
+        const deficienciesWithTypes = response.data.map((deficiency) => {
+          const type = deficiencyTypeMapping[deficiency.file_name] || 'unknown';
+          return { ...deficiency, type };
+        });
+        setDeficiencies(deficienciesWithTypes);
         setError(null);
       })
       .catch((err) => {
-        console.error(err);
-        setError('Failed to load deficiencies');
+        console.error('Error fetching deficiencies:', err);
+        setError('Failed to load deficiencies.');
       })
       .finally(() => setLoading(false));
   }, [employeeId]);
+  ;
 
   const handleFileSubmit = (deficiency) => {
     const fileInput = document.getElementById(`file-upload-${deficiency.type}`);
-    if (fileInput.files.length === 0) {
+    if (!fileInput || fileInput.files.length === 0) {
       alert('Please select a file to upload.');
       return;
     }
@@ -42,14 +56,33 @@ const ProfileDeficiencies = ({ employeeId }) => {
       .then((response) => {
         alert('File submitted successfully!');
         setDeficiencies((prev) =>
-          prev.filter((item) => item.type !== deficiency.type)
+          prev.filter((item) => item.id !== deficiency.id)
         ); // Remove resolved deficiency
       })
       .catch((err) => {
-        console.error(err);
+        console.error('Error submitting file:', err);
         alert('Failed to submit file. Please try again.');
       });
   };
+  
+
+  const renderUploadField = (type, label, accept) => (
+    <div key={type} className="upload-field">
+      <label htmlFor={`file-upload-${type}`}>{label}:</label>
+      <input
+        type="file"
+        id={`file-upload-${type}`}
+        className="file-upload-input"
+        accept={accept}
+      />
+      <button
+        onClick={() => handleFileSubmit({ type })}
+        className="submit-button"
+      >
+        Submit
+      </button>
+    </div>
+  );
 
   if (loading) return <p>Loading deficiencies...</p>;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
@@ -62,22 +95,22 @@ const ProfileDeficiencies = ({ employeeId }) => {
       ) : (
         <ul className="deficiencies-list">
           {deficiencies.map((deficiency) => (
-            <li key={deficiency.type} className="deficiency-item">
+            <li key={deficiency.id} className="deficiency-item">
               <p>
-                <strong>{deficiency.label}:</strong> {deficiency.description}
+                <strong>{deficiency.file_name}:</strong> {deficiency.reason}
               </p>
               <div className="deficiency-action">
-                <input
-                  type="file"
-                  id={`file-upload-${deficiency.type}`}
-                  className="file-upload-input"
-                />
-                <button
-                  onClick={() => handleFileSubmit(deficiency)}
-                  className="submit-button"
-                >
-                  Submit
-                </button>
+                {console.log('Deficiency type:', deficiency.type)} {/* Add this log */}
+                {deficiency.type === 'picture' &&
+                  renderUploadField("picture", "Upload Picture", "image/*")}
+                {deficiency.type === 'resume' &&
+                  renderUploadField("resume", "Upload Resume", ".pdf,.doc,.docx")}
+                {deficiency.type === 'birth_certificate' &&
+                  renderUploadField("birth_certificate", "Upload Birth Certificate", "image/*")}
+                {deficiency.type === 'passport' &&
+                  renderUploadField("passport", "Upload Passport (Optional)", "image/*")}
+                {civilStatus === "married" && deficiency.type === "marriage_contract" &&
+                  renderUploadField("marriage_contract", "Upload Marriage Contract", "image/*")}
               </div>
             </li>
           ))}

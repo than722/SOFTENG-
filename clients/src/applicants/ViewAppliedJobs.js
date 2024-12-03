@@ -7,6 +7,9 @@ const ViewAppliedJobs = () => {
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [jobToCancel, setJobToCancel] = useState(null);
 
   // Retrieve `userId` and `auth` from localStorage
   const userId = localStorage.getItem("userId");
@@ -32,9 +35,18 @@ const ViewAppliedJobs = () => {
     fetchAppliedJobs();
   }, [userId]);
 
-  const handleCancelApplication = async (jobId) => {
-    const reason = prompt("Please enter the reason for cancellation:");
-    if (!reason) {
+  const handleCancelApplication = (jobId) => {
+    setJobToCancel(jobId);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setCancelReason(""); // Reset cancel reason
+  };
+
+  const handleCancelSubmit = async () => {
+    if (!cancelReason) {
       alert("Cancellation reason is required.");
       return;
     }
@@ -42,7 +54,7 @@ const ViewAppliedJobs = () => {
     try {
       const response = await axios.post(
         `http://localhost:8081/api/cancel-application`,
-        { jobId, userId, reason },
+        { jobId: jobToCancel, userId, reason: cancelReason },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("authToken")}`,
@@ -50,7 +62,8 @@ const ViewAppliedJobs = () => {
         }
       );
       alert("Job application cancelled successfully.");
-      setAppliedJobs((prevJobs) => prevJobs.filter((job) => job.job_id !== jobId));
+      setAppliedJobs((prevJobs) => prevJobs.filter((job) => job.job_id !== jobToCancel));
+      handleModalClose();
     } catch (err) {
       console.error("Error cancelling application:", err);
       alert("Failed to cancel the application. Please try again.");
@@ -110,6 +123,24 @@ const ViewAppliedJobs = () => {
           </table>
         )}
       </div>
+
+      {/* Modal for cancellation */}
+      {isModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Cancel Application</h3>
+            <textarea
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Please enter the reason for cancellation"
+            ></textarea>
+            <div className="modal-actions">
+              <button onClick={handleCancelSubmit}>Submit</button>
+              <button onClick={handleModalClose}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
