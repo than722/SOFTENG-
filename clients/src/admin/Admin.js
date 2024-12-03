@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import ProgressBar from '../Progress/ProgressBar';
 import './Admin.css';
 import AdminWithdrawalRequests from './AdminWithdrawalRequests';
-import Deficiencies from './Deficiencies';
-import axios from 'axios';
+import EmployeeTable from './EmployeeTable';
+import EmployerTable from './EmployerTable';
+import Tabs from './Tabs';
+import LoginAdmin from './LoginAdmin';
+import ViewProfile from './ViewProfile';
 
 const Admin = () => {
   const [employees, setEmployees] = useState([]);
@@ -13,19 +15,6 @@ const Admin = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('employees');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const correctUsername = 'admin';
-  const correctPassword = 'admin';
-  
-
-  const handleLogin = () => {
-    if (username === correctUsername && password === correctPassword) {
-      setIsLoggedIn(true);
-    } else {
-      setError('Incorrect username or password');
-    }
-  };
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -35,35 +24,56 @@ const Admin = () => {
           return response.json();
         })
         .then((data) => {
-          setEmployees(data.filter((user) => user.userType === 'Employee'));
-          setEmployers(data.filter((user) => user.userType === 'Employer'));
+          // Ensure Step 1 is marked for all users
+          const updatedData = data.map((user) => ({
+            ...user,
+            currentStep: user.currentStep && user.currentStep >= 1 ? user.currentStep : 1,
+          }));
+
+          const fetchUsers = () => {
+            fetch('http://localhost:8081/api/users')
+              .then((response) => {
+                if (!response.ok) throw new Error(`Error: ${response.status}`);
+                return response.json();
+              })
+              .then((data) => {
+                // Ensure Step 1 is marked for all users
+                const updatedData = data.map((user) => ({
+                  ...user,
+                  currentStep: user.currentStep && user.currentStep >= 1 ? user.currentStep : 1,
+                }));
+          
+                setEmployees(updatedData.filter((user) => user.userType === 'Employee'));
+                setEmployers(updatedData.filter((user) => user.userType === 'Employer'));
+              })
+              .catch((err) => setError(err.message));
+          };
+
+            // Function to update progress step 3
+            const updateProgressStep = (userId, step) => {
+              fetch(`http://localhost:8081/api/users/${userId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ progressId: step }),
+              })
+                .then((response) => {
+                  if (!response.ok) throw new Error('Failed to update progress');
+                  fetchUsers(); // Refresh the user list after updating progress
+                })
+                .catch((err) => console.error('Error updating progress:', err));
+            };
+          
+  
+          setEmployees(updatedData.filter((user) => user.userType === 'Employee'));
+          setEmployers(updatedData.filter((user) => user.userType === 'Employer'));
         })
         .catch((err) => setError(err.message));
     }
+
   }, [isLoggedIn]);
-
- 
-
-  const handleProgressChange = (id, newProgressId) => {
-    fetch(`http://localhost:8081/api/users/${id}/status`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ progressId: newProgressId }),
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Update failed: ${response.status}`);
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data); // Handle success
-      })
-      .catch((err) => {
-        console.error(err);
-        setError(err.message);
-      });
-  };
   
-  
+
+
 
   const deleteRejected = () => {
     fetch('http://localhost:8081/api/users/rejected', { method: 'DELETE' })
@@ -76,17 +86,14 @@ const Admin = () => {
   };
 
   const viewProfile = (user) => {
-    // Log the user object to check its structure
-    console.log(user);
-  
-    const userId = user.id;  // Use the general 'id' field
-    const userType = user.userType.toLowerCase();  // Ensure it's lowercase
-    
+    const userId = user.id;
+    const userType = user.userType.toLowerCase();
+
     if (!userId) {
       setError('User ID is missing.');
       return;
     }
-  
+
     fetch(`http://localhost:8081/api/users/${userId}?userType=${userType}`)
       .then((response) => {
         if (!response.ok) throw new Error('Failed to fetch user details');
@@ -98,35 +105,25 @@ const Admin = () => {
       })
       .catch((err) => setError(err.message));
   };
-  
-  
 
   const closeModal = () => {
     setShowModal(false);
     setSelectedUser(null);
   };
 
-  const acceptUser = () => {
-    if (selectedUser) {
-      handleProgressChange(selectedUser.id, 1, selectedUser.userType);
-      closeModal();
-    }
-  };
-
-  const rejectUser = () => {
-    if (selectedUser) {
-      handleProgressChange(selectedUser.id, 2, selectedUser.userType);
-      closeModal();
-    }
-  };
+  
 
   const handleDeficiencyRequest = (applicantId, fileType) => {
-    axios
-      .post('http://localhost:8081/api/deficiencies/request', {
+    fetch('http://localhost:8081/api/deficiencies/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         applicantId,
-        requiredFiles: [fileType], // Send the file type in an array
-      })
-      .then(() => {
+        requiredFiles: [fileType],
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error('Failed to send deficiency request');
         alert(`Deficiency request for ${fileType} sent successfully.`);
       })
       .catch((err) => {
@@ -134,338 +131,47 @@ const Admin = () => {
         alert('Failed to send deficiency request. Please try again.');
       });
   };
-  
 
   return (
     <div className="admin-container">
       {!isLoggedIn ? (
-        <div className="login-form">
-          <h2>Admin Login</h2>
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            aria-label="Username"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-label="Password"
-          />
-          <button onClick={handleLogin}>Login</button>
-          {error && <p className="error">{error}</p>}
-        </div>
+        <LoginAdmin setIsLoggedIn={setIsLoggedIn} />
       ) : (
         <>
           <div className="admin-header">
             <h1>Admin Dashboard</h1>
           </div>
-
           <button onClick={deleteRejected}>Delete All Rejected Applicants</button>
-
-          {error && <p>Error: {error}</p>}
-
-          <div className="tabs">
-            <button
-              className={activeTab === 'employees' ? 'active' : ''}
-              onClick={() => setActiveTab('employees')}
-            >
-              Applicants
-            </button>
-            <button
-              className={activeTab === 'employers' ? 'active' : ''}
-              onClick={() => setActiveTab('employers')}
-            >
-              Employers
-            </button>
-            <button
-              className={activeTab === 'withdrawalRequests' ? 'active' : ''}
-              onClick={() => setActiveTab('withdrawalRequests')}
-            >
-              Withdrawal Requests
-            </button>
-
-          </div>
-
+          {error && <p className="error">Error: {error}</p>}
+          <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
           {activeTab === 'employees' && (
-            <div>
-              <h2>Applicants</h2>
-              <table className="user-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Progress</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employees.map((employee) => (
-                    <tr key={employee.id}>
-                      <td>{employee.id}</td>
-                      <td>
-                        {employee.firstName} {employee.lastName}
-                      </td>
-                      <td>
-                        <ProgressBar currentStep={employee.progressId || 1} />
-                      </td>
-                      <td>
-                        <select
-                          value={employee.progressId || ''}
-                          onChange={(e) =>
-                            handleProgressChange(employee.id, parseInt(e.target.value), 'Employee')
-                          }
-                        >
-                          <option value={1}>Step 1: Account Created</option>
-                          <option value={2}>Step 2: Admin Approved</option>
-                          <option value={3}>Step 3: Medical Done</option>
-                          <option value={4}>Step 4: TESDA Certified</option>
-                        </select>
-                        <button onClick={() => viewProfile(employee)}>View Profile</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === 'employers' && (
-            <div>
-              <h2>Employers</h2>
-              <table className="user-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {employers.map((employer) => (
-                    <tr key={employer.id}>
-                      <td>{employer.id}</td>
-                      <td>
-                        {employer.firstName} {employer.lastName}
-                      </td>
-                      <td>
-                        <ProgressBar currentStep={employer.progressId || 1} />
-                      </td>
-                      <td>
-                        <select
-                          value={employer.progressId || ''}
-                          onChange={(e) =>
-                            handleProgressChange(employer.id, parseInt(e.target.value), 'Employer')
-                          }
-                        >
-                          <option value={1}>Step 1: Account Created</option>
-                          <option value={2}>Step 2: Admin Approved</option>
-                          <option value={3}>Step 3: Medical Done</option>
-                          <option value={4}>Step 4: TESDA Certified</option>
-                        </select>
-                        <button onClick={() => viewProfile(employer)}>View Profile</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-{showModal && selectedUser && (
-  <div className="modal-admin">
-    <div className="modal-content-admin">
-      <div className="profile-header">
-        <h2>
-          {selectedUser.firstName} {selectedUser.lastName}'s Profile
-        </h2>
-        {selectedUser.pictureUrl && (
-          <div className="profile-picture">
-            <img
-              src={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`}
-              alt="Profile"
+            <EmployeeTable
+              employees={employees}
+              viewProfile={viewProfile}
             />
-          </div>
-        )}
-      </div>
-      <div className="profile-info">
-        <p>
-          <strong>ID:</strong> {selectedUser.id}
-        </p>
-        <p>
-          <strong>First Name:</strong> {selectedUser.firstName}
-        </p>
-        <p>
-          <strong>Last Name:</strong> {selectedUser.lastName}
-        </p>
-        <p>
-          <strong>Province:</strong> {selectedUser.province}
-        </p>
-        <p>
-          <strong>Municipality:</strong> {selectedUser.municipality}
-        </p>
-        <p>
-          <strong>Barangay:</strong> {selectedUser.barangay}
-        </p>
-        <p>
-          <strong>Zip Code:</strong> {selectedUser.zipCode}
-        </p>
-        <p>
-          <strong>Mobile Number:</strong> {selectedUser.mobileNumber}
-        </p>
-        <p>
-          <strong>Email:</strong> {selectedUser.email}
-        </p>
-        <p>
-          <strong>Status:</strong>{' '}
-          {selectedUser.progressId === 1
-            ? 'Active'
-            : selectedUser.progressId === 2
-            ? 'Inactive'
-            : 'Pending'}
-        </p>
-        <p>
-          
-          <strong>Resume:</strong>{' '}
-          <a
-            href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View Resume
-          </a>
-          <button
-        className="deficiency-button"
-        onClick={() => handleDeficiencyRequest(selectedUser.id, 'resume')}
-    >
-        Request Reupload
-    </button>
-        </p>
-        <p>
-          <strong>Valid ID:</strong>{' '}
-          <a
-            href={`http://localhost:8081/uploads/${selectedUser.validIDUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View Valid ID
-          </a>
-          <button
-        className="deficiency-button"
-        onClick={() => handleDeficiencyRequest(selectedUser.id, 'valid ID')}
-    >
-        Request Reupload
-    </button>
-        </p>
-        <p>
-          <strong>Birth Certificate:</strong>{' '}
-          <a
-            href={`http://localhost:8081/uploads/${selectedUser.birthcertificateUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View Birth Certificate
-          </a>
-          <button
-        className="deficiency-button"
-        onClick={() => handleDeficiencyRequest(selectedUser.id, 'birth_certificate')}
-    >
-        Request Reupload
-    </button>
-        </p>
-        
-        
-        {/* Optional Passport */}
-        {selectedUser.passportUrl ? (
-            <p>
-              <strong>Passport:</strong>{' '}
-              <a
-                href={`http://localhost:8081/uploads/${selectedUser.passportUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View Passport
-              </a>
-              <button
-        className="deficiency-button"
-        onClick={() => handleDeficiencyRequest(selectedUser.id, 'passport')}
-    >
-        Request Reupload
-    </button>
-            </p>
-          ) : (
-            <p><strong>Passport:</strong> No passport uploaded</p>
           )}
-
-        <p>
-          <strong>Picture:</strong>{' '}
-          <a
-            href={`http://localhost:8081/uploads/${selectedUser.pictureUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            View Picture
-          </a>
-          <button
-        className="deficiency-button"
-        onClick={() => handleDeficiencyRequest(selectedUser.id, 'picture')}
-    >
-        Request Reupload
-    </button>
-        </p>
-
-        {/* Optional Marriage Contract */}
-        {selectedUser.marriagecontractUrl ? (
-          <p>
-            <strong>Marriage Contract:</strong>{' '}
-            <a
-              href={`http://localhost:8081/uploads/${selectedUser.marriagecontractUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View Marriage Contract
-            </a>
-          </p>
-          ) : (
-            <p><strong>Marriage Contract:</strong> No marriage contract uploaded</p>
-        )}
-
-        {/* Optional Marriage Contract */}
-        {selectedUser.nbi_clearanceUrl ? (
-          <p>
-            <strong>Marriage Contract:</strong>{' '}
-            <a
-              href={`http://localhost:8081/uploads/${selectedUser.nbi_clearanceUrlUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View NBI Clearance
-            </a>
-          </p>
-          ) : (
-            <p><strong>NBI Clearance:</strong> No NBI Clearance uploaded</p>
-        )}
-      </div>
-      <div className="modal-buttons">
-        <button onClick={acceptUser}>Accept</button>
-        <button onClick={rejectUser}>Reject</button>
-        <button onClick={closeModal}>Close</button>
-      </div>
-    </div>
-  </div>
-)}
-
-    {activeTab === 'withdrawalRequests' && (
-                <div>
-                  <h2>Withdrawal Requests</h2>
-                  <AdminWithdrawalRequests />
-                </div>
-              )}
-
+          {activeTab === 'employers' && (
+            <EmployerTable
+              employers={employers}
+              viewProfile={viewProfile}
+            />
+          )}
+          {activeTab === 'withdrawalRequests' && <AdminWithdrawalRequests />}
+          {showModal && selectedUser && (
+            <ViewProfile
+              user={selectedUser}
+              closeModal={closeModal}
+              acceptUser={() => {
+                closeModal();
+              }}
+              rejectUser={() => {
+                closeModal();
+              }}
+              handleDeficiencyRequest={(id, fileType) =>
+                handleDeficiencyRequest(id, fileType)
+              }
+            />
+          )}
         </>
       )}
     </div>
