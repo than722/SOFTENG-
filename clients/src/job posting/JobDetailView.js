@@ -7,16 +7,27 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
+    const [employeeStatus, setEmployeeStatus] = useState({ status_id: null, progress_id: null });
 
     useEffect(() => {
+        // Check if the user is logged in and fetch employee status
         axios
             .get('http://localhost:8081/verify-session', { withCredentials: true })
             .then((res) => {
                 if (res.status !== 200 || res.data.userType !== 'employee') {
                     alert('Access denied: This page is only accessible to employees.');
                     navigate('/');
+                } else {
+                    // Fetch employee status and progress_id
+                    axios
+                        .get(`http://localhost:8081/api/employees/status`, { withCredentials: true })
+                        .then((res) => {
+                            setEmployeeStatus(res.data);
+                        })
+                        .catch(() => {
+                            alert('Failed to fetch employee status');
+                        });
                 }
-                console.log('Verify Session Response:', res.data);
             })
             .catch(() => {
                 alert('You must be logged in to view this page.');
@@ -27,7 +38,6 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             axios
                 .get(`http://localhost:8081/api/applications/check/${jobDetails.job_id}`, { withCredentials: true })
                 .then((res) => {
-                    console.log('Application Check Response:', res.data);
                     if (res.data.applied) {
                         setHasApplied(true);
                     }
@@ -75,6 +85,9 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     if (detailsLoading) return <div>Loading job details...</div>;
     if (detailsError) return <div>{detailsError}</div>;
 
+    // Check if apply button should be shown based on status_id and progress_id
+    const canApply = employeeStatus.status_id === 1 && employeeStatus.progress_id === 1;
+
     return (
         <div className="job-detail-view">
             <button onClick={onBack} className="back-button">&lt; Back to job list</button>
@@ -101,13 +114,17 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             <div className="debug-info">
                 <p>hasApplied: {hasApplied ? 'Yes' : 'No'}</p>
             </div>
-            {/* Always Render the Apply Button */}
-            <button 
-                onClick={handleApply} 
-                className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
-                disabled={isSubmitting || hasApplied}>
-                {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
-            </button>
+            {/* Conditionally render the apply button or message */}
+            {!canApply ? (
+                <p>Not yet approved by the admin.</p>
+            ) : (
+                <button 
+                    onClick={handleApply} 
+                    className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
+                    disabled={isSubmitting || hasApplied}>
+                    {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
+                </button>
+            )}
         </div>
     );
 }

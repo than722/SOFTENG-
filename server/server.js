@@ -816,6 +816,26 @@ app.post('/api/applications/apply', verifyUser, (req, res) => {
   });
 });
 
+app.get('/api/employees/status', verifyUser, (req, res) => {
+  const employee_id = req.userId;  // Retrieved from the decoded token
+
+  // Fetch the status_id and progress_id from the employee table
+  const getEmployeeStatusQuery = 'SELECT status_id, progress_id FROM employee WHERE employee_id = ?';
+  db.query(getEmployeeStatusQuery, [employee_id], (err, results) => {
+      if (err) {
+          console.error('Error fetching employee status:', err);
+          return res.status(500).json({ error: 'Database error', details: err.message });
+      }
+
+      if (results.length === 0) {
+          return res.status(404).json({ message: 'Employee not found' });
+      }
+
+      const { status_id, progress_id } = results[0];
+      res.status(200).json({ status_id, progress_id });
+  });
+});
+
 
 // Get applicants for all jobs posted by an employer
 app.get('/api/applications/employer/:employerId', (req, res) => {
