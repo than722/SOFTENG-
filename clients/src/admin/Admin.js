@@ -17,6 +17,7 @@ const Admin = () => {
   const [password, setPassword] = useState('');
   const correctUsername = 'admin';
   const correctPassword = 'admin';
+  
 
   const handleLogin = () => {
     if (username === correctUsername && password === correctPassword) {
@@ -40,6 +41,8 @@ const Admin = () => {
         .catch((err) => setError(err.message));
     }
   }, [isLoggedIn]);
+
+ 
 
   const handleProgressChange = (id, newProgressId) => {
     fetch(`http://localhost:8081/api/users/${id}/status`, {
@@ -326,6 +329,7 @@ const Admin = () => {
             : 'Pending'}
         </p>
         <p>
+          
           <strong>Resume:</strong>{' '}
           <a
             href={`http://localhost:8081/uploads/${selectedUser.resumeUrl}`}
