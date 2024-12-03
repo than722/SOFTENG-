@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.34, for Win64 (x86_64)
 --
--- Host: localhost    Database: mydb
+-- Host: 127.0.0.1    Database: mydb
 -- ------------------------------------------------------
--- Server version	8.0.36
+-- Server version	8.0.35
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -34,8 +34,18 @@ CREATE TABLE `job_postings` (
   PRIMARY KEY (`job_id`),
   KEY `fk_employer_id_idx` (`employer_id`),
   CONSTRAINT `fk_employer_id` FOREIGN KEY (`employer_id`) REFERENCES `employer` (`employer_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `job_postings`
+--
+
+LOCK TABLES `job_postings` WRITE;
+/*!40000 ALTER TABLE `job_postings` DISABLE KEYS */;
+INSERT INTO `job_postings` VALUES (9,'Live-In Domestic Helper (Multi-tasker)','Key Responsibilities:\n\nCleaning and maintaining a tidy home environment.\nPreparing and cooking meals for the family.\nFeeding and caring for household pets.\nAssisting with errands and grocery shopping.\nProviding support during family trips or events.','A family in the UAE is looking for a Live-In Domestic Helper who can handle various household responsibilities, including cleaning, cooking, and taking care of pets if required. This position provides full accommodation and meals.',2800.00,'United Arab Emirates','2024-12-03 18:21:55',29);
+/*!40000 ALTER TABLE `job_postings` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -46,4 +56,4 @@ CREATE TABLE `job_postings` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-04  2:10:33
+-- Dump completed on 2024-12-04  4:23:11
