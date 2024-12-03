@@ -8,7 +8,7 @@ const ProgressBar = ({ currentStep = 1 }) => {
     { step: 3, label: "Medical Check" },
     { step: 4, label: "NBI Check" },
     { step: 5, label: "TESDA Certification" },
-    { step: 6, label: "Fit to Work!"},
+    { step: 6, label: "Can Apply!"},
   ];
 
   return (

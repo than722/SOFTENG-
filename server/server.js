@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: 'root',
+  password: '1234',
   database: 'mydb'
 });
 
@@ -1202,13 +1202,13 @@ app.get("/api/applied-jobs/:employeeID", (req, res) => {
 
   db.query(queryApplications, [employeeID], (err, applicationResults) => {
     if (err) {
-      console.error(err);
+      console.error("Error fetching applications:", err);
       return res.status(500).json({ message: "Internal server error" });
     }
 
     // If no applications found, return an empty array
     if (applicationResults.length === 0) {
-      return res.json([]);  // Send an empty array instead of a 404
+      return res.json([]); // Send an empty array instead of a 404
     }
 
     // Get all job_id values
@@ -1223,7 +1223,9 @@ app.get("/api/applied-jobs/:employeeID", (req, res) => {
         jp.jobDescription, 
         jp.salary, 
         jp.country, 
-        e.companyName AS companyName
+        jp.datePosted, 
+        e.companyName AS employerName,
+        e.employer_id AS employerID
       FROM job_postings jp
       JOIN employer e ON jp.employer_id = e.employer_id
       WHERE jp.job_id IN (?);
@@ -1231,14 +1233,28 @@ app.get("/api/applied-jobs/:employeeID", (req, res) => {
 
     db.query(queryJobDetails, [jobIds], (err, jobResults) => {
       if (err) {
-        console.error(err);
+        console.error("Error fetching job details:", err);
         return res.status(500).json({ message: "Internal server error" });
       }
 
-      res.json(jobResults); // Send the job results
+      // Include employer's name in the response
+      const enrichedResults = jobResults.map((job) => ({
+        jobID: job.job_id,
+        jobName: job.jobName,
+        jobOverview: job.jobOverview,
+        jobDescription: job.jobDescription,
+        salary: job.salary,
+        country: job.country,
+        datePosted: job.datePosted,
+        employerName: job.employerName,
+        employerID: job.employerID,
+      }));
+
+      res.json(enrichedResults); // Send enriched job results
     });
   });
 });
+
 
 app.post('/api/users/:userId/withdraw', verifyUser, (req, res) => {
   const { userId } = req.params; // userId from URL (should be employee_id)

@@ -113,9 +113,9 @@ function EmployerViewJobPosting() {
                                 >
                                     <div className="job-metadata">
                                         <h3>{job.jobName || 'Job Title Not Available'}</h3>
-                                        <span>{job.typeOfWork || 'Full Time'}</span>
+                                        <span>{job.contractYears || '2 Years'}</span>
                                     </div>
-                                    <p className="job-description">{job.description}</p>
+                                    <p className="job-description">{job.jobDescription}</p>
                                     <p className="job-salary">Salary: ${job.salary}</p>
                                     <p className="job-country">Country: {job.country}</p>
                                 </div>

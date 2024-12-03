@@ -14,34 +14,40 @@ const ViewProfile = ({
     const [medicalCertificate, setMedicalCertificate] = useState(null); // State for the uploaded file
     const [nbiCirtificate, setNbiCertificate] = useState(null);
     const [requestReason, setRequestReason] = useState(''); // Reason for reupload
-    const [fileChecks, setFileChecks] = useState({
-        medicalCertificate: false,
-        resume: false,
-        validID: false,
-        birthCertificate: false,
-        passport: false,
+    const [fileApprovals, setFileApprovals] = useState({
+      resume: false,
+      validID: false,
+      birthCertificate: false,
+      passport: false,
       });
 
       useEffect(() => {
-        // Ensure all checkboxes are initially unchecked
-        setFileChecks({
-          medicalCertificate: false,
+        // Ensure all approvals are reset when a new user is loaded
+        setFileApprovals({
           resume: false,
           validID: false,
           birthCertificate: false,
           passport: false,
         });
-      }, [user]); // Reset the state whenever a new user is loaded
+      }, [user]);
 
       useEffect(() => {
-        // If all files are checked, update the progress bar to Step 2
-        const allChecked = Object.values(fileChecks).every((isChecked) => isChecked);
-        if (allChecked) {
+        // If all files are approved, update the progress bar to Step 2
+        const allApproved = Object.values(fileApprovals).every((isApproved) => isApproved);
+        if (allApproved) {
           updateProgressStep(user.id, 2);
         }
-      }, [fileChecks, user.id, updateProgressStep]);
-
-  if (!user) return null;
+      }, [fileApprovals, user.id, updateProgressStep]);
+    
+      if (!user) return null;
+    
+      const handleApprove = (fileType) => {
+        setFileApprovals((prev) => ({
+          ...prev,
+          [fileType]: true,
+        }));
+        alert(`${fileType.replace(/([A-Z])/g, ' $1')} approved.`);
+      };
 
 
 
@@ -108,12 +114,7 @@ const ViewProfile = ({
     setIsRequestModalOpen(false);
   };
 
-  const handleCheck = (fileType) => {
-    setFileChecks((prev) => ({
-      ...prev,
-      [fileType]: !prev[fileType],
-    }));
-  };
+
 
   const handleAcceptUser = () => {
     // Update progress step to Step 6 when the user is accepted
@@ -230,11 +231,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-            <input
-              type="checkbox"
-              checked={fileChecks.resume}
-              onChange={() => handleCheck('resume')}
-            />
+          <p>
+            <strong>Resume:</strong>{' '}
+            {fileApprovals.resume ? (
+              <span>Approved</span>
+            ) : (
+              <button onClick={() => handleApprove('resume')}>Approve</button>
+            )}
+          </p>
           </p>
 
           {/* Valid ID */}
@@ -259,11 +263,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-            <input
-              type="checkbox"
-              checked={fileChecks.validID}
-              onChange={() => handleCheck('validID')}
-            />
+          <p>
+            <strong>Valid ID:</strong>{' '}
+            {fileApprovals.validID ? (
+              <span>Approved</span>
+            ) : (
+              <button onClick={() => handleApprove('validID')}>Approve</button>
+            )}
+          </p>
           </p>
 
           {/* Birth Certificate */}
@@ -290,11 +297,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-            <input
-              type="checkbox"
-              checked={fileChecks.birthCertificate}
-              onChange={() => handleCheck('birthCertificate')}
-            />
+          <p>
+            <strong>Birth Certificate:</strong>{' '}
+            {fileApprovals.birthCertificate ? (
+              <span>Approved</span>
+            ) : (
+              <button onClick={() => handleApprove('birthCertificate')}>Approve</button>
+            )}
+          </p>
           </p>
 
           {/* Passport */}
@@ -319,11 +329,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-            <input
-              type="checkbox"
-              checked={fileChecks.passport}
-              onChange={() => handleCheck('passport')}
-            />
+          <p>
+            <strong>Passport:</strong>{' '}
+            {fileApprovals.passport ? (
+              <span>Approved</span>
+            ) : (
+              <button onClick={() => handleApprove('passport')}>Approve</button>
+            )}
+          </p>
           </p>
 
           {/* Marriage Contract */}

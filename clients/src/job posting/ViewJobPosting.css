@@ -114,11 +114,18 @@
 .job-description {
     font-family: 'Roboto';
     color: #333;
-    margin-bottom: 10px;
-    font-size: 1em;
+    margin-bottom: 20px;
+    font-size: 0.90em;
 }
 
-.job-salary,
+.job-salary {
+    font-family: 'Roboto';
+    color: #5D933D;
+    font-size: 1em;
+    margin-bottom: 5px;
+}
+
+
 .job-country {
     font-family: 'Roboto';
     color: #333;
