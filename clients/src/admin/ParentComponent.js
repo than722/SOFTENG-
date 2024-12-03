@@ -38,8 +38,14 @@ const ParentComponent = () => {
   // Function to update the progress step
   const updateProgressStep = (userId, step) => {
     console.log(`Updating progress for User ID ${userId} to Step ${step}`);
-    setCurrentStep(step); // Update the current step state
+    setCurrentStep(step);
+    console.log(`Current step is now: ${step}`);
   };
+
+  useEffect(() => {
+    console.log(`Parent Component: currentStep updated to ${currentStep}`);
+  }, [currentStep]);
+  
 
   // Modal handlers
   const closeModalHandler = () => console.log("Modal closed");
@@ -66,7 +72,7 @@ const ParentComponent = () => {
           acceptUser={acceptUserHandler}
           rejectUser={rejectUserHandler}
           handleDeficiencyRequest={handleDeficiencyRequestHandler}
-          updateProgressStep={updateProgressStep} // Pass the function here
+          updateProgressStep={updateProgressStep} // Make sure this is correct
         />
       )}
     </div>

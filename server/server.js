@@ -396,7 +396,7 @@ app.get('/api/users', (req, res) => {
 
   const employerQuery = `
     SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id, 
+           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id AS progressId, 
            email, 'Employer' AS userType
     FROM employer
   `;
