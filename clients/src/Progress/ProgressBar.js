@@ -1,6 +1,7 @@
 import React from "react";
 import "./ProgressBar.css";
 
+
 const ProgressBar = ({ currentStep = 1 }) => {
   const steps = [
     { step: 1, label: "Account Created" },
@@ -16,10 +17,16 @@ const ProgressBar = ({ currentStep = 1 }) => {
       {steps.map((step, index) => (
         <div
           key={step.step}
-          className={`progress-step ${currentStep >= step.step ? "completed" : ""}`}
+          className={`progress-step ${
+            currentStep === step.step ? "completed" : "grayed"
+          }`}
         >
-          <div className={`step-circle ${currentStep >= step.step ? "completed" : ""}`}>
-            {currentStep >= step.step ? "✓" : step.step}
+          <div
+            className={`step-circle ${
+              currentStep === step.step ? "completed" : "grayed"
+            }`}
+          >
+            {currentStep === step.step ? "✓" : step.step}
           </div>
           <p className="step-label">{step.label}</p>
           {index < steps.length - 1 && (

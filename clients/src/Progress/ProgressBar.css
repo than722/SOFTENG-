@@ -17,26 +17,33 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #f0f0f0;
-  border: 2px solid #ccc;
+  background-color: #f0f0f0; /* Default color for incomplete steps */
+  border: 2px solid #ccc;   /* Default border color */
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 18px;
   font-weight: bold;
-  transition: background-color 0.3s, border-color 0.3s;
+  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .step-circle.completed {
-  background-color: #4caf50;
+  background-color: #4caf50; /* Green for completed steps */
   border-color: #4caf50;
-  color: white;
+  color: white; /* White text for completed steps */
+}
+
+.step-circle.grayed {
+  background-color: #d3d3d3; /* Gray background for grayed-out steps */
+  border-color: #d3d3d3;     /* Gray border for grayed-out steps */
+  color: #a9a9a9;             /* Lighter gray text */
 }
 
 .step-label {
   margin-top: 8px;
   font-size: 14px;
   text-align: center;
+  color: #333; /* Default text color */
 }
 
 .progress-line {
@@ -44,7 +51,11 @@
   top: 50%;
   left: 5%;
   height: 4px;
-  background-color: #4caf50;
+  background-color: #d3d3d3; /* Default color for the line between steps */
   z-index: -1;
-  transition: width 0.3s;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.progress-line.completed {
+  background-color: #4caf50; /* Green for the line between completed steps */
 }

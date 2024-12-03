@@ -7,7 +7,7 @@ const ViewProfile = ({
   acceptUser,
   rejectUser,
   handleDeficiencyRequest,
-  updateProgressStep, // Function to update the progress step
+  updateProgressStep,
 }) => {
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false); // State for reupload modal
     const [currentFileType, setCurrentFileType] = useState(''); // Track the current file type
@@ -32,12 +32,12 @@ const ViewProfile = ({
       }, [user]);
 
       useEffect(() => {
-        // If all files are approved, update the progress bar to Step 2
+        // If all files are approved, update the progress step
         const allApproved = Object.values(fileApprovals).every((isApproved) => isApproved);
-        if (allApproved) {
-          updateProgressStep(user.id, 2);
+        if (allApproved && updateProgressStep) {
+          updateProgressStep(user.id, 2); // Updates to step 2 when all files are approved
         }
-      }, [fileApprovals, user.id, updateProgressStep]);
+      }, [fileApprovals, user, updateProgressStep]);
     
       if (!user) return null;
     
@@ -87,6 +87,7 @@ const ViewProfile = ({
           } else if (type === 'tesdaCertificate') {
             updateProgressStep(user.id, 5); // Step 5: TESDA Certificate
           }
+          
         })
         .catch((err) => {
           console.error(`Error uploading ${type}:`, err);
@@ -117,10 +118,13 @@ const ViewProfile = ({
 
 
   const handleAcceptUser = () => {
-    // Update progress step to Step 6 when the user is accepted
-    updateProgressStep(user.id, 6);
-    alert('User progress updated to Step 6.');
-    closeModal(); // Close the modal after updating
+    if (updateProgressStep) {
+      updateProgressStep(user.id, 6); // Final Step
+      alert("User progress updated to Step 6.");
+      closeModal(); // Close the modal after updating
+    } else {
+      console.error("updateProgressStep function is not available.");
+    }
   };
 
   return (

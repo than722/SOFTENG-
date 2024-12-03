@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.34, for Win64 (x86_64)
 --
--- Host: localhost    Database: mydb
+-- Host: 127.0.0.1    Database: mydb
 -- ------------------------------------------------------
--- Server version	8.0.36
+-- Server version	8.0.35
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -44,8 +44,18 @@ CREATE TABLE `employer` (
   KEY `fk_status_employer` (`status_id`),
   CONSTRAINT `fk_employer_progress` FOREIGN KEY (`progress_id`) REFERENCES `progress` (`id`),
   CONSTRAINT `fk_status_employer` FOREIGN KEY (`status_id`) REFERENCES `status_lookup` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `employer`
+--
+
+LOCK TABLES `employer` WRITE;
+/*!40000 ALTER TABLE `employer` DISABLE KEYS */;
+INSERT INTO `employer` VALUES (29,'Bautista','Anna','Isabel','Batangas','Angeles City','Pulungbulu','4217','09451234567','Bautista INC',3,3,_binary '1733249934099.png','anna.bautista.balintawak4217@gmail.com','$2b$10$/dWb4hqaRGX2rHyr2u/bJOz1g3sk7MYwQV.881C6jlgy3dw/DC/DG','2000-02-02');
+/*!40000 ALTER TABLE `employer` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -56,4 +66,4 @@ CREATE TABLE `employer` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-04  2:10:33
+-- Dump completed on 2024-12-04  4:23:10
