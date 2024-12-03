@@ -17,8 +17,11 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                     alert('Access denied: This page is only accessible to employees.');
                     navigate('/');
                 }
+                // Log the backend response
+                console.log('Verify Session Response:', res.data);
+
                 // Check if the employee is approved by the admin
-                setIsAccepted(res.data.isAccepted); // Backend should return `isAccepted`
+                setIsAccepted(res.data.isAccepted);
             })
             .catch(() => {
                 alert('You must be logged in to view this page.');
@@ -29,6 +32,7 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             axios
                 .get(`http://localhost:8081/api/applications/check/${jobDetails.job_id}`, { withCredentials: true })
                 .then((res) => {
+                    console.log('Application Check Response:', res.data);
                     if (res.data.applied) {
                         setHasApplied(true);
                     }
@@ -52,7 +56,6 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             const response = await axios.post(
                 'http://localhost:8081/api/applications/apply',
                 { job_id: jobDetails?.job_id },
-                { job_id: jobDetails?.job_id }, // Only send job_id
                 { withCredentials: true }
             );
 
@@ -98,6 +101,11 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             <div className="job-overview">
                 <h3>Job Overview</h3>
                 <p>{jobDetails?.jobOverview || 'No overview available.'}</p>
+            </div>
+            {/* Debugging Info */}
+            <div className="debug-info">
+                <p>isAccepted: {isAccepted ? 'Yes' : 'No'}</p>
+                <p>hasApplied: {hasApplied ? 'Yes' : 'No'}</p>
             </div>
             {/* Render the apply button only if the user is accepted */}
             {isAccepted && !hasApplied && (

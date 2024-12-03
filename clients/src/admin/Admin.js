@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import ProgressBar from '../Progress/ProgressBar';
 import './Admin.css';
 import AdminWithdrawalRequests from './AdminWithdrawalRequests';
+import Deficiencies from './Deficiencies';
+import axios from 'axios';
 
 const Admin = () => {
   const [employees, setEmployees] = useState([]);
@@ -114,6 +116,22 @@ const Admin = () => {
       closeModal();
     }
   };
+
+  const handleDeficiencyRequest = (applicantId, fileType) => {
+    axios
+      .post('http://localhost:8081/api/deficiencies/request', {
+        applicantId,
+        requiredFiles: [fileType], // Send the file type in an array
+      })
+      .then(() => {
+        alert(`Deficiency request for ${fileType} sent successfully.`);
+      })
+      .catch((err) => {
+        console.error('Failed to send deficiency request:', err);
+        alert('Failed to send deficiency request. Please try again.');
+      });
+  };
+  
 
   return (
     <div className="admin-container">
@@ -316,6 +334,12 @@ const Admin = () => {
           >
             View Resume
           </a>
+          <button
+        className="deficiency-button"
+        onClick={() => handleDeficiencyRequest(selectedUser.id, 'resume')}
+    >
+        Request Reupload
+    </button>
         </p>
         <p>
           <strong>Valid ID:</strong>{' '}
@@ -326,6 +350,12 @@ const Admin = () => {
           >
             View Valid ID
           </a>
+          <button
+        className="deficiency-button"
+        onClick={() => handleDeficiencyRequest(selectedUser.id, 'valid ID')}
+    >
+        Request Reupload
+    </button>
         </p>
         <p>
           <strong>Birth Certificate:</strong>{' '}
@@ -336,6 +366,12 @@ const Admin = () => {
           >
             View Birth Certificate
           </a>
+          <button
+        className="deficiency-button"
+        onClick={() => handleDeficiencyRequest(selectedUser.id, 'birth_certificate')}
+    >
+        Request Reupload
+    </button>
         </p>
         
         
@@ -350,6 +386,12 @@ const Admin = () => {
               >
                 View Passport
               </a>
+              <button
+        className="deficiency-button"
+        onClick={() => handleDeficiencyRequest(selectedUser.id, 'passport')}
+    >
+        Request Reupload
+    </button>
             </p>
           ) : (
             <p><strong>Passport:</strong> No passport uploaded</p>
@@ -364,6 +406,12 @@ const Admin = () => {
           >
             View Picture
           </a>
+          <button
+        className="deficiency-button"
+        onClick={() => handleDeficiencyRequest(selectedUser.id, 'picture')}
+    >
+        Request Reupload
+    </button>
         </p>
 
         {/* Optional Marriage Contract */}
