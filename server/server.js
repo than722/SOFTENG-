@@ -101,7 +101,6 @@ app.post(
     { name: 'validId', maxCount: 1 },
     { name: 'passport', maxCount: 1 },  // Optional
     { name: 'marriage_contract', maxCount: 1 },  // Optional
-    { name: 'nbi_clearance', maxCount: 1 },  // Optional
   ]),
   (req, res) => {
     // Ensure accountType is present in the body
@@ -130,7 +129,6 @@ app.post(
     const marriageContractUrl = req.files['marriage_contract']?.[0]?.filename || null;
     const pictureUrl = req.files['picture']?.[0]?.filename || null;
     const resumeUrl = req.files['resume']?.[0]?.filename || null;
-    const nbi_clearanceUrl = req.files['nbi_clearance']?.[0]?.filename || null;
 
     // Validate required fields for married users (only if married)
     if (civilStatus === 'married' && !marriageContractUrl) {
@@ -160,8 +158,8 @@ app.post(
       if (accountType === 'employee') {
         sql = `
           INSERT INTO employee 
-          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, birthday, nbi_clearance) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (lastName, firstName, middleName, province, municipality, barangay, zipCode, mobileNumber, civil_status, picture, resume, birth_certificate, validId, passport, marriage_contract, email, password, birthday) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         values = [
           lastName,
@@ -182,7 +180,6 @@ app.post(
           email,
           hashedPassword,
           userBirthday,
-          nbi_clearanceUrl, // Optional nbi_clearance
         ];
       } else if (accountType === 'employer') {
         sql = `
@@ -392,7 +389,7 @@ app.delete('/api/:accountType/:id', (req, res) => {
 app.get('/api/users', (req, res) => {
   const employeeQuery = `
     SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, picture, resume, status_id AS statusId, progress_id AS progressId, 
+           zipCode, mobileNumber, picture, resume, status_id AS statusId,
            email, 'Employee' AS userType
     FROM employee
   `;
@@ -538,7 +535,7 @@ app.get('/api/users/:userId', (req, res) => {
   const employeeQuery = `
     SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
            zipCode, mobileNumber, picture, resume, validId, birth_certificate, passport, marriage_contract, 
-           birthday, nbi_clearance, 'employee' AS userType 
+           birthday, 'employee' AS userType 
     FROM employee 
     WHERE employee_id = ?;
   `;
@@ -570,7 +567,6 @@ app.get('/api/users/:userId', (req, res) => {
       user.birthcertificateUrl = user.birth_certificate ? `/uploads/${user.birth_certificate}` : null;
       user.passportUrl = user.passport ? `/uploads/${user.passport}` : null;
       user.marriagecontractUrl = user.marriage_contract ? `/uploads/${user.marriage_contract}` : null;
-      user.nbi_clearanceUrl = user.nbi_clearance ? `/uploads/${user.nbi_clearance}` : null;
 
       // If the user is an employee, fetch deficiencies
       if (userType === 'employee') {
@@ -1501,7 +1497,6 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
     birth_certificate: 'birth_certificate',
     passport: 'passport',
     marriage_contract: 'marriage_contract',
-    nbi_clearance: 'nbi_clearance',
   };
 
   if (!columnMap[type]) {
@@ -1548,25 +1543,38 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
   }
 });
 
+// Endpoint to update progress step based on checkbox states
+app.post('/api/users/:userId/update-progress', (req, res) => {
+  const userId = req.params.userId;
+  const { fileChecks } = req.body;
 
-// 1. Update progress step
-app.put('/api/admin/:employee_id/progress', (req, res) => {
-  const { employee_id } = req.params;
-  const { progress_step } = req.body;
+  // Logic to update progress based on fileChecks
+  let progressStep = 0;
+  if (fileChecks.medicalCertificate) progressStep = Math.max(progressStep, 3);
+  if (fileChecks.nbiCertificate) progressStep = Math.max(progressStep, 4);
+  if (fileChecks.tesdaCertificate) progressStep = Math.max(progressStep, 5);
 
-  const query = `
-    UPDATE admin 
-    SET progress_step = ? 
-    WHERE employee_id = ?`;
-
-  db.query(query, [progress_step, employee_id], (err, result) => {
-    if (err) return res.status(500).send(err);
-    if (result.affectedRows === 0)
-      return res.status(404).json({ message: 'Employee not found' });
-
-    res.json({ message: 'Progress step updated successfully' });
+  const updateQuery = `UPDATE employees SET progressStep = ? WHERE id = ?`;
+  db.query(updateQuery, [progressStep, userId], (err, result) => {
+    if (err) return res.status(500).json({ message: 'Failed to update progress', error: err });
+    res.status(200).json({ message: 'Progress updated successfully' });
   });
 });
+
+
+// Function to update progress in DB (this is just an example)
+const updateUserProgress = (userId, progressStep) => {
+  return new Promise((resolve, reject) => {
+    // Replace with your actual DB logic here
+    // Example: Update the progress step in the database for the user
+    const query = `UPDATE users SET progress_step = ? WHERE id = ?`;
+    db.query(query, [progressStep, userId], (err, results) => {
+      if (err) reject(err);
+      else resolve(results);
+    });
+  });
+};
+
 
 // 5. Fetch admin details for a specific employee
 app.get('/api/admin/:employee_id', (req, res) => {
@@ -1586,6 +1594,30 @@ app.get('/api/admin/:employee_id', (req, res) => {
   });
 });
 
+app.post('/api/users/:userId/:fileType', upload.single('file'), (req, res) => {
+  const userId = req.params.userId;
+  const fileType = req.params.fileType;
+  
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file uploaded' });
+  }
+
+  // Get the file as a binary buffer
+  const fileData = req.file.buffer;
+
+  // SQL query to update the employee table with the uploaded file as BLOB
+  const updateQuery = `UPDATE employees SET ${fileType} = ? WHERE id = ?`;
+
+  db.query(updateQuery, [fileData, userId], (err, result) => {
+    if (err) {
+      console.error('Error executing update query:', err); // Log the error to console
+      return res.status(500).json({ message: 'Failed to upload file', error: err });
+    }
+
+    // After file upload, check and update the progress
+    checkAndUpdateProgress(userId, res);
+  });
+});
 
 
 

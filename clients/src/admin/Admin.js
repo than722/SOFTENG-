@@ -6,7 +6,6 @@ import EmployerTable from './EmployerTable';
 import Tabs from './Tabs';
 import LoginAdmin from './LoginAdmin';
 import ViewProfile from './ViewProfile';
-import ProgressBar from '../Progress/ProgressBar'; // Corrected import
 
 const Admin = () => {
   const [employees, setEmployees] = useState([]);
@@ -35,7 +34,18 @@ const Admin = () => {
         })
         .catch((err) => setError(err.message));
     }
+
   }, [isLoggedIn]);
+
+  const deleteRejected = () => {
+    fetch('http://localhost:8081/api/users/rejected', { method: 'DELETE' })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Delete failed: ${response.status}`);
+        setEmployees((prev) => prev.filter((emp) => emp.progressId !== 2));
+        setEmployers((prev) => prev.filter((emp) => emp.progressId !== 2));
+      })
+      .catch((err) => setError(err.message));
+  };
 
   const viewProfile = (user) => {
     const userId = user.id;
@@ -63,6 +73,25 @@ const Admin = () => {
     setSelectedUser(null);
   };
 
+  const handleDeficiencyRequest = (applicantId, fileType) => {
+    fetch('http://localhost:8081/api/deficiencies/request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        applicantId,
+        requiredFiles: [fileType],
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error('Failed to send deficiency request');
+        alert(`Deficiency request for ${fileType} sent successfully.`);
+      })
+      .catch((err) => {
+        console.error('Failed to send deficiency request:', err);
+        alert('Failed to send deficiency request. Please try again.');
+      });
+  };
+
   return (
     <div className="admin-container">
       {!isLoggedIn ? (
@@ -72,9 +101,7 @@ const Admin = () => {
           <div className="admin-header">
             <h1>Admin Dashboard</h1>
           </div>
-          <button onClick={() => { /* Handle logic for deleting rejected users */ }}>
-            Delete All Rejected Applicants
-          </button>
+          <button onClick={deleteRejected}>Delete All Rejected Applicants</button>
           {error && <p className="error">Error: {error}</p>}
           <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
           {activeTab === 'employees' && (
@@ -94,8 +121,15 @@ const Admin = () => {
             <ViewProfile
               user={selectedUser}
               closeModal={closeModal}
-              acceptUser={() => closeModal()}
-              rejectUser={() => closeModal()}
+              acceptUser={() => {
+                closeModal();
+              }}
+              rejectUser={() => {
+                closeModal();
+              }}
+              handleDeficiencyRequest={(id, fileType) =>
+                handleDeficiencyRequest(id, fileType)
+              }
             />
           )}
         </>
