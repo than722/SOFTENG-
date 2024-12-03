@@ -170,7 +170,7 @@ const Admin = () => {
               className={activeTab === 'employees' ? 'active' : ''}
               onClick={() => setActiveTab('employees')}
             >
-              Employees
+              Applicants
             </button>
             <button
               className={activeTab === 'employers' ? 'active' : ''}
@@ -189,7 +189,7 @@ const Admin = () => {
 
           {activeTab === 'employees' && (
             <div>
-              <h2>Employees</h2>
+              <h2>Applicants</h2>
               <table className="user-table">
                 <thead>
                   <tr>

@@ -8,25 +8,26 @@ const ProfileDeficiencies = ({ employeeId }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('Employee ID:', employeeId); // Check if employeeId is valid
     if (!employeeId) return;
-
-    // Fetch deficiencies for the specific employee
+  
     axios
       .get(`http://localhost:8081/api/employees/${employeeId}/deficiencies`)
       .then((response) => {
-        setDeficiencies(response.data); // Assuming the response contains a list of deficiencies
+        setDeficiencies(response.data);
         setError(null);
       })
       .catch((err) => {
-        console.error(err);
-        setError('Failed to load deficiencies');
+        console.error('Error fetching deficiencies:', err);
+        setError('Failed to load deficiencies.');
       })
       .finally(() => setLoading(false));
   }, [employeeId]);
+  
 
   const handleFileSubmit = (deficiency) => {
     const fileInput = document.getElementById(`file-upload-${deficiency.type}`);
-    if (fileInput.files.length === 0) {
+    if (!fileInput || fileInput.files.length === 0) {
       alert('Please select a file to upload.');
       return;
     }
@@ -46,7 +47,7 @@ const ProfileDeficiencies = ({ employeeId }) => {
         ); // Remove resolved deficiency
       })
       .catch((err) => {
-        console.error(err);
+        console.error('Error submitting file:', err);
         alert('Failed to submit file. Please try again.');
       });
   };
@@ -58,18 +59,18 @@ const ProfileDeficiencies = ({ employeeId }) => {
     <div className="profile-deficiencies-container">
       <h2>Profile Deficiencies</h2>
       {deficiencies.length === 0 ? (
-        <p>All files are submitted. No deficiencies.</p>
+  <p>All files are submitted. No deficiencies.</p>
       ) : (
         <ul className="deficiencies-list">
           {deficiencies.map((deficiency) => (
-            <li key={deficiency.type} className="deficiency-item">
+            <li key={deficiency.id} className="deficiency-item"> {/* Use `id` as key */}
               <p>
                 <strong>{deficiency.label}:</strong> {deficiency.description}
               </p>
               <div className="deficiency-action">
                 <input
                   type="file"
-                  id={`file-upload-${deficiency.type}`}
+                  id={`file-upload-${deficiency.id}`} // Updated to use `id`
                   className="file-upload-input"
                 />
                 <button
@@ -83,6 +84,7 @@ const ProfileDeficiencies = ({ employeeId }) => {
           ))}
         </ul>
       )}
+
     </div>
   );
 };

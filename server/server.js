@@ -731,13 +731,27 @@ app.put('/api/job_postings/:id', (req, res) => {
 // Route to delete a job posting by ID
 app.delete('/api/job_postings/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM job_postings WHERE job_id = ?';
-  db.query(sql, [id], (err, results) => {
+
+  // Check if the job has any applications in the 'applications' table
+  const checkApplicationSql = 'SELECT * FROM applications WHERE job_id = ?';
+  db.query(checkApplicationSql, [id], (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error', details: err.message });
-    if (results.affectedRows === 0) return res.status(404).json({ error: 'Job posting not found' });
-    res.json({ message: 'Job posting deleted successfully' });
+    
+    // If there are applications for this job, prevent deletion
+    if (results.length > 0) {
+      return res.status(400).json({ error: 'Cannot delete job posting: job has applicants' });
+    }
+
+    // Proceed with the deletion if no applications found
+    const deleteJobSql = 'DELETE FROM job_postings WHERE job_id = ?';
+    db.query(deleteJobSql, [id], (err, results) => {
+      if (err) return res.status(500).json({ error: 'Database error', details: err.message });
+      if (results.affectedRows === 0) return res.status(404).json({ error: 'Job posting not found' });
+      res.json({ message: 'Job posting deleted successfully' });
+    });
   });
 });
+
 
 
 // Sign-out route to clear the JWT token
@@ -944,6 +958,32 @@ app.get('/api/applicants/:applicationId', (req, res) => {
           const resumeUrl = employee.resume ? `/uploads/${employee.resume}` : null;
           const valid_id_Url = employee.validId ? `/uploads/${employee.validId}` : null;
 
+          const getDeficienciesQuery = `
+                SELECT file_name 
+                FROM deficiency_requests
+                WHERE employee_id = ?;
+            `;
+
+            db.query(getDeficienciesQuery, [employeeId], (err, deficienciesResults) => {
+                if (err) {
+                    console.error("Error fetching deficiencies:", err);
+                    return res.status(500).send("Failed to fetch deficiencies.");
+                }
+
+                const deficiencies = deficienciesResults.map((row) => row.file_name);
+
+                // Include deficiencies in the response
+                res.json({
+                    ...employee,
+                    status: status,
+                    picture_url: pictureUrl,
+                    resume_url: resumeUrl,
+                    valid_id_url: valid_id_Url,
+                    deficiencies: deficiencies,
+                });
+            });
+
+
           // Log the file URLs for debugging
           console.log("Picture URL:", pictureUrl);
           console.log("Resume URL:", resumeUrl);
@@ -980,6 +1020,7 @@ app.get('/api/applicants/:applicationId', (req, res) => {
               picture_url: pictureUrl,
               resume_url: resumeUrl,
               valid_id_url: valid_id_Url,
+              
           });
       });
   });
@@ -1404,6 +1445,69 @@ app.get('/api/employers/:employerId/notifications', (req, res) => {
     res.json(notifications);
   });
 });
+
+app.post('/api/deficiencies/request', (req, res) => {
+  const { applicantId, requiredFiles } = req.body;
+
+  if (!applicantId || !Array.isArray(requiredFiles) || requiredFiles.length === 0) {
+      return res.status(400).json({ message: 'Applicant ID and required files are required.' });
+  }
+
+  const query = 'INSERT INTO deficiency_requests (employee_id, file_name, reason) VALUES ?';
+  const values = requiredFiles.map((file) => [applicantId, file]);
+
+  db.query(query, [values], (err) => {
+      if (err) {
+          console.error('Error saving deficiency request:', err);
+          res.status(500).json({ message: 'Failed to save deficiency request.' });
+      } else {
+          res.json({ message: 'Deficiency request saved successfully.' });
+      }
+  });
+});
+
+// Get deficiencies for a specific employee
+app.get('/api/employees/:employeeId/deficiencies', (req, res) => {
+  const { employeeId } = req.params;
+
+  // Log the request for debugging
+  console.log('Fetching deficiencies for employee ID:', employeeId);
+
+  // Validate that employeeId is a valid number
+  if (isNaN(employeeId)) {
+    return res.status(400).json({ error: 'Invalid employee ID' });
+  }
+
+  // Define the query to fetch deficiencies
+  const query = `
+    SELECT 
+      id, 
+      employee_id, 
+      file_name, 
+      request_date,
+      reason 
+    FROM deficiency_request
+    WHERE employee_id = ?;
+  `;
+
+  // Execute the query
+  db.query(query, [employeeId], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    // Handle case where no deficiencies are found
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'No deficiencies found for this employee.' });
+    }
+
+    // Respond with the list of deficiencies
+    res.status(200).json(results);
+  });
+});
+
+
 
 
 
