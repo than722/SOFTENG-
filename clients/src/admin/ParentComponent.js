@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import ProgressBar from "../Progress/ProgressBar";
 import ViewProfile from "./ViewProfile";
@@ -12,11 +13,13 @@ const ParentComponent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Extract userId from the URL using useParams
+  const { userId } = useParams();
+
   // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userId = 123; // Replace with dynamic user ID if available
         const response = await axios.get(`http://localhost:8081/api/users/${userId}`);
         setSelectedUser(response.data);
       } catch (err) {
@@ -27,8 +30,10 @@ const ParentComponent = () => {
       }
     };
 
-    fetchUserData();
-  }, []);
+    if (userId) {
+      fetchUserData();
+    }
+  }, [userId]);
 
   // Function to update the progress step
   const updateProgressStep = (userId, step) => {
