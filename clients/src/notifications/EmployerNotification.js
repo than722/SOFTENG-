@@ -35,14 +35,15 @@ const EmployerNotification = () => {
       });
   }, [userId]);
 
-  const handleNotificationClick = (applicationId) => {
-    console.log('Application ID:', applicationId); // Debugging
-    if (!applicationId) {
-      console.error('Application ID is missing.');
+  const handleNotificationClick = (jobId) => {
+    console.log('Job ID:', jobId); // Debugging
+    if (!jobId) {
+      console.error('Job ID is missing.');
       return;
     }
-    navigate(`/view-applied-applicants`, { state: { applicationId } });
+    navigate(`/view-applied-applicants/${jobId}`);
   };
+
   
 
   const markAsRead = async (notificationId) => {
@@ -83,28 +84,28 @@ const EmployerNotification = () => {
         ) : (
           <ul className="notification-list">
             {notifications.map((notification) => (
-              <li
-                key={notification.id}
-                className={`notification-item ${notification.read ? 'read' : 'unread'}`}
-                onClick={() => handleNotificationClick(notification.applicationId)}
-                style={{ cursor: 'pointer' }}
-              >
-                <p>{notification.message}</p>
-                <p>
-                  <small>Applied on: {notification.applyDate}</small>
-                </p>
-                {!notification.read && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering onClick for the notification
-                      markAsRead(notification.id);
-                    }}
-                  >
-                    Mark as Read
-                  </button>
-                )}
-              </li>
-            ))}
+                <li
+                  key={notification.applicationId} // Changed to applicationId
+                  className={`notification-item ${notification.status === 2 ? 'read' : 'unread'}`}
+                  onClick={() => handleNotificationClick(notification.jobId)} // Pass jobId instead of applicationId
+                  style={{ cursor: 'pointer' }}
+                >
+                  <p>{notification.message}</p>
+                  <p>
+                    <small>Applied on: {notification.applyDate}</small>
+                  </p>
+                  {!notification.read && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering onClick for the notification
+                        markAsRead(notification.applicationId); // Changed to applicationId
+                      }}
+                    >
+                      Mark as Read
+                    </button>
+                  )}
+                </li>
+              ))}
           </ul>
         )}
       </div>

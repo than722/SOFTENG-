@@ -526,9 +526,9 @@ app.delete('/api/users/rejected', (req, res) => {
 // Route to get user profile by user_id (employee or employer)
 app.get('/api/users/:userId', (req, res) => {
   const { userId } = req.params;
-  const { userType } = req.query; // Get userType from the query parameter
+  const { userType } = req.query;
 
-  // Validate the userType
+  // Validate userType
   if (!userType || (userType !== 'employee' && userType !== 'employer')) {
     return res.status(400).json({ error: 'Invalid user type' });
   }
@@ -538,42 +538,70 @@ app.get('/api/users/:userId', (req, res) => {
            zipCode, mobileNumber, picture, resume, validId, birth_certificate, passport, marriage_contract, 
            birthday, nbi_clearance, 'employee' AS userType 
     FROM employee 
-    WHERE employee_id = ?`;
-
+    WHERE employee_id = ?;
+  `;
+  
   const employerQuery = `
     SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
            zipCode, mobileNumber, companyName, birthday, 'employer' AS userType 
     FROM employer 
-    WHERE employer_id = ?`;
+    WHERE employer_id = ?;
+  `;
 
   // Choose the query based on the userType
   const query = userType === 'employee' ? employeeQuery : employerQuery;
 
-  // Query the database
+  // Query the database for the user
   db.query(query, [userId], (err, results) => {
     if (err) {
-      console.error('Database error:', err); // Log any database errors
+      console.error('Database error:', err);
       return res.status(500).json({ error: 'Database error', details: err.message });
     }
 
-    // If a user was found
     if (results.length > 0) {
       const user = results[0];
 
-      // Append the correct uploads directory path for each file, only if the file exists
-      user.pictureUrl = user.picture ? `${user.picture}` : null;
-      user.resumeUrl = user.resume ? `${user.resume}` : null;
-      user.validIDUrl = user.validId ? `${user.validId}` : null;
-      user.birthcertificateUrl = user.birth_certificate ? `${user.birth_certificate}` : null;
-      user.passportUrl = user.passport ? `${user.passport}` : null;
-      user.marriagecontractUrl = user.marriage_contract ? `${user.marriage_contract}` : null;
-      user.nbi_clearanceUrl = user.nbi_clearance ? `${user.nbi_clearance}` : null;
+      // Append file URLs to user data
+      user.pictureUrl = user.picture ? `/uploads/${user.picture}` : null;
+      user.resumeUrl = user.resume ? `/uploads/${user.resume}` : null;
+      user.validIDUrl = user.validId ? `/uploads/${user.validId}` : null;
+      user.birthcertificateUrl = user.birth_certificate ? `/uploads/${user.birth_certificate}` : null;
+      user.passportUrl = user.passport ? `/uploads/${user.passport}` : null;
+      user.marriagecontractUrl = user.marriage_contract ? `/uploads/${user.marriage_contract}` : null;
+      user.nbi_clearanceUrl = user.nbi_clearance ? `/uploads/${user.nbi_clearance}` : null;
 
-      return res.json(user); // Return the user data as a response
+      // If the user is an employee, fetch deficiencies
+      if (userType === 'employee') {
+        const getDeficienciesQuery = `
+          SELECT file_name 
+          FROM deficiency_requests
+          WHERE employee_id = ?;
+        `;
+
+        db.query(getDeficienciesQuery, [userId], (err, deficienciesResults) => {
+          if (err) {
+            console.error("Error fetching deficiencies:", err);
+            return res.status(500).json({ error: 'Failed to fetch deficiencies', details: err.message });
+          }
+
+          const deficiencies = deficienciesResults.map((row) => row.file_name);
+          user.deficiencies = deficiencies;
+
+          // Check if there are no deficiencies
+          if (deficiencies.length === 0) {
+            user.noDeficienciesMessage = "All files are submitted. No deficiencies.";
+          }
+
+          // Send the response after adding deficiencies and message
+          return res.json(user);
+        });
+      } else {
+        // If the user is an employer, no deficiencies data is needed
+        return res.json(user);
+      }
+    } else {
+      return res.status(404).json({ error: 'User not found' });
     }
-
-    // If no user was found, return a 404 error
-    res.status(404).json({ error: 'User not found' });
   });
 });
 
@@ -914,130 +942,98 @@ app.get('/api/applicants/:applicationId', (req, res) => {
   const applicationId = req.params.applicationId;
 
   if (!applicationId) {
-      return res.status(400).send("Missing applicationId.");
+    return res.status(400).send("Missing applicationId.");
   }
 
   const getEmployeeIdQuery = `
-      SELECT employee_id
-      FROM applications
-      WHERE applications_id = ?;
+    SELECT employee_id
+    FROM applications
+    WHERE applications_id = ?;
   `;
 
   db.query(getEmployeeIdQuery, [applicationId], (err, results) => {
+    if (err) {
+      console.error("Error fetching employee_id from applications:", err);
+      return res.status(500).send("Failed to fetch employee_id from applications.");
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send("Application not found.");
+    }
+
+    const employeeId = results[0].employee_id;
+
+    const getEmployeeDetailsQuery = `
+      SELECT 
+        e.employee_id, 
+        e.firstName, 
+        e.lastName, 
+        e.email, 
+        e.province, 
+        e.municipality, 
+        e.barangay, 
+        e.zipCode,
+        e.picture, 
+        e.resume,   
+        e.validId,  
+        e.status_id
+      FROM employee e
+      WHERE e.employee_id = ?;
+    `;
+
+    db.query(getEmployeeDetailsQuery, [employeeId], (err, employeeResults) => {
       if (err) {
-          console.error("Error fetching employee_id from applications:", err);
-          return res.status(500).send("Failed to fetch employee_id from applications.");
+        console.error("Error fetching employee details:", err);
+        return res.status(500).send("Failed to fetch employee details.");
       }
 
-      if (results.length === 0) {
-          return res.status(404).send("Application not found.");
+      if (employeeResults.length === 0) {
+        return res.status(404).send("Employee details not found.");
       }
 
-      const employeeId = results[0].employee_id;
+      const employee = employeeResults[0];
+      console.log("Employee details:", employee);
 
-      const getEmployeeDetailsQuery = `
-          SELECT 
-              e.employee_id, 
-              e.firstName, 
-              e.lastName, 
-              e.email, 
-              e.province, 
-              e.municipality, 
-              e.barangay, 
-              e.zipCode,
-              e.picture, 
-              e.resume,   
-              e.validId,  
-              e.status_id
-          FROM employee e
-          WHERE e.employee_id = ?;
-      `;
+      const pictureUrl = employee.picture ? `/uploads/${employee.picture}` : null;
+      const resumeUrl = employee.resume ? `/uploads/${employee.resume}` : null;
+      const valid_id_Url = employee.validId ? `/uploads/${employee.validId}` : null;
 
-      db.query(getEmployeeDetailsQuery, [employeeId], (err, employeeResults) => {
-          if (err) {
-              console.error("Error fetching employee details:", err);
-              return res.status(500).send("Failed to fetch employee details.");
-          }
+      let status = '';
+      switch (employee.status_id) {
+        case 1:
+          status = 'Active';
+          break;
+        case 2:
+          status = 'Inactive';
+          break;
+        case 3:
+          status = 'Pending';
+          break;
+        default:
+          status = 'Unknown';
+          break;
+      }
 
-          if (employeeResults.length === 0) {
-              return res.status(404).send("Employee details not found.");
-          }
-
-          // Log employee data and file URLs
-          const employee = employeeResults[0];
-          console.log("Employee details:", employee);
-          
-          const pictureUrl = employee.picture ? `/uploads/${employee.picture}` : null;
-          const resumeUrl = employee.resume ? `/uploads/${employee.resume}` : null;
-          const valid_id_Url = employee.validId ? `/uploads/${employee.validId}` : null;
-
-          const getDeficienciesQuery = `
-                SELECT file_name 
-                FROM deficiency_requests
-                WHERE employee_id = ?;
-            `;
-
-            db.query(getDeficienciesQuery, [employeeId], (err, deficienciesResults) => {
-                if (err) {
-                    console.error("Error fetching deficiencies:", err);
-                    return res.status(500).send("Failed to fetch deficiencies.");
-                }
-
-                const deficiencies = deficienciesResults.map((row) => row.file_name);
-
-                // Include deficiencies in the response
-                res.json({
-                    ...employee,
-                    status: status,
-                    picture_url: pictureUrl,
-                    resume_url: resumeUrl,
-                    valid_id_url: valid_id_Url,
-                    deficiencies: deficiencies,
-                });
-            });
-
-
-          // Log the file URLs for debugging
-          console.log("Picture URL:", pictureUrl);
-          console.log("Resume URL:", resumeUrl);
-          console.log("Valid ID URL:", valid_id_Url);
-
-          let status = '';
-          switch (employee.status_id) {
-              case 1:
-                  status = 'Active';
-                  break;
-              case 2:
-                  status = 'Inactive';
-                  break;
-              case 3:
-                  status = 'Pending';
-                  break;
-              default:
-                  status = 'Unknown';
-                  break;
-          }
-
-          // Log the response data
-          console.log("Sending response with employee details:", {
-              ...employee,
-              status: status,
-              picture_url: pictureUrl,
-              resume_url: resumeUrl,
-              valid_id_url: valid_id_Url,
-          });
-
-          res.json({
-              ...employee,
-              status: status,
-              picture_url: pictureUrl,
-              resume_url: resumeUrl,
-              valid_id_url: valid_id_Url,
-              
-          });
+      // Ensure the response is sent only once
+      console.log("Sending response with employee details:", {
+        ...employee,
+        status: status,
+        picture_url: pictureUrl,
+        resume_url: resumeUrl,
+        valid_id_url: valid_id_Url,
       });
+
+      return res.json({
+        ...employee,
+        status: status,
+        picture_url: pictureUrl,
+        resume_url: resumeUrl,
+        valid_id_url: valid_id_Url,
+      });
+    });
   });
 });
+
 
 
 
@@ -1445,19 +1441,22 @@ app.get('/api/employers/:employerId/notifications', (req, res) => {
     }
 
     const notifications = results.map((row) => ({
-      id: row.notificationId,
+      applicationId: row.notificationId, // Keep applicationId for notifications
       employeeId: row.employee_id,
       employeeName: `${row.firstName} ${row.lastName}`,
-      jobId: row.job_id,
+      jobId: row.job_id, // Use job_id for the job details
       jobName: row.jobName,
       message: `${row.firstName} ${row.lastName} applied for the job: ${row.jobName}`,
-      applyDate: new Date(row.apply_date).toISOString(), // Ensure valid ISO format
+      applyDate: new Date(row.apply_date).toISOString(),
       status: row.status,
     }));
 
     res.json(notifications);
   });
 });
+
+
+
 
 app.post('/api/deficiencies/request', (req, res) => {
   const { applicantId, requiredFiles } = req.body;

@@ -6,6 +6,7 @@ const ProfileDeficiencies = ({ employeeId, civilStatus }) => {
   const [deficiencies, setDeficiencies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [noDeficienciesMessage, setNoDeficienciesMessage] = useState('');
 
   const deficiencyTypeMapping = {
     'picture': 'picture',
@@ -14,20 +15,24 @@ const ProfileDeficiencies = ({ employeeId, civilStatus }) => {
     'passport': 'passport',
     'marriage_contract': 'marriage_contract',
   };
-  
-  // In your useEffect or when rendering deficiencies:
+
   useEffect(() => {
-    console.log('Employee ID:', employeeId); // Ensure employeeId is correct
     if (!employeeId) return;
-  
+
     axios
-      .get(`http://localhost:8081/api/employees/${employeeId}/deficiencies`)
+      .get(`http://localhost:8081/api/users/${employeeId}?userType=employee`)
       .then((response) => {
-        const deficienciesWithTypes = response.data.map((deficiency) => {
-          const type = deficiencyTypeMapping[deficiency.file_name] || 'unknown';
-          return { ...deficiency, type };
+        const userData = response.data;
+        if (userData.noDeficienciesMessage) {
+          setNoDeficienciesMessage(userData.noDeficienciesMessage);
+        }
+
+        const deficienciesWithTypes = userData.deficiencies?.map((deficiency) => {
+          const type = deficiencyTypeMapping[deficiency] || 'unknown';
+          return { file_name: deficiency, type };
         });
-        setDeficiencies(deficienciesWithTypes);
+
+        setDeficiencies(deficienciesWithTypes || []);
         setError(null);
       })
       .catch((err) => {
@@ -36,7 +41,6 @@ const ProfileDeficiencies = ({ employeeId, civilStatus }) => {
       })
       .finally(() => setLoading(false));
   }, [employeeId]);
-  ;
 
   const handleFileSubmit = (deficiency) => {
     const fileInput = document.getElementById(`file-upload-${deficiency.type}`);
@@ -56,7 +60,7 @@ const ProfileDeficiencies = ({ employeeId, civilStatus }) => {
       .then((response) => {
         alert('File submitted successfully!');
         setDeficiencies((prev) =>
-          prev.filter((item) => item.id !== deficiency.id)
+          prev.filter((item) => item.file_name !== deficiency.file_name)
         ); // Remove resolved deficiency
       })
       .catch((err) => {
@@ -64,7 +68,6 @@ const ProfileDeficiencies = ({ employeeId, civilStatus }) => {
         alert('Failed to submit file. Please try again.');
       });
   };
-  
 
   const renderUploadField = (type, label, accept) => (
     <div key={type} className="upload-field">
@@ -90,17 +93,16 @@ const ProfileDeficiencies = ({ employeeId, civilStatus }) => {
   return (
     <div className="profile-deficiencies-container">
       <h2>Profile Deficiencies</h2>
-      {deficiencies.length === 0 ? (
-        <p>All files are submitted. No deficiencies.</p>
+      {noDeficienciesMessage ? (
+        <p>{noDeficienciesMessage}</p>
       ) : (
         <ul className="deficiencies-list">
-          {deficiencies.map((deficiency) => (
-            <li key={deficiency.id} className="deficiency-item">
+          {deficiencies.map((deficiency, index) => (
+            <li key={index} className="deficiency-item">
               <p>
                 <strong>{deficiency.file_name}:</strong> {deficiency.reason}
               </p>
               <div className="deficiency-action">
-                {console.log('Deficiency type:', deficiency.type)} {/* Add this log */}
                 {deficiency.type === 'picture' &&
                   renderUploadField("picture", "Upload Picture", "image/*")}
                 {deficiency.type === 'resume' &&
