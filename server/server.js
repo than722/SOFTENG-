@@ -392,14 +392,14 @@ app.delete('/api/:accountType/:id', (req, res) => {
 app.get('/api/users', (req, res) => {
   const employeeQuery = `
     SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, picture, resume, status_id AS statusId, progress_id AS progressId, 
+           zipCode, mobileNumber, picture, resume, status_id AS statusId, 
            email, 'Employee' AS userType
     FROM employee
   `;
 
   const employerQuery = `
     SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id AS progressId, 
+           zipCode, mobileNumber, companyName, status_id AS statusId, 
            email, 'Employer' AS userType
     FROM employer
   `;

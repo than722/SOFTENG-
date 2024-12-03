@@ -32,22 +32,27 @@ const ViewProfile = ({
       }, [user]);
 
       useEffect(() => {
-        // If all files are approved, update the progress step
         const allApproved = Object.values(fileApprovals).every((isApproved) => isApproved);
+        console.log('All files approved:', allApproved);
         if (allApproved && updateProgressStep) {
-          updateProgressStep(user.id, 2); // Updates to step 2 when all files are approved
+          console.log(`All files approved for user ID ${user.id}. Updating progress to Step 2.`);
+          updateProgressStep(user.id, 2);
         }
-      }, [fileApprovals, user, updateProgressStep]);
+      }, [fileApprovals, updateProgressStep]);
+      
+      
     
       if (!user) return null;
     
       const handleApprove = (fileType) => {
-        setFileApprovals((prev) => ({
-          ...prev,
-          [fileType]: true,
-        }));
+        setFileApprovals((prev) => {
+          const updatedApprovals = { ...prev, [fileType]: true };
+          console.log('Updated approvals:', updatedApprovals);
+          return updatedApprovals;
+        });
         alert(`${fileType.replace(/([A-Z])/g, ' $1')} approved.`);
       };
+      
 
 
 
@@ -267,14 +272,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-          <p>
+          <div>
             <strong>Valid ID:</strong>{' '}
             {fileApprovals.validID ? (
               <span>Approved</span>
             ) : (
               <button onClick={() => handleApprove('validID')}>Approve</button>
             )}
-          </p>
+          </div>
           </p>
 
           {/* Birth Certificate */}
@@ -301,14 +306,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-          <p>
+          <div>
             <strong>Birth Certificate:</strong>{' '}
             {fileApprovals.birthCertificate ? (
               <span>Approved</span>
             ) : (
               <button onClick={() => handleApprove('birthCertificate')}>Approve</button>
             )}
-          </p>
+          </div>
           </p>
 
           {/* Passport */}
@@ -333,14 +338,14 @@ const ViewProfile = ({
             ) : (
               'No file uploaded'
             )}
-          <p>
+          <div>
             <strong>Passport:</strong>{' '}
             {fileApprovals.passport ? (
               <span>Approved</span>
             ) : (
               <button onClick={() => handleApprove('passport')}>Approve</button>
             )}
-          </p>
+          </div>
           </p>
 
           {/* Marriage Contract */}

@@ -3,6 +3,7 @@ import "./ProgressBar.css";
 
 
 const ProgressBar = ({ currentStep = 1 }) => {
+  console.log(`Rendering ProgressBar with currentStep: ${currentStep}`);
   const steps = [
     { step: 1, label: "Account Created" },
     { step: 2, label: "Files Reviewing" },
