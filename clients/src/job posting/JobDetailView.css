@@ -24,13 +24,15 @@
 }
 
 .back-button {
-    color: #007bff;
-    background: none;
-    border: none;
+    color: white;
+    font-weight: lighter;
+    padding: 4px 8px;
+    font-family: 'Mulish';
+    border-radius: 8px;;
     cursor: pointer;
-    font-size: 14px;
-    text-decoration: underline;
+    font-size: 12px;
     margin-bottom: 20px;
+    text-align: center;
 }
 
 h2 {
@@ -54,7 +56,7 @@ h2 {
     text-align: center;
 }
 
-h4 {
+.h4 {
     margin: 0px;
     font-size: 10px;
 }
@@ -65,7 +67,7 @@ p {
     margin-bottom: 0px;
     font-size: 15px;
     font-weight: bolder;
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .job-overview {
@@ -123,4 +125,13 @@ p {
     flex-direction: column;
     justify-content: space-between;
     align-items: left;
+}
+.not-accepted-message{
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    color: red;
+    border: solid 2px red;
+    border-radius: 5px;
 }

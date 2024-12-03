@@ -21,7 +21,6 @@ const HeaderEmployee = ({ userId, auth, onSignOut }) => {
             {userId && (
               <li><Link to={`/profile/${userId}/employee`}>PROFILE</Link></li>
             )}
-            {/* Replace the Notifications link with the custom bell button */}
           </div>
         </ul>
       </nav>

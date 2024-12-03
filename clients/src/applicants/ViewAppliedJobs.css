@@ -4,7 +4,7 @@
     padding: 20px;
     max-width: 800px;
     background-color: #ffffff;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     text-align: center;
     font-family: Arial, sans-serif;
@@ -14,9 +14,9 @@
   .applied-jobs-container h2 {
     font-size: 24px;
     color: #333333;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
     border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
+    padding-bottom: 0px;
     display: inline-block;
   }
   
@@ -33,6 +33,7 @@
     padding: 10px 15px;
     text-align: left;
     font-size: 14px;
+    font-family: 'Mulish';
   }
   
   /* Table header styling */
@@ -84,3 +85,14 @@
     }
   }
   
+.th{
+  font-size: 12px;
+}
+.cancel-button{
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: 'Mulish';
+
+  
+
+}

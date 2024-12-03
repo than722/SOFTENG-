@@ -71,11 +71,6 @@ const EmployerP = ({ onSignOut, auth }) => {
             employer and client satisfaction, aiming for improved local employment rate and awards for exceptional services.
           </p>
         </div>
-
-        <div className="image-section-App">
-          <img src="woman-smiling.png" alt="Smiling Woman" className="main-image-App" />
-        </div>
-
         {/* Loading state */}
         {loading && <p>Loading profile...</p>}
 
