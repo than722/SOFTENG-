@@ -118,28 +118,6 @@ function EmployerViewJobPosting() {
                                     <p className="job-description">{job.description}</p>
                                     <p className="job-salary">Salary: ${job.salary}</p>
                                     <p className="job-country">Country: {job.country}</p>
-                                    {tab === 'employer' && (
-                                        <div className="employer-actions">
-                                            <button
-                                                className="edit-button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Prevent triggering the job click
-                                                    alert(`Edit Job: ${job.job_id}`);
-                                                }}
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                className="delete-button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    alert(`Delete Job: ${job.job_id}`);
-                                                }}
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
                             ))
                         ) : (

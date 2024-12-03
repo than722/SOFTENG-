@@ -36,12 +36,14 @@ const EmployerNotification = () => {
   }, [userId]);
 
   const handleNotificationClick = (applicationId) => {
+    console.log('Application ID:', applicationId); // Debugging
     if (!applicationId) {
       console.error('Application ID is missing.');
       return;
     }
     navigate(`/view-applied-applicants`, { state: { applicationId } });
   };
+  
 
   const markAsRead = async (notificationId) => {
     try {
