@@ -7,7 +7,6 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
-    const [isAccepted, setIsAccepted] = useState(false); // Track if the employee is accepted
 
     useEffect(() => {
         axios
@@ -17,11 +16,7 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                     alert('Access denied: This page is only accessible to employees.');
                     navigate('/');
                 }
-                // Log the backend response
                 console.log('Verify Session Response:', res.data);
-
-                // Check if the employee is approved by the admin
-                setIsAccepted(res.data.isAccepted);
             })
             .catch(() => {
                 alert('You must be logged in to view this page.');
@@ -104,21 +99,15 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             </div>
             {/* Debugging Info */}
             <div className="debug-info">
-                <p>isAccepted: {isAccepted ? 'Yes' : 'No'}</p>
                 <p>hasApplied: {hasApplied ? 'Yes' : 'No'}</p>
             </div>
-            {/* Render the apply button only if the user is accepted */}
-            {isAccepted && !hasApplied && (
-                <button 
-                    onClick={handleApply} 
-                    className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
-                    disabled={isSubmitting || hasApplied}>
-                    {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
-                </button>
-            )}
-            {!isAccepted && (
-                <p className="not-accepted-message">Your account is pending approval by the admin.</p>
-            )}
+            {/* Always Render the Apply Button */}
+            <button 
+                onClick={handleApply} 
+                className={`apply-button ${hasApplied ? 'applied-button' : ''}`} 
+                disabled={isSubmitting || hasApplied}>
+                {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
+            </button>
         </div>
     );
 }
