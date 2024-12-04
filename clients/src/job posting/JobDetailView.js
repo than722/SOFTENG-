@@ -7,10 +7,7 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasApplied, setHasApplied] = useState(false);
-<<<<<<< Updated upstream
     const [isAccepted, setIsAccepted] = useState(false); // Track if the employee is accepted
-=======
->>>>>>> Stashed changes
 
     useEffect(() => {
         axios
@@ -54,21 +51,15 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
         try {
             const response = await axios.post(
                 'http://localhost:8081/api/applications/apply',
-<<<<<<< Updated upstream
                 { job_id: jobDetails?.job_id }, // Only send job_id
-=======
                 { job_id: jobDetails?.job_id },
->>>>>>> Stashed changes
                 { withCredentials: true }
             );
 
             if (response.status === 201) {
                 alert('Application successfully sent!');
-<<<<<<< Updated upstream
                 setHasApplied(true); // Mark as applied
-=======
                 setHasApplied(true);
->>>>>>> Stashed changes
             } else {
                 alert('There was an issue with your application.');
             }
@@ -117,7 +108,6 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
                     {hasApplied ? 'Applied' : isSubmitting ? 'Applying...' : 'Apply'}
                 </button>
             </div>
-<<<<<<< Updated upstream
             {/* Render the apply button only if the user is accepted */}
             {isAccepted && !hasApplied && (
                 <button 
@@ -130,8 +120,6 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
             {!isAccepted && (
                 <p className="not-accepted-message">Your account is pending approval by the admin.</p>
             )}
-=======
->>>>>>> Stashed changes
         </div>
     );
 }
