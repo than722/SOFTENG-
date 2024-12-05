@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: 'root',
+  password: '1234',
   database: 'mydb'
 });
 
@@ -396,7 +396,7 @@ app.get('/api/users', (req, res) => {
 
   const employerQuery = `
     SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id AS progressId, 
+           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id, 
            email, 'Employer' AS userType
     FROM employer
   `;
@@ -419,16 +419,15 @@ app.put('/api/users/:id/status', (req, res) => {
   console.log(req.body); // Log the request body
 
   const userId = req.params.id; // This is now the employee_id or employer_id
-  const { progressId } = req.body;
+  const { progressId, statusId } = req.body;
 
-  // Validate progressId is provided in the request body
-  if (!progressId) {
-    return res.status(400).json({ error: 'Missing progressId in request body' });
+  // Validate progressId and statusId are provided in the request body
+  if (!progressId || !statusId) {
+    return res.status(400).json({ error: 'Missing progressId or statusId in request body' });
   }
 
-  const queryEmployee = `UPDATE employee SET progress_id = ? WHERE employee_id = ?`;
-  const queryEmployer = `UPDATE employer SET progress_id = ? WHERE employer_id = ?`;
-  const updateEmployeeStatus = `UPDATE employee SET status_id = 1 WHERE employee_id = ?`; // Update status_id to 1 when accepted
+  const queryEmployee = `UPDATE employee SET progress_id = ?, status_id = ? WHERE employee_id = ?`;
+  const queryEmployer = `UPDATE employer SET progress_id = ?, status_id = ? WHERE employer_id = ?`;
 
   // First, check if the user is an employee by querying the employee table
   db.query('SELECT * FROM employee WHERE employee_id = ?', [userId], (err, employeeResults) => {
@@ -438,33 +437,17 @@ app.put('/api/users/:id/status', (req, res) => {
     }
 
     if (employeeResults.length > 0) {
-      // If the user is found in the employee table, update their progress
-      db.query(queryEmployee, [progressId, userId], (err, updateResults) => {
+      // If the user is found in the employee table, update their progress and status
+      db.query(queryEmployee, [progressId, statusId, userId], (err, updateResults) => {
         if (err) {
           console.error(err);
-          return res.status(500).json({ error: 'Failed to update employee progress' });
+          return res.status(500).json({ error: 'Failed to update employee progress and status' });
         }
 
         if (updateResults.affectedRows > 0) {
-          // If the progress is accepted (progressId = 1), update the employee's status_id to 1
-          if (progressId === 1) {
-            db.query(updateEmployeeStatus, [userId], (err, statusUpdateResults) => {
-              if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Failed to update employee status' });
-              }
-
-              if (statusUpdateResults.affectedRows > 0) {
-                return res.json({ message: 'Employee progress and status updated successfully' });
-              } else {
-                return res.status(404).json({ error: 'Employee status not updated' });
-              }
-            });
-          } else {
-            return res.json({ message: 'Employee progress updated successfully' });
-          }
+          return res.json({ message: 'Employee progress and status updated successfully' });
         } else {
-          return res.status(404).json({ error: 'Employee not found or progress not updated' });
+          return res.status(404).json({ error: 'Employee not found or updates not applied' });
         }
       });
     } else {
@@ -476,17 +459,17 @@ app.put('/api/users/:id/status', (req, res) => {
         }
 
         if (employerResults.length > 0) {
-          // If the user is found in the employer table, update their progress
-          db.query(queryEmployer, [progressId, userId], (err, updateResults) => {
+          // If the user is found in the employer table, update their progress and status
+          db.query(queryEmployer, [progressId, statusId, userId], (err, updateResults) => {
             if (err) {
               console.error(err);
-              return res.status(500).json({ error: 'Failed to update employer progress' });
+              return res.status(500).json({ error: 'Failed to update employer progress and status' });
             }
 
             if (updateResults.affectedRows > 0) {
-              return res.json({ message: 'Employer progress updated successfully' });
+              return res.json({ message: 'Employer progress and status updated successfully' });
             } else {
-              return res.status(404).json({ error: 'Employer not found or progress not updated' });
+              return res.status(404).json({ error: 'Employer not found or updates not applied' });
             }
           });
         } else {
@@ -498,7 +481,108 @@ app.put('/api/users/:id/status', (req, res) => {
   });
 });
 
+app.get("/api/employee/:id/progress", (req, res) => {
+  const employeeId = req.params.id;
 
+  if (!employeeId || isNaN(employeeId)) {
+    return res.status(400).json({ error: "Invalid employee ID" });
+  }
+
+  const query = `SELECT progress_id FROM employee WHERE employee_id = ?`;
+
+  db.query(query, [employeeId], (err, results) => {
+    if (err) {
+      console.error("Error querying database:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    if (results.length > 0) {
+      const progressId = results[0].progress_id;
+      const canApply = progressId === 6;
+      return res.json({ progressId, canApply });
+    } else {
+      return res.status(404).json({ error: "Employee not found" });
+    }
+  });
+});
+
+app.put('/api/users/:userId/update-progress', (req, res) => {
+  const { userId } = req.params;
+  const progress_id = 2;  // Set progress_id directly to 2
+
+  console.log('Received request to update progress for userId:', userId);
+  console.log('Setting progress_id to 2 for userId:', userId);  // Log the update
+
+  // Update progress_id directly to 2 for the user
+  const updateProgressQuery = `
+    UPDATE employee 
+    SET progress_id = ? 
+    WHERE employee_id = ?
+  `;
+
+  db.query(updateProgressQuery, [progress_id, userId], (err, updateResults) => {
+    if (err) {
+      console.error('Error updating progress:', err);
+      return res.status(500).json({ error: 'Failed to update progress' });
+    }
+
+    console.log('Results of progress update query:', updateResults);
+
+    if (updateResults.affectedRows === 0) {
+      console.log('Error: No user found or progress_id is the same');
+      return res.status(404).json({ error: 'User not found or progress_id is the same' });
+    }
+
+    console.log('Progress updated successfully to 2 for userId:', userId);
+    res.status(200).json({ message: 'Progress updated successfully to 2' });
+  });
+});
+
+
+
+app.post('/approve-file', (req, res) => {
+  const { employeeId, fileType } = req.body;
+
+  let approvalColumn, approvalDateColumn;
+
+  // Determine which column to update based on the file type
+  switch (fileType) {
+    case 'resume':
+      approvalColumn = 'resume_is_approved';
+      approvalDateColumn = 'resume_approval_date';
+      break;
+    case 'validID':
+      approvalColumn = 'validID_is_approved';
+      approvalDateColumn = 'validID_approval_date';
+      break;
+    case 'birthCertificate':
+      approvalColumn = 'birthCertificate_is_approved';
+      approvalDateColumn = 'birthCertificate_approval_date';
+      break;
+    case 'passport':
+      approvalColumn = 'passport_is_approved';
+      approvalDateColumn = 'passport_approval_date';
+      break;
+    default:
+      return res.status(400).json({ error: 'Invalid file type' });
+  }
+
+  // Insert or update the approval status for the given employee and file type
+  const query = `
+    INSERT INTO file_approvals (employee_id, file_type, ${approvalColumn}, ${approvalDateColumn})
+    VALUES (?, ?, 1, NOW())
+    ON DUPLICATE KEY UPDATE ${approvalColumn} = 1, ${approvalDateColumn} = NOW();
+  `;
+
+  // Pass both employeeId and fileType to the query
+  db.query(query, [employeeId, fileType], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error approving file' });
+    }
+    res.json({ message: 'File approved successfully' });
+  });
+});
 
 
 

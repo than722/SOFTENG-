@@ -16,36 +16,39 @@ const ParentComponent = () => {
   // Extract userId from the URL using useParams
   const { userId } = useParams();
 
-  // Fetch user data
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8081/api/users/${userId}`);
-        setSelectedUser(response.data);
-      } catch (err) {
-        setError("Failed to fetch user data.");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (userId) {
-      fetchUserData();
+ // Fetch user data
+ useEffect(() => {
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8081/api/users/${userId}`);
+      setSelectedUser(response.data);
+    } catch (err) {
+      setError("Failed to fetch user data.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-  }, [userId]);
-
-  // Function to update the progress step
-  const updateProgressStep = (userId, step) => {
-    console.log(`Updating progress for User ID ${userId} to Step ${step}`);
-    setCurrentStep(step);
-    console.log(`Current step is now: ${step}`);
   };
 
-  useEffect(() => {
-    console.log(`Parent Component: currentStep updated to ${currentStep}`);
-  }, [currentStep]);
-  
+  if (userId) {
+    fetchUserData();
+  }
+}, [userId]);
+
+  // Function to update the progress step 2
+  const updateProgress = async () => {
+    setIsLoading(true);
+
+    try {
+      await axios.put(`/api/users/${userId}/update-progress`, { progress: 2 });
+      console.log("Progress updated successfully to 2 for userId:", userId);
+      setCurrentStep(2); // Update the progress step in the parent component
+    } catch (error) {
+      console.error("Error updating progress:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Modal handlers
   const closeModalHandler = () => console.log("Modal closed");
@@ -72,7 +75,7 @@ const ParentComponent = () => {
           acceptUser={acceptUserHandler}
           rejectUser={rejectUserHandler}
           handleDeficiencyRequest={handleDeficiencyRequestHandler}
-          updateProgressStep={updateProgressStep} // Make sure this is correct
+          updateProgress={updateProgress} // Make sure this is correct
         />
       )}
     </div>

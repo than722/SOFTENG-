@@ -4,10 +4,9 @@ import './Admin.css';
 const ViewProfile = ({
   user, // Selected user data
   closeModal,
-  acceptUser,
   rejectUser,
   handleDeficiencyRequest,
-  updateProgressStep,
+  updateProgress,
 }) => {
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false); // State for reupload modal
     const [currentFileType, setCurrentFileType] = useState(''); // Track the current file type
@@ -22,7 +21,7 @@ const ViewProfile = ({
       });
 
       useEffect(() => {
-        // Ensure all approvals are reset when a new user is loaded
+        // Reset file approvals when a new user is loaded
         setFileApprovals({
           resume: false,
           validID: false,
@@ -31,30 +30,67 @@ const ViewProfile = ({
         });
       }, [user]);
 
+      const [allFilesApproved, setAllFilesApproved] = useState(false);
+    
       useEffect(() => {
+        // Check if all files are approved
         const allApproved = Object.values(fileApprovals).every((isApproved) => isApproved);
-        console.log('All files approved:', allApproved);
-        if (allApproved && updateProgressStep) {
-          console.log(`All files approved for user ID ${user.id}. Updating progress to Step 2.`);
-          updateProgressStep(user.id, 2);
+    
+        // Update state if all files are approved
+        setAllFilesApproved(allApproved);
+    
+        // Log whether all files are approved or not
+        if (allApproved) {
+          console.log("fileApprovals:", fileApprovals);
+          console.log(`All files approved for user ID: ${user.id}`);
+          if (updateProgress) {
+            updateProgress(user.id, 2); // Update progress when all files are approved
+          }
+        } else {
+          console.log(`Some files are not approved for user ID: ${user.id}`);
         }
-      }, [fileApprovals, updateProgressStep]);
-      
-      
-    
-      if (!user) return null;
-    
-      const handleApprove = (fileType) => {
-        setFileApprovals((prev) => {
-          const updatedApprovals = { ...prev, [fileType]: true };
-          console.log('Updated approvals:', updatedApprovals);
-          return updatedApprovals;
-        });
-        alert(`${fileType.replace(/([A-Z])/g, ' $1')} approved.`);
-      };
-      
+      }, [fileApprovals, updateProgress, user.id]);
 
 
+      
+
+  const handleApprove = async (fileType) => {
+    try {
+      const response = await fetch('http://localhost:8081/approve-file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          employeeId: user.id, // Send the employee ID
+          fileType, // Send the file type (e.g., 'resume', 'validID', etc.)
+        }),
+      });
+  
+      if (!response.ok) throw new Error('Failed to approve file');
+  
+      const data = await response.json();
+      console.log(data.message); // Log the success message
+      alert(`${fileType.replace(/([A-Z])/g, ' $1')} approved.`);
+  
+      // Update the file approval state
+      setFileApprovals((prev) => {
+        const updatedApprovals = {
+          ...prev,
+          [fileType]: true,
+        };
+  
+        // Log approval status
+        console.log(`File type "${fileType}" is ${updatedApprovals[fileType] ? 'approved' : 'not approved'}`);
+  
+        return updatedApprovals;
+      });
+    } catch (err) {
+      console.error('Error sending approval to backend:', err);
+      alert('Failed to approve file. Please try again.');
+    }
+  };
+  
 
   const handleFileUpload = (event, type) => {
     const file = event.target.files[0];
@@ -86,11 +122,11 @@ const ViewProfile = ({
           alert(`${type.replace(/([A-Z])/g, ' $1')} uploaded successfully!`);
           // Update progress step based on file type
           if (type === 'medicalCertificate') {
-            updateProgressStep(user.id, 3); // Step 3: Medical Certificate
+            updateProgress(user.id, 3); // Step 3: Medical Certificate
           } else if (type === 'nbiCertificate') {
-            updateProgressStep(user.id, 4); // Step 4: NBI Certificate
+            updateProgress(user.id, 4); // Step 4: NBI Certificate
           } else if (type === 'tesdaCertificate') {
-            updateProgressStep(user.id, 5); // Step 5: TESDA Certificate
+            updateProgress(user.id, 5); // Step 5: TESDA Certificate
           }
           
         })
@@ -112,7 +148,6 @@ const ViewProfile = ({
       return;
     }
 
-    // Call the deficiency request function with the file type and reason
     handleDeficiencyRequest(user.id, currentFileType, requestReason);
 
     // Reset state and close the modal
@@ -120,20 +155,36 @@ const ViewProfile = ({
     setIsRequestModalOpen(false);
   };
 
+  const handleAcceptUser = async () => {
+    try {
+      const response = await fetch(`http://localhost:8081/api/users/${user.id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          progressId: 6,
+          statusId: 1, // Status ID set to 1 for "Accepted"
+        }),
+      });
 
+      if (!response.ok) throw new Error('Failed to update user status and progress');
 
-  const handleAcceptUser = () => {
-    if (updateProgressStep) {
-      // Assuming the admin_id is available, possibly from context or props
-      const adminId = 1; // Replace with actual admin ID logic
-  
-      updateProgressStep(user.id, 6, adminId); // Pass adminId for step 6
-      alert("User progress updated to Step 6.");
-      closeModal(); // Close the modal after updating
-    } else {
-      console.error("updateProgressStep function is not available.");
+      const data = await response.json();
+      alert('User has been accepted successfully!');
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      alert('Error accepting user. Please try again.');
     }
   };
+
+  const handleUpdateProgress = () => {
+    if (updateProgress) {
+      updateProgress(user.id, 2); // Call parent component's updateProgress method
+    }
+  };
+  
 
   return (
     <div className="modal-admin">
@@ -406,9 +457,13 @@ const ViewProfile = ({
 
         </div>
         <div className="modal-buttons">
-          <button onClick={acceptUser}>Accept</button>
+          <button onClick={handleAcceptUser}>Accept</button>
           <button onClick={rejectUser}>Reject</button>
           <button onClick={closeModal}>Close</button>
+          {allFilesApproved && (
+              <button onClick={handleUpdateProgress}>Update Progress to 2</button>
+            )}
+
         </div>
       </div>
     </div>

@@ -23,7 +23,8 @@ const EmployeeTable = ({ employees, viewProfile }) => {
                 {employee.firstName} {employee.lastName}
               </td>
               <td>
-                <ProgressBar currentStep={employee.progressId || 1} />
+                {/* Use employee.id here instead of employeeId */}
+                <ProgressBar employeeId={employee.id} />
               </td>
               <td>
                 <button onClick={() => viewProfile(employee)}>View Profile</button>
