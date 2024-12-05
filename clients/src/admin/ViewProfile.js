@@ -178,6 +178,12 @@ const ViewProfile = ({
       alert('Error accepting user. Please try again.');
     }
   };
+
+  const handleUpdateProgress = () => {
+    if (updateProgress) {
+      updateProgress(user.id, 2); // Call parent component's updateProgress method
+    }
+  };
   
 
   return (
@@ -455,10 +461,9 @@ const ViewProfile = ({
           <button onClick={rejectUser}>Reject</button>
           <button onClick={closeModal}>Close</button>
           {allFilesApproved && (
-          <button onClick={() => updateProgress(user.id, 2)}>
-            Update Progress to 2
-          </button>
-        )}
+              <button onClick={handleUpdateProgress}>Update Progress to 2</button>
+            )}
+
         </div>
       </div>
     </div>
