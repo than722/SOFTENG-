@@ -35,34 +35,20 @@ const ParentComponent = () => {
   }
 }, [userId]);
 
-  // Function to update the progress step
-  const updateProgressStep = (userId) => {
-    // Directly update progressId to 2
-    fetch(`http://localhost:8081/api/users/${userId}/progress`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        progressId: 2,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to update user progress');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log('Progress updated to 2:', data);
-        // Optionally, update the local state to reflect the change, if needed
-      })
-      .catch((err) => {
-        console.error('Error updating progress:', err);
-      });
+  // Function to update the progress step 2
+  const updateProgress = async () => {
+    setIsLoading(true);
+
+    try {
+      await axios.put(`/api/users/${userId}/update-progress`, { progress: 2 });
+      console.log("Progress updated successfully to 2 for userId:", userId);
+      setCurrentStep(2); // Update the progress step in the parent component
+    } catch (error) {
+      console.error("Error updating progress:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
-  
-  
 
   // Modal handlers
   const closeModalHandler = () => console.log("Modal closed");
@@ -89,7 +75,7 @@ const ParentComponent = () => {
           acceptUser={acceptUserHandler}
           rejectUser={rejectUserHandler}
           handleDeficiencyRequest={handleDeficiencyRequestHandler}
-          updateProgressStep={updateProgressStep} // Make sure this is correct
+          updateProgress={updateProgress} // Make sure this is correct
         />
       )}
     </div>

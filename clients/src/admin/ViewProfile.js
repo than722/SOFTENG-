@@ -6,7 +6,7 @@ const ViewProfile = ({
   closeModal,
   rejectUser,
   handleDeficiencyRequest,
-  updateProgressStep,
+  updateProgress,
 }) => {
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false); // State for reupload modal
     const [currentFileType, setCurrentFileType] = useState(''); // Track the current file type
@@ -29,21 +29,29 @@ const ViewProfile = ({
           passport: false,
         });
       }, [user]);
+
+      const [allFilesApproved, setAllFilesApproved] = useState(false);
     
       useEffect(() => {
+        // Check if all files are approved
         const allApproved = Object.values(fileApprovals).every((isApproved) => isApproved);
-      
+    
+        // Update state if all files are approved
+        setAllFilesApproved(allApproved);
+    
+        // Log whether all files are approved or not
         if (allApproved) {
-          console.log("fileApprovals:", fileApprovals); 
-          
+          console.log("fileApprovals:", fileApprovals);
           console.log(`All files approved for user ID: ${user.id}`);
-          if (updateProgressStep) {
-            updateProgressStep(user.id, 2);
+          if (updateProgress) {
+            updateProgress(user.id, 2); // Update progress when all files are approved
           }
         } else {
           console.log(`Some files are not approved for user ID: ${user.id}`);
         }
-      }, [fileApprovals, updateProgressStep, user.id]);
+      }, [fileApprovals, updateProgress, user.id]);
+
+
       
 
   const handleApprove = async (fileType) => {
@@ -114,11 +122,11 @@ const ViewProfile = ({
           alert(`${type.replace(/([A-Z])/g, ' $1')} uploaded successfully!`);
           // Update progress step based on file type
           if (type === 'medicalCertificate') {
-            updateProgressStep(user.id, 3); // Step 3: Medical Certificate
+            updateProgress(user.id, 3); // Step 3: Medical Certificate
           } else if (type === 'nbiCertificate') {
-            updateProgressStep(user.id, 4); // Step 4: NBI Certificate
+            updateProgress(user.id, 4); // Step 4: NBI Certificate
           } else if (type === 'tesdaCertificate') {
-            updateProgressStep(user.id, 5); // Step 5: TESDA Certificate
+            updateProgress(user.id, 5); // Step 5: TESDA Certificate
           }
           
         })
@@ -446,6 +454,11 @@ const ViewProfile = ({
           <button onClick={handleAcceptUser}>Accept</button>
           <button onClick={rejectUser}>Reject</button>
           <button onClick={closeModal}>Close</button>
+          {allFilesApproved && (
+          <button onClick={() => updateProgress(user.id, 2)}>
+            Update Progress to 2
+          </button>
+        )}
         </div>
       </div>
     </div>
