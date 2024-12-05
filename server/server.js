@@ -90,7 +90,7 @@ module.exports = verifyUser;
 
 
 
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.post(
   '/signup',
@@ -1594,7 +1594,9 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
     return res.status(400).json({ error: 'File or type not provided.' });
   }
 
-  const filePath = req.file.path;
+  // Construct the file path (use req.file.filename to store only the filename)
+  const filePath = req.file.filename;
+
   const columnMap = {
     picture: 'picture',
     resume: 'resume',
@@ -1626,8 +1628,29 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
       }
 
       if (result.affectedRows > 0) {
-        // Remove the admin logic, no progress update anymore
-        res.status(200).json({ message: 'File uploaded successfully!' });
+        // Fetch the updated employee data to construct the URLs
+        const fetchSql = `SELECT * FROM employee WHERE employee_id = ?`;
+        db.execute(fetchSql, [employeeId], (err, userResult) => {
+          if (err) {
+            console.error('Error fetching user data:', err);
+            return res.status(500).json({ error: 'Error fetching user data' });
+          }
+
+          const user = userResult[0]; // Assuming the result is a single record
+
+          // Construct the URLs for files
+          const userData = {
+            pictureUrl: user.picture ? `/uploads/${user.picture}` : null,
+            resumeUrl: user.resume ? `/uploads/${user.resume}` : null,
+            validIDUrl: user.validId ? `/uploads/${user.validId}` : null,
+            birthcertificateUrl: user.birth_certificate ? `/uploads/${user.birth_certificate}` : null,
+            passportUrl: user.passport ? `/uploads/${user.passport}` : null,
+            marriagecontractUrl: user.marriage_contract ? `/uploads/${user.marriage_contract}` : null,
+          };
+
+          // Send the updated data as the response
+          res.status(200).json({ message: 'File uploaded successfully!', user: userData });
+        });
       } else {
         res.status(400).json({ error: 'Failed to update employee record.' });
       }
@@ -1637,6 +1660,8 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
     res.status(500).json({ error: 'Failed to upload file.' });
   }
 });
+
+
 
 
 // Endpoint for uploading the medical certificate

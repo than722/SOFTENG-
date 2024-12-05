@@ -53,7 +53,7 @@ const ParentComponent = () => {
 
   // Function to update the progress step
   const updateProgressStep = (userId) => {
-    // Directly update progressId to 2
+    console.log("Updating progress for user ID:", userId);  // Debugging line
     fetch(`http://localhost:8081/api/users/${userId}/progress`, {
       method: 'PUT',
       headers: {
@@ -63,21 +63,19 @@ const ParentComponent = () => {
         progressId: 2,
       }),
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to update user progress');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log('Progress updated to 2:', data);
-        // Optionally, update the local state to reflect the change, if needed
-      })
-      .catch((err) => {
-        console.error('Error updating progress:', err);
-      });
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Failed to update user progress');
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log('Progress updated:', data);
+    })
+    .catch((err) => {
+      console.error('Error updating progress:', err);
+    });
   };
-  
   
 
   // Modal handlers

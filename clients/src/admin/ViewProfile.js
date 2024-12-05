@@ -184,7 +184,7 @@ const handleAcceptUser = async () => {
           {user.pictureUrl ? (
             <div className="profile-picture">
               <img
-                src={`http://localhost:8081/uploads/${user.pictureUrl}`}
+                src={`http://localhost:8081${user.pictureUrl}`}
                 alt="Profile"
               />
             </div>
@@ -277,7 +277,7 @@ const handleAcceptUser = async () => {
             {user.resumeUrl ? (
               <>
                 <a
-                  href={`http://localhost:8081/uploads/${user.resumeUrl}`}
+                  href={`http://localhost:8081${user.resumeUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -311,7 +311,7 @@ const handleAcceptUser = async () => {
             {user.validIDUrl ? (
               <>
                 <a
-                  href={`http://localhost:8081/uploads/${user.validIDUrl}`}
+                  href={`http://localhost:8081${user.validIDUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -345,7 +345,7 @@ const handleAcceptUser = async () => {
             {user.birthcertificateUrl ? (
               <>
                 <a
-                  href={`http://localhost:8081/uploads/${user.birthcertificateUrl}`}
+                  href={`http://localhost:8081${user.birthcertificateUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -381,7 +381,7 @@ const handleAcceptUser = async () => {
             {user.passportUrl ? (
               <>
                 <a
-                  href={`http://localhost:8081/uploads/${user.passportUrl}`}
+                  href={`http://localhost:8081${user.passportUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -414,7 +414,7 @@ const handleAcceptUser = async () => {
             <strong>Marriage Contract:</strong>{' '}
             {user.marriagecontractUrl ? (
               <a
-                href={`http://localhost:8081/uploads/${user.marriagecontractUrl}`}
+                href={`http://localhost:8081${user.marriagecontractUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -432,7 +432,7 @@ const handleAcceptUser = async () => {
             <strong>NBI Clearance:</strong>{' '}
             {user.nbi_clearanceUrl ? (
               <a
-                href={`http://localhost:8081/uploads/${user.nbi_clearanceUrl}`}
+                href={`http://localhost:8081${user.nbi_clearanceUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
