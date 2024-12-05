@@ -16,35 +16,52 @@ const ParentComponent = () => {
   // Extract userId from the URL using useParams
   const { userId } = useParams();
 
-  // Fetch user data
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get(`http://localhost:8081/api/users/${userId}`);
-        setSelectedUser(response.data);
-      } catch (err) {
-        setError("Failed to fetch user data.");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (userId) {
-      fetchUserData();
+ // Fetch user data
+ useEffect(() => {
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8081/api/users/${userId}`);
+      setSelectedUser(response.data);
+    } catch (err) {
+      setError("Failed to fetch user data.");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-  }, [userId]);
-
-  // Function to update the progress step
-  const updateProgressStep = (userId, step) => {
-    console.log(`Updating progress for User ID ${userId} to Step ${step}`);
-    setCurrentStep(step);
-    console.log(`Current step is now: ${step}`);
   };
 
-  useEffect(() => {
-    console.log(`Parent Component: currentStep updated to ${currentStep}`);
-  }, [currentStep]);
+  if (userId) {
+    fetchUserData();
+  }
+}, [userId]);
+
+  // Function to update the progress step
+  const updateProgressStep = (userId) => {
+    // Directly update progressId to 2
+    fetch(`http://localhost:8081/api/users/${userId}/progress`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        progressId: 2,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to update user progress');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Progress updated to 2:', data);
+        // Optionally, update the local state to reflect the change, if needed
+      })
+      .catch((err) => {
+        console.error('Error updating progress:', err);
+      });
+  };
+  
   
 
   // Modal handlers
