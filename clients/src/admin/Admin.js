@@ -6,6 +6,7 @@ import EmployerTable from './EmployerTable';
 import Tabs from './Tabs';
 import LoginAdmin from './LoginAdmin';
 import ViewProfile from './ViewProfile';
+import SignOutAdmin from './SignOutAdmin';
 
 const Admin = () => {
   const [employees, setEmployees] = useState([]);
@@ -100,6 +101,8 @@ const Admin = () => {
         <>
           <div className="admin-header">
             <h1>Admin Dashboard</h1>
+            {/* Add SignOut button */}
+            <SignOutAdmin setIsLoggedIn={setIsLoggedIn} />
           </div>
           <button onClick={deleteRejected}>Delete All Rejected Applicants</button>
           {error && <p className="error">Error: {error}</p>}

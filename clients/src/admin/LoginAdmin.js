@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Admin.css';
 
 const LoginAdmin = ({ setIsLoggedIn }) => {
@@ -9,9 +9,18 @@ const LoginAdmin = ({ setIsLoggedIn }) => {
   const correctUsername = 'admin';
   const correctPassword = 'admin';
 
+  // Check if the user is already logged in by checking localStorage
+  useEffect(() => {
+    const storedIsLoggedIn = localStorage.getItem('isLoggedIn');
+    if (storedIsLoggedIn === 'true') {
+      setIsLoggedIn(true); // Set login state if found in localStorage
+    }
+  }, [setIsLoggedIn]);
+
   const handleLogin = () => {
     if (username === correctUsername && password === correctPassword) {
       setIsLoggedIn(true);
+      localStorage.setItem('isLoggedIn', 'true'); // Save login state to localStorage
     } else {
       setError('Incorrect username or password');
     }

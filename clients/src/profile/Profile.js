@@ -120,6 +120,9 @@ const fetchProfile = useCallback(() => {
     setIsEditing(!isEditing);
   };
 
+  
+
+
   const handleSave = () => {
     const formData = new FormData();
     Object.keys(updatedData).forEach(key => {
@@ -194,13 +197,14 @@ const fetchProfile = useCallback(() => {
         />
       )}
 
-        {/* Add ProgressBar */}
-              {accountType === 'employee' && (
-          <div className="profile-progress-bar">
-            <h2>Progress</h2>
-            <ProgressBar currentStep={profileData.progressId || 1} />
-          </div>
-        )}
+      {accountType === 'employee' && profileData && (
+        <div className="profile-progress-bar">
+          <h2>Progress</h2>
+          {/* Pass profileData.id to the ProgressBar */}
+          <ProgressBar employeeId={profileData.id} />
+        </div>
+      )}
+
 
     <div className="profile-container">
       <h1>{profileData.firstName} {profileData.lastName}'s Profile</h1>

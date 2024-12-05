@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import './Admin.css';
+import { useParams } from 'react-router-dom';
 
 const ViewProfile = ({
   user, // Selected user data
+  age, // Receive the age prop
   closeModal,
   rejectUser,
   handleDeficiencyRequest,
 }) => {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false); // State for reupload modal
+  const { accountType } = useParams();
   const [currentFileType, setCurrentFileType] = useState(''); // Track the current file type
   const [requestReason, setRequestReason] = useState(''); // Reason for reupload
   const [fileApprovals, setFileApprovals] = useState({
@@ -16,6 +19,7 @@ const ViewProfile = ({
     birthCertificate: false,
     passport: false,
   });
+
 
    // Check if all files are approved and update progress step
    useEffect(() => {
@@ -166,6 +170,8 @@ const handleAcceptUser = async () => {
     alert('Error accepting user. Please try again.');
   }
 };
+
+
   
 
   return (
@@ -197,6 +203,9 @@ const handleAcceptUser = async () => {
             <strong>Last Name:</strong> {user.lastName}
           </p>
           <p>
+            <strong>Age:</strong> {age !== null ? `${age} years old` : "Not specified"}
+          </p>
+          <p>
             <strong>Province:</strong> {user.province}
           </p>
           <p>
@@ -224,16 +233,20 @@ const handleAcceptUser = async () => {
           </p>
 
             {/* Medical Certificate Upload */}
-            <p>
-            <strong>Medical Certificate:</strong>{' '}
-            <input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png" // Accept both files and images
-                onChange={(e) => handleFileUpload(e, 'medicalCertificate')}
-            />
-            </p>
+            {accountType === 'employee' && (
+              <p>
+                <strong>Medical Certificate:</strong>{' '}
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png" // Accept both files and images
+                  onChange={(e) => handleFileUpload(e, 'medicalCertificate')}
+                />
+              </p>
+            )}
+
 
             {/* NBI Certificate Upload */}
+            {accountType === 'employee' && (
             <p>
             <strong>NBI Clearance:</strong>{' '}
             <input
@@ -242,8 +255,11 @@ const handleAcceptUser = async () => {
                 onChange={(e) => handleFileUpload(e, 'nbiCertificate')}
             />
             </p>
+            )}
+
 
             {/* TESDA Certificate Upload */}
+            {accountType === 'employee' && (
             <p>
             <strong>TESDA Certificate:</strong>{' '}
             <input
@@ -252,9 +268,10 @@ const handleAcceptUser = async () => {
                 onChange={(e) => handleFileUpload(e, 'tesdaCertificate')}
             />
             </p>
-
+            )}
 
           {/* Resume */}
+          {accountType === 'employee' && (
           <p>
             <strong>Resume:</strong>{' '}
             {user.resumeUrl ? (
@@ -285,8 +302,10 @@ const handleAcceptUser = async () => {
             )}
           </p>
           </p>
+          )}
 
           {/* Valid ID */}
+          {accountType === 'employee' && (
           <p>
             <strong>Valid ID:</strong>{' '}
             {user.validIDUrl ? (
@@ -317,8 +336,10 @@ const handleAcceptUser = async () => {
             )}
           </div>
           </p>
+          )}
 
           {/* Birth Certificate */}
+          {accountType === 'employee' && (
           <p>
             <strong>Birth Certificate:</strong>{' '}
             {user.birthcertificateUrl ? (
@@ -351,8 +372,10 @@ const handleAcceptUser = async () => {
             )}
           </div>
           </p>
+          )}
 
           {/* Passport */}
+          {accountType === 'employee' && (
           <p>
             <strong>Passport:</strong>{' '}
             {user.passportUrl ? (
@@ -383,8 +406,10 @@ const handleAcceptUser = async () => {
             )}
           </div>
           </p>
+          )}
 
           {/* Marriage Contract */}
+          {accountType === 'employee' && (
           <p>
             <strong>Marriage Contract:</strong>{' '}
             {user.marriagecontractUrl ? (
@@ -399,8 +424,10 @@ const handleAcceptUser = async () => {
               'No file uploaded'
             )}
           </p>
+          )}
 
           {/* NBI Clearance */}
+          {accountType === 'employee' && (
           <p>
             <strong>NBI Clearance:</strong>{' '}
             {user.nbi_clearanceUrl ? (
@@ -415,6 +442,8 @@ const handleAcceptUser = async () => {
               'No file uploaded'
             )}
           </p>
+          )}
+
         {/* Reupload Modal */}
           {isRequestModalOpen && (
             <div className="modal-admin">

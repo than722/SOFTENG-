@@ -22,7 +22,7 @@ app.use(cookieParser());
 const db = mysql.createConnection({
   host: "localhost",
   user: 'root',
-  password: 'root',
+  password: '1234',
   database: 'mydb'
 });
 
@@ -388,15 +388,15 @@ app.delete('/api/:accountType/:id', (req, res) => {
 
 app.get('/api/users', (req, res) => {
   const employeeQuery = `
-    SELECT employee_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
+    SELECT employee_id AS id, lastName, firstName, middleName, birthday, province, municipality, barangay, 
            zipCode, mobileNumber, picture, resume, status_id AS statusId, progress_id,
            email, 'Employee' AS userType
     FROM employee
   `;
 
   const employerQuery = `
-    SELECT employer_id AS id, lastName, firstName, middleName, province, municipality, barangay, 
-           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id, 
+    SELECT employer_id AS id, lastName, firstName, middleName, birthday, province, municipality, barangay, 
+           zipCode, mobileNumber, companyName, status_id AS statusId, progress_id, birthday,
            email, 'Employer' AS userType
     FROM employer
   `;

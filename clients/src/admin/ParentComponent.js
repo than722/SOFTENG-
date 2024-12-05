@@ -10,11 +10,25 @@ const ParentComponent = () => {
 
   // State for user data and loading/error states
   const [selectedUser, setSelectedUser] = useState(null);
+  const [age, setAge] = useState(null); // Age state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Extract userId from the URL using useParams
   const { userId } = useParams();
+
+    // Function to calculate age from birthDate
+    const calculateAge = (birthDate) => {
+      if (!birthDate) return null;
+      const birthDateObj = new Date(birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birthDateObj.getFullYear();
+      const monthDiff = today.getMonth() - birthDateObj.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+        age--;
+      }
+      return age;
+    };
 
  // Fetch user data
  useEffect(() => {
@@ -34,6 +48,8 @@ const ParentComponent = () => {
     fetchUserData();
   }
 }, [userId]);
+
+
 
   // Function to update the progress step
   const updateProgressStep = (userId) => {
@@ -85,6 +101,7 @@ const ParentComponent = () => {
       {selectedUser && (
         <ViewProfile
           user={selectedUser}
+          age={age} // Pass the calculated age as a prop
           closeModal={closeModalHandler}
           acceptUser={acceptUserHandler}
           rejectUser={rejectUserHandler}
