@@ -85,7 +85,7 @@ function JobDetailView({ jobDetails, onBack, detailsLoading, detailsError }) {
     if (detailsError) return <div>{detailsError}</div>;
 
     // Check if apply button should be shown based on status_id and progress_id
-    const canApply = employeeStatus.status_id === 1 && employeeStatus.progress_id === 1;
+    const canApply = employeeStatus.status_id === 1 && employeeStatus.progress_id === 6;
 
     return (
         <div className="job-detail-view">

@@ -508,19 +508,23 @@ app.get("/api/employee/:id/progress", (req, res) => {
 
 app.put('/api/users/:userId/update-progress', (req, res) => {
   const { userId } = req.params;
-  const progress_id = 2;  // Set progress_id directly to 2
+  const { progressId } = req.body; // Get progressId from the request body
+
+  if (!progressId) {
+    return res.status(400).json({ error: 'Progress ID is required' });
+  }
 
   console.log('Received request to update progress for userId:', userId);
-  console.log('Setting progress_id to 2 for userId:', userId);  // Log the update
+  console.log('Setting progress_id to', progressId, 'for userId:', userId);
 
-  // Update progress_id directly to 2 for the user
+  // Update progress_id dynamically based on the progressId sent by the client
   const updateProgressQuery = `
     UPDATE employee 
     SET progress_id = ? 
     WHERE employee_id = ?
   `;
 
-  db.query(updateProgressQuery, [progress_id, userId], (err, updateResults) => {
+  db.query(updateProgressQuery, [progressId, userId], (err, updateResults) => {
     if (err) {
       console.error('Error updating progress:', err);
       return res.status(500).json({ error: 'Failed to update progress' });
@@ -533,10 +537,11 @@ app.put('/api/users/:userId/update-progress', (req, res) => {
       return res.status(404).json({ error: 'User not found or progress_id is the same' });
     }
 
-    console.log('Progress updated successfully to 2 for userId:', userId);
-    res.status(200).json({ message: 'Progress updated successfully to 2' });
+    console.log(`Progress updated successfully to ${progressId} for userId:`, userId);
+    res.status(200).json({ message: `Progress updated successfully to ${progressId}` });
   });
 });
+
 
 
 
@@ -1621,18 +1626,8 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
       }
 
       if (result.affectedRows > 0) {
-        // Increment progress_step in the admin table
-        const progressQuery = `
-          UPDATE admin 
-          SET progress_step = progress_step + 1 
-          WHERE employee_id = ?`;
-        db.query(progressQuery, [employeeId], (progressErr) => {
-          if (progressErr) {
-            console.error('Error updating progress_step:', progressErr);
-            return res.status(500).json({ error: 'Error updating progress step.' });
-          }
-          res.status(200).json({ message: 'File uploaded successfully and progress updated!' });
-        });
+        // Remove the admin logic, no progress update anymore
+        res.status(200).json({ message: 'File uploaded successfully!' });
       } else {
         res.status(400).json({ error: 'Failed to update employee record.' });
       }
@@ -1643,6 +1638,96 @@ app.post('/api/employees/:employeeId/submit-file', upload.single('file'), async 
   }
 });
 
+
+// Endpoint for uploading the medical certificate
+app.post('/api/users/:employee_id/medical-certificate', upload.single('medicalCertificate'), (req, res) => {
+  const employeeId = req.params.employee_id;
+  const file = req.file;
+  
+  if (!file) {
+    return res.status(400).send({ message: 'No file uploaded.' });
+  }
+
+  const filePath = file.path;
+  const query = `UPDATE employee SET medical_certificate = ? WHERE employee_id = ?`;
+
+  db.query(query, [filePath, employeeId], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send({ message: 'Failed to upload medical certificate' });
+    }
+
+    // Update progress ID to 3 for medical certificate
+    const updateProgressQuery = `UPDATE employee SET progress_id = 3 WHERE employee_id = ?`;
+    db.query(updateProgressQuery, [employeeId], (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send({ message: 'Failed to update progress for medical certificate' });
+      }
+      res.status(200).send({ message: 'Medical certificate uploaded and progress updated successfully' });
+    });
+  });
+});
+
+// Endpoint for uploading the NBI certificate
+app.post('/api/users/:employee_id/nbi-certificate', upload.single('nbiCertificate'), (req, res) => {
+  const employeeId = req.params.employee_id;
+  const file = req.file;
+  
+  if (!file) {
+    return res.status(400).send({ message: 'No file uploaded.' });
+  }
+
+  const filePath = file.path;
+  const query = `UPDATE employee SET nbi_clearance = ? WHERE employee_id = ?`;
+
+  db.query(query, [filePath, employeeId], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send({ message: 'Failed to upload NBI certificate' });
+    }
+
+    // Update progress ID to 4 for NBI clearance
+    const updateProgressQuery = `UPDATE employee SET progress_id = 4 WHERE employee_id = ?`;
+    db.query(updateProgressQuery, [employeeId], (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send({ message: 'Failed to update progress for NBI clearance' });
+      }
+      res.status(200).send({ message: 'NBI certificate uploaded and progress updated successfully' });
+    });
+  });
+});
+
+// Endpoint for uploading the TESDA certificate
+app.post('/api/users/:employee_id/tesda-certificate', upload.single('tesdaCertificate'), (req, res) => {
+  const employeeId = req.params.employee_id;
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).send({ message: 'No file uploaded.' });
+  }
+
+  const filePath = file.path;
+  const query = `UPDATE employee SET tesda_certificate = ? WHERE employee_id = ?`;
+
+  db.query(query, [filePath, employeeId], (err, result) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send({ message: 'Failed to upload TESDA certificate' });
+    }
+
+    // Update progress ID to 5 for TESDA certificate
+    const updateProgressQuery = `UPDATE employee SET progress_id = 5 WHERE employee_id = ?`;
+    db.query(updateProgressQuery, [employeeId], (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send({ message: 'Failed to update progress for TESDA certificate' });
+      }
+      res.status(200).send({ message: 'TESDA certificate uploaded and progress updated successfully' });
+    });
+  });
+});
 
 
 

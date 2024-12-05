@@ -6,46 +6,53 @@ const ViewProfile = ({
   closeModal,
   rejectUser,
   handleDeficiencyRequest,
-  updateProgressStep,
 }) => {
-    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false); // State for reupload modal
-    const [currentFileType, setCurrentFileType] = useState(''); // Track the current file type
-    const [medicalCertificate, setMedicalCertificate] = useState(null); // State for the uploaded file
-    const [nbiCirtificate, setNbiCertificate] = useState(null);
-    const [requestReason, setRequestReason] = useState(''); // Reason for reupload
-    const [fileApprovals, setFileApprovals] = useState({
-      resume: false,
-      validID: false,
-      birthCertificate: false,
-      passport: false,
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false); // State for reupload modal
+  const [currentFileType, setCurrentFileType] = useState(''); // Track the current file type
+  const [requestReason, setRequestReason] = useState(''); // Reason for reupload
+  const [fileApprovals, setFileApprovals] = useState({
+    resume: false,
+    validID: false,
+    birthCertificate: false,
+    passport: false,
+  });
+
+   // Check if all files are approved and update progress step
+   useEffect(() => {
+    const allApproved = Object.values(fileApprovals).every((isApproved) => isApproved);
+
+    if (allApproved) {
+      console.log(`All files approved for user ID: ${user.id}`);
+      updateProgressForUser(user.id, 2); // Progress step 2 for file approvals
+    } else {
+      console.log(`Some files are not approved for user ID: ${user.id}`);
+    }
+  }, [fileApprovals, user.id]);
+
+       // Function to update progress in the backend
+  const updateProgressForUser = async (userId, progressStep) => {
+    try {
+      const response = await fetch(`http://localhost:8081/api/users/${userId}/update-progress`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          progressId: progressStep,
+        }),
       });
 
-      useEffect(() => {
-        // Reset file approvals when a new user is loaded
-        setFileApprovals({
-          resume: false,
-          validID: false,
-          birthCertificate: false,
-          passport: false,
-        });
-      }, [user]);
-    
-      useEffect(() => {
-        const allApproved = Object.values(fileApprovals).every((isApproved) => isApproved);
-      
-        if (allApproved) {
-          console.log("fileApprovals:", fileApprovals); 
-          
-          console.log(`All files approved for user ID: ${user.id}`);
-          if (updateProgressStep) {
-            updateProgressStep(user.id, 2);
-          }
-        } else {
-          console.log(`Some files are not approved for user ID: ${user.id}`);
-        }
-      }, [fileApprovals, updateProgressStep, user.id]);
-      
+      if (!response.ok) throw new Error('Failed to update user progress');
 
+      const data = await response.json();
+      alert(`Progress updated to step ${progressStep} for user ID: ${userId}`);
+    } catch (err) {
+      console.error('Error updating user progress:', err);
+      alert('Failed to update progress. Please try again.');
+    }
+  };
+
+  // Handle file approval
   const handleApprove = async (fileType) => {
     try {
       const response = await fetch('http://localhost:8081/approve-file', {
@@ -54,29 +61,21 @@ const ViewProfile = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          employeeId: user.id, // Send the employee ID
-          fileType, // Send the file type (e.g., 'resume', 'validID', etc.)
+          employeeId: user.id,
+          fileType,
         }),
       });
-  
+
       if (!response.ok) throw new Error('Failed to approve file');
-  
+
       const data = await response.json();
-      console.log(data.message); // Log the success message
+      console.log(data.message); // Log success message
       alert(`${fileType.replace(/([A-Z])/g, ' $1')} approved.`);
-  
-      // Update the file approval state
-      setFileApprovals((prev) => {
-        const updatedApprovals = {
-          ...prev,
-          [fileType]: true,
-        };
-  
-        // Log approval status
-        console.log(`File type "${fileType}" is ${updatedApprovals[fileType] ? 'approved' : 'not approved'}`);
-  
-        return updatedApprovals;
-      });
+
+      setFileApprovals((prev) => ({
+        ...prev,
+        [fileType]: true,
+      }));
     } catch (err) {
       console.error('Error sending approval to backend:', err);
       alert('Failed to approve file. Please try again.');
@@ -84,92 +83,89 @@ const ViewProfile = ({
   };
   
 
-  const handleFileUpload = (event, type) => {
-    const file = event.target.files[0];
-  
-    if (file) {
-      const formData = new FormData();
-      formData.append(type, file);
-  
-      // Set endpoint based on the file type
-      let endpoint = '';
-      if (type === 'medicalCertificate') {
-        endpoint = `http://localhost:8081/api/users/${user.id}/medical-certificate`;
-      } else if (type === 'nbiCertificate') {
-        endpoint = `http://localhost:8081/api/users/${user.id}/nbi-certificate`;
-      } else if (type === 'tesdaCertificate') {
-        endpoint = `http://localhost:8081/api/users/${user.id}/tesda-certificate`;
-      }
-  
-      // Upload the file
-      fetch(endpoint, {
-        method: 'POST',
-        body: formData,
+ // Handle file uploads
+ const handleFileUpload = (event, type) => {
+  const file = event.target.files[0];
+  if (file) {
+    const formData = new FormData();
+    formData.append(type, file);
+
+    let endpoint = '';
+    if (type === 'medicalCertificate') {
+      endpoint = `http://localhost:8081/api/users/${user.id}/medical-certificate`;
+    } else if (type === 'nbiCertificate') {
+      endpoint = `http://localhost:8081/api/users/${user.id}/nbi-certificate`;
+    } else if (type === 'tesdaCertificate') {
+      endpoint = `http://localhost:8081/api/users/${user.id}/tesda-certificate`;
+    }
+
+    fetch(endpoint, {
+      method: 'POST',
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Failed to upload ${type}`);
+        return response.json();
       })
-        .then((response) => {
-          if (!response.ok) throw new Error(`Failed to upload ${type}`);
-          return response.json();
-        })
-        .then(() => {
-          alert(`${type.replace(/([A-Z])/g, ' $1')} uploaded successfully!`);
-          // Update progress step based on file type
-          if (type === 'medicalCertificate') {
-            updateProgressStep(user.id, 3); // Step 3: Medical Certificate
-          } else if (type === 'nbiCertificate') {
-            updateProgressStep(user.id, 4); // Step 4: NBI Certificate
-          } else if (type === 'tesdaCertificate') {
-            updateProgressStep(user.id, 5); // Step 5: TESDA Certificate
-          }
-          
-        })
-        .catch((err) => {
-          console.error(`Error uploading ${type}:`, err);
-          alert(`Failed to upload ${type.replace(/([A-Z])/g, ' $1')}. Please try again.`);
-        });
-    }
-  };
-
-  const handleRequestReupload = (fileType) => {
-    setCurrentFileType(fileType);
-    setIsRequestModalOpen(true); // Open the modal
-  };
-
-  const submitRequestReason = () => {
-    if (requestReason.trim() === '') {
-      alert('Please provide a reason for the request.');
-      return;
-    }
-
-    handleDeficiencyRequest(user.id, currentFileType, requestReason);
-
-    // Reset state and close the modal
-    setRequestReason('');
-    setIsRequestModalOpen(false);
-  };
-
-  const handleAcceptUser = async () => {
-    try {
-      const response = await fetch(`http://localhost:8081/api/users/${user.id}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          progressId: 6,
-          statusId: 1, // Status ID set to 1 for "Accepted"
-        }),
+      .then(() => {
+        alert(`${type.replace(/([A-Z])/g, ' $1')} uploaded successfully!`);
+        // Update progress based on file type
+        if (type === 'medicalCertificate') {
+          updateProgressForUser(user.id, 3); // Step 3: Medical Certificate
+        } else if (type === 'nbiCertificate') {
+          updateProgressForUser(user.id, 4); // Step 4: NBI Certificate
+        } else if (type === 'tesdaCertificate') {
+          updateProgressForUser(user.id, 5); // Step 5: TESDA Certificate
+        }
+      })
+      .catch((err) => {
+        console.error(`Error uploading ${type}:`, err);
+        alert(`Failed to upload ${type.replace(/([A-Z])/g, ' $1')}. Please try again.`);
       });
+  }
+};
+ // Request reupload modal
+ const handleRequestReupload = (fileType) => {
+  setCurrentFileType(fileType);
+  setIsRequestModalOpen(true);
+};
 
-      if (!response.ok) throw new Error('Failed to update user status and progress');
+const submitRequestReason = () => {
+  if (requestReason.trim() === '') {
+    alert('Please provide a reason for the request.');
+    return;
+  }
 
-      const data = await response.json();
-      alert('User has been accepted successfully!');
-      closeModal();
-    } catch (err) {
-      console.error(err);
-      alert('Error accepting user. Please try again.');
-    }
-  };
+  handleDeficiencyRequest(user.id, currentFileType, requestReason);
+
+  // Reset state and close the modal
+  setRequestReason('');
+  setIsRequestModalOpen(false);
+};
+
+const handleAcceptUser = async () => {
+  try {
+    const response = await fetch(`http://localhost:8081/api/users/${user.id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        progressId: 6,
+        statusId: 1, // Status ID set to 1 for "Accepted"
+      }),
+    });
+
+    if (!response.ok) throw new Error('Failed to update user status and progress');
+
+    const data = await response.json();
+    alert('User has been accepted successfully!');
+    closeModal();
+  } catch (err) {
+    console.error(err);
+    alert('Error accepting user. Please try again.');
+  }
+};
   
 
   return (
