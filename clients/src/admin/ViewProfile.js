@@ -233,7 +233,7 @@ const handleAcceptUser = async () => {
           </p>
 
             {/* Medical Certificate Upload */}
-            {accountType === 'employee' && (
+           
               <p>
                 <strong>Medical Certificate:</strong>{' '}
                 <input
@@ -242,11 +242,11 @@ const handleAcceptUser = async () => {
                   onChange={(e) => handleFileUpload(e, 'medicalCertificate')}
                 />
               </p>
-            )}
+            
 
 
             {/* NBI Certificate Upload */}
-            {accountType === 'employee' && (
+            
             <p>
             <strong>NBI Clearance:</strong>{' '}
             <input
@@ -255,11 +255,11 @@ const handleAcceptUser = async () => {
                 onChange={(e) => handleFileUpload(e, 'nbiCertificate')}
             />
             </p>
-            )}
+            
 
 
             {/* TESDA Certificate Upload */}
-            {accountType === 'employee' && (
+            
             <p>
             <strong>TESDA Certificate:</strong>{' '}
             <input
@@ -268,10 +268,10 @@ const handleAcceptUser = async () => {
                 onChange={(e) => handleFileUpload(e, 'tesdaCertificate')}
             />
             </p>
-            )}
+            
 
           {/* Resume */}
-          {accountType === 'employee' && (
+          
           <p>
             <strong>Resume:</strong>{' '}
             {user.resumeUrl ? (
@@ -302,10 +302,10 @@ const handleAcceptUser = async () => {
             )}
           </p>
           </p>
-          )}
+          
 
           {/* Valid ID */}
-          {accountType === 'employee' && (
+          
           <p>
             <strong>Valid ID:</strong>{' '}
             {user.validIDUrl ? (
@@ -336,10 +336,10 @@ const handleAcceptUser = async () => {
             )}
           </div>
           </p>
-          )}
+          
 
           {/* Birth Certificate */}
-          {accountType === 'employee' && (
+          
           <p>
             <strong>Birth Certificate:</strong>{' '}
             {user.birthcertificateUrl ? (
@@ -372,10 +372,10 @@ const handleAcceptUser = async () => {
             )}
           </div>
           </p>
-          )}
+          
 
           {/* Passport */}
-          {accountType === 'employee' && (
+          
           <p>
             <strong>Passport:</strong>{' '}
             {user.passportUrl ? (
@@ -406,10 +406,10 @@ const handleAcceptUser = async () => {
             )}
           </div>
           </p>
-          )}
+          
 
           {/* Marriage Contract */}
-          {accountType === 'employee' && (
+          
           <p>
             <strong>Marriage Contract:</strong>{' '}
             {user.marriagecontractUrl ? (
@@ -424,10 +424,10 @@ const handleAcceptUser = async () => {
               'No file uploaded'
             )}
           </p>
-          )}
+          
 
           {/* NBI Clearance */}
-          {accountType === 'employee' && (
+          
           <p>
             <strong>NBI Clearance:</strong>{' '}
             {user.nbi_clearanceUrl ? (
@@ -442,7 +442,7 @@ const handleAcceptUser = async () => {
               'No file uploaded'
             )}
           </p>
-          )}
+          
 
         {/* Reupload Modal */}
           {isRequestModalOpen && (
