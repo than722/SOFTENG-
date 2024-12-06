@@ -19,7 +19,7 @@
 .app-container-App {
   font-family: 'Arial, sans-serif';
   color: black;
-  background-color: #0047ab;
+  background-color: hsl(0, 0%, 97%);
   height: 100vh;
   width: 100%;
   display: flex;
@@ -48,12 +48,18 @@
 
 /* Navbar */
 .navbar-App {
+  position: fixed;  /* Fix the navbar to the top of the page */
+  top: 0;           /* Position it at the top */
+  left: 0;          /* Align it to the left edge */
+  right: 0;         /* Align it to the right edge */
+  z-index: 1000; 
   display: flex;
-  align-items: start;
-  padding: 10px;
-  border: 1px solid black;
-  background-color: white;
+  align-items: center;
   justify-content: space-between;
+  padding-inline: 30px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
   width: 100vw;
 }
 
@@ -61,6 +67,7 @@
   height: 50px;
   width: auto;      /* Maintain aspect ratio */
   display: block;   /* Remove inline spacing issues */
+  margin-left: 20px;
 }
 
 
@@ -84,7 +91,7 @@
   font-family: 'Mulish-Regular';
   width: 100%;
   padding: 10px;
-  background-color: #0077C8;
+  background-color: #ffffff;
   color: black;
   border-radius: 4px;
   cursor: pointer;
@@ -94,16 +101,19 @@
 
 /* Main Content Area */
 .content-App {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 100px;
-  overflow-y: auto;
-  flex-grow: 1;
-}
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
+    height: 100vh; /* Makes it take the full viewport height */
+    padding: 0 100px;
+    overflow-y: auto;
+    flex-grow: 1;
+  }
+  
+
 
 .text-section-App {
-  max-width: 600px;
+  max-width: 100vw;
 }
 
 .company-name-App {
@@ -122,6 +132,7 @@
 }
 
 .description-App {
+  max-width: 100vw;
   font-family: 'Mulish-Regular';
   font-size: 16px;
   line-height: 1.5;
@@ -242,4 +253,57 @@ button[type="submit"].App:hover {
   color: black;
   font-size: 14px;
   margin-top: 5px;
+}
+.create-account-App {
+  font-family: 'Mulish-Regular';
+  width: 100%;
+  padding: 10px;
+  background-color: #ffffff;
+  color: black;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 15px;
+}
+.VISION {
+  display: flex;
+  flex-direction: column; /* Stack title and description vertically */
+  justify-content: center; /* Centers the content vertically within the container */
+  align-items: center; /* Centers the content horizontally */
+  height: 100vh; /* Makes it take the full viewport height */
+  padding: 0 100px;
+  overflow-y: auto;
+  text-align: center; /* Aligns the text to the center */
+}
+
+.vision-statement {
+  max-width: 100vw;
+  margin: 0 auto; /* Center content horizontally */
+  padding: 20px;
+  box-sizing: border-box; /* Ensure padding doesn't affect width */
+}
+.MISSION {
+  display: flex;
+  flex-direction: column; /* Stack title and description vertically */
+  justify-content: center; /* Centers the content vertically within the container */
+  align-items: center; /* Centers the content horizontally */
+  height: 100vh; /* Makes it take the full viewport height */
+  padding: 0 100px;
+  overflow-y: auto;
+  text-align: center; /* Aligns the text to the center */
+}
+
+.mission-statement {
+  max-width: 100vw;
+  margin: 0 auto; /* Center content horizontally */
+  padding: 20px;
+  box-sizing: border-box; /* Ensure padding doesn't affect width */
+}
+.company-name-App , .mission-title , .vision-title{
+  font-size: 12vh;
+
+}
+.description-App , .mission-statement , .vision-statement{
+  text-align: left;
+  font-size: 3vh;
 }

@@ -12,6 +12,8 @@ body {
     font-family: 'Arial, sans-serif';
     height: calc(100vh - 40px); /* Set height considering padding; adjust as necessary */
     overflow-y: auto; /* Enable vertical scrolling if content overflows */
+    
+    min-width: 900px;
 }
 
 /* Header Styling */
@@ -19,6 +21,7 @@ body {
     text-align: center;
     margin-bottom: 20px;
     color: white; /* Make sure header text is visible against the blue background */
+    width: 80vw;
 }
 
 h1 {
@@ -30,30 +33,37 @@ h1 {
     width: 100%;
     border-collapse: collapse;
     margin: 0 auto;
+    border-radius: 4px;
+    
+    
 }
 
 .user-table th, .user-table td {
-    border: 1px solid #ddd;
+    border: 2px solid hsl(0, 0%, 0%);
     padding: 8px;
-    text-align: left;
-    color: white; /* Ensure text color is white to contrast with the blue background */
+    align-items: center;
+    text-align: center;
+    color: rgb(0, 0, 0); /* Ensure text color is white to contrast with the blue background */
+    font-family: 'Mulish';
+    font-weight: bolder
+    
 }
 
 .user-table th {
-    background-color: #005f99; /* Darker blue for headers */
-    color: white;
+    background-color: whitesmoke; /* Darker blue for headers */
+    color: rgb(0, 0, 0);
 }
 
 .user-table tr {
-    background-color: #0077C8; /* Base blue color for rows */
+    background-color: whitesmoke;  /* Base blue color for rows */
 }
 
 .user-table tr:nth-child(even) {
-    background-color: #006bb3; /* Slightly darker blue for even rows */
+    background-color: whitesmoke; /* Slightly darker blue for even rows */
 }
 
 .user-table tr:hover {
-    background-color: #005f99; /* Hover color, should contrast with the base color */
+    background-color: whitesmoke;  /* Hover color, should contrast with the base color */
     color: white; /* Ensure text color remains white on hover */
 }
 
@@ -63,8 +73,9 @@ button {
     margin: 10px 0;
     background-color: #005f99; /* Button color matching the header */
     color: white;
-    border: none;
     cursor: pointer;
+    font-family: 'Mulish';
+    border-radius: 4px;
 }
 
 button:hover {
@@ -109,20 +120,22 @@ button:hover {
 .profile-picture {
     position: absolute;
     top: 20px;
-    right: 20px;
+    right: 10px;
 }
 
 .profile-picture img {
     width: 100px; /* Fixed width for the image */
     height: 100px; /* Fixed height for the image */
-    border-radius: 50%;
+    border-radius: 40%;
     object-fit: cover;
     background-color: #E0E0E0; /* Placeholder background color if no image */
+    margin-right: 40px;
 }
 
 .profile-info {
     padding-right: 140px; /* Add some padding to avoid overlap with the image */
     overflow-y: auto;
+    max-height: 600px;
 }
 
 .profile-info p {
@@ -214,4 +227,65 @@ button:hover {
 
 .profile-actions button:hover {
     background-color: #004d80; /* Darker shade for hover */
+}
+
+
+.login-form{
+    margin-top: 30vh;
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center elements horizontally */
+    justify-content: space-between; /* Space elements evenly */
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: white;
+    border-radius: 10px;
+}
+.admin-logo{
+    height: 10vh;
+    margin-bottom: 80px;
+}
+
+
+.accept , .reject , .close{
+    margin-right: 5px;
+    min-width: 75px;
+}
+.accept:hover{
+    background-color: rgb(35, 167, 35);
+
+}
+.reject:hover{
+    background-color: red;
+
+}
+.admin-Log{
+    font-size: 50px;
+}
+.username , .password , .admin-login-button{
+    font-size: 30px;
+    font-family: 'Mulish';
+
+
+    
+}
+button{
+    border: none 
+}
+.admin-header{
+    display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 30px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
+  border: solid 2px black;
+  border-radius: 8px;
+  
+
+}
+.employee-table , .employer-table{
+    border-radius: 8px;
+
 }

@@ -34,6 +34,8 @@
   .notification-type {
     font-size: 12px;
     color: #888;
+    font-family: 'Mulish';
+    margin-top: 10px;
   }
   
   .mark-as-read-button {
@@ -43,6 +45,7 @@
     padding: 5px 10px;
     cursor: pointer;
     border-radius: 5px;
+    font-family: 'Mulish';
   }
   
   .mark-as-read-button:hover {

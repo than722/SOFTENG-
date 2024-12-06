@@ -2,8 +2,9 @@
 .main-content {
     margin-top: 0px; /* Adjust to match the height of your header */
     box-sizing: border-box;
-    background-color: #0047ab; /* Matches your blue background */
-    min-height: 90vh    ; /* Ensures the content fills the screen */
+    background-color: hsl(0, 0%, 100%); /* Matches your blue background */
+    min-height: 60vh    ; /* Ensures the content fills the screen */
+    border-radius: 8px;
 }
 
 /* Existing styles for Add Job Posting */
@@ -11,6 +12,7 @@
     background-color: #ffffff;
     border-radius: 8px;
     padding: 10px;
+    min-height: 60vh;
     min-width: 300px;
     margin: 0 auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);

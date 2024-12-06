@@ -23,7 +23,7 @@ const Home = ({ openSelectionModal, openSignInModal }) => {
       </header>
 
       {/* Main Content */}
-      <main className="content-App">
+      <main className="content-App" id='about'>
         <div className="text-section-App">
           <h1 className="company-name-App">MMML</h1>
           <h2 className="tagline-App">Recruitment Services Corporated</h2>
@@ -33,9 +33,22 @@ const Home = ({ openSelectionModal, openSignInModal }) => {
             having recognition from the POEA, OWWA, and DOLE. The corporation specializes in marketing and HR training with a goal of
             employer and client satisfaction, aiming for improved local employment rate and awards for exceptional services.
           </p>
-          <button className="sign-up-App" onClick={openSelectionModal}>SIGN UP</button>
         </div>
       </main>
+      <div className='second-panel' id='vision'>
+        <div className='VISION'>
+          <h1 className='vision-title'>VISION</h1>
+          <p className='vision-statement'>MMML Recruitment Services, Inc. envisions becoming the premier global recruitment agency that champions the potential of Filipino workers by connecting them to meaningful, life-changing employment opportunities abroad. We aspire to be recognized worldwide for our commitment to excellence, ethical recruitment practices, and unwavering dedication to the welfare of both our clients and workers. Through our efforts, we aim to uplift the standard of Filipino talent in the global workforce, ensuring they are valued for their skills, resilience, and professionalism. By fostering strong international partnerships and continually innovating our services, we seek to contribute to the long-term economic growth of the Philippines, empower Filipino families, and inspire future generations to dream and achieve beyond borders. Our ultimate goal is to become a symbol of trust and opportunity, creating a future where every Filipino worker is given the platform to excel and thrive in the global arena.</p>
+
+        </div>
+      </div>
+      <div className='third-panel' id='mission'>
+        <div className='MISSION'>
+          <h1 className='mission-title'>MISSION</h1>
+          <p className='mission-statement'>Our mission is to empower Filipino workers by offering world-class recruitment services that connect them to dignified and rewarding employment abroad, enhancing their skills and improving their quality of life. We are committed to upholding the highest standards of integrity, transparency, and ethical practices throughout the recruitment process. By actively contributing to the reduction of unemployment in the Philippines, we support national development and foster a globally competitive workforce. Through strong partnerships with international employers and a dedication to excellence, we aim to ensure mutual satisfaction for both employers and employees, while positively impacting the families and communities of Filipino workers.</p>
+
+        </div>
+      </div>
     </div>
   );
 };

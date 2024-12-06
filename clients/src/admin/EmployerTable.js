@@ -3,7 +3,7 @@ import './Admin.css';
 
 const EmployerTable = ({ employers, viewProfile }) => {
   return (
-    <div>
+    <div className='employer-table'>
       <h2>Employers</h2>
       <table className="user-table">
         <thead>

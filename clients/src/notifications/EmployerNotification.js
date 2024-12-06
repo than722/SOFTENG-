@@ -90,12 +90,12 @@ const EmployerNotification = () => {
                   onClick={() => handleNotificationClick(notification.jobId)} // Pass jobId instead of applicationId
                   style={{ cursor: 'pointer' }}
                 >
-                  <p>{notification.message}</p>
+                  <p className='notif-message'>{notification.message}</p>
                   <p>
-                    <small>Applied on: {notification.applyDate}</small>
+                    <small className='applied-on'>Applied on: {notification.applyDate}</small>
                   </p>
                   {!notification.read && (
-                    <button
+                    <button className='mark-as-read'
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent triggering onClick for the notification
                         markAsRead(notification.applicationId); // Changed to applicationId

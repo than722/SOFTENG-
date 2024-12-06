@@ -41,4 +41,9 @@
   .reject-button:hover {
     background-color: #e0312f;
   }
+  .no-withdrawal-found , .loading-withdrawal-requests {
+    font-size: 20px;
+    font-family: 'Mulish';
+    font-weight: bolder;
   
+  }

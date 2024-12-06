@@ -468,9 +468,9 @@ const handleAcceptUser = async () => {
 
         </div>
         <div className="modal-buttons">
-          <button onClick={handleAcceptUser}>Accept</button>
-          <button onClick={rejectUser}>Reject</button>
-          <button onClick={closeModal}>Close</button>
+          <button className='accept' onClick={handleAcceptUser}>Accept</button>
+          <button className='reject' onClick={rejectUser}>Reject</button>
+          <button className='close' onClick={closeModal}>Close</button>
         </div>
       </div>
     </div>

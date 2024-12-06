@@ -50,14 +50,14 @@ const AdminWithdrawalRequests = () => {
   };
   
 
-  if (loading) return <div>Loading withdrawal requests...</div>;
+  if (loading) return <div className='loading-withdrawal-requests'>Loading withdrawal requests...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <div className="admin-withdrawal-requests">
       <h1>Withdrawal Requests</h1>
       {requests.length === 0 ? (
-        <p>No withdrawal requests found.</p>
+        <p className='no-withdrawal-found'>No withdrawal requests found.</p>
       ) : (
         <table className="withdrawal-requests-table">
           <thead>

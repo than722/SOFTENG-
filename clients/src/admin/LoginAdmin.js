@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Admin.css';
+import logo from '../assets/images/MMMLCropped.png';
 
 const LoginAdmin = ({ setIsLoggedIn }) => {
   const [username, setUsername] = useState('');
@@ -28,22 +29,23 @@ const LoginAdmin = ({ setIsLoggedIn }) => {
 
   return (
     <div className="login-form">
-      <h2>Admin Login</h2>
-      <input
+      <img src={logo} alt="Logo" className="admin-logo" />
+      <h2 className='admin-Log'>Admin Login</h2>
+      <input className='username'
         type="text"
         placeholder="Username"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         aria-label="Username"
       />
-      <input
+      <input className='password'
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         aria-label="Password"
       />
-      <button onClick={handleLogin}>Login</button>
+      <button className='admin-login-button' onClick={handleLogin}>Login</button>
       {error && <p className="error">{error}</p>}
     </div>
   );

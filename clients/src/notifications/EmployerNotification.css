@@ -1,3 +1,15 @@
+/* General layout styles */
+@font-face {
+  font-family: 'Mulish';
+  src: url('../assets/fonts/Mulish/static/Mulish-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('../assets/fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+}
+
+
 .employer-notification-container {
     padding: 20px;
   }
@@ -27,4 +39,11 @@
     padding: 5px 10px;
     cursor: pointer;
   }
-  
+.mark-as-read{
+  border-radius: 4px;
+  margin-top: 10px;
+  font-family: 'Mulish';
+}
+.notif-message , .applied-on {
+  font-family:'Mulish';
+}

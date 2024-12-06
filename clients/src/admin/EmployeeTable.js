@@ -4,7 +4,7 @@ import './Admin.css';
 
 const EmployeeTable = ({ employees, viewProfile }) => {
   return (
-    <div>
+    <div className='employee-table'>
       <h2>Employees</h2>
       <table className="user-table">
         <thead>

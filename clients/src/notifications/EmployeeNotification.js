@@ -74,7 +74,7 @@ const EmployeeNotification = () => {
           {notifications.map((notification) => (
             <li key={notification.id} className="notification-employee-item">
               <div className="notification-message">
-                <p>{notification.message}</p>
+                <p className='notif-message'>{notification.message}</p>
                 <span className="notification-type">
                   {notification.type === 'hire'
                     ? 'Hiring Update'
